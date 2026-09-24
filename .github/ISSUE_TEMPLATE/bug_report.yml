@@ -1,0 +1,35 @@
+name: Hata bildirimi
+description: Tekrarlanabilir bir sorun bildirin.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 'Token, kesin kişisel koordinat, ham API yanıtı veya özel konuşma dökümü paylaşmayın. Örnekleri anonimleştirin; mümkünse sentetik veri kullanın.'
+  - type: input
+    id: version
+    attributes:
+      label: Sürüm veya commit
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Çalışma ortamı
+      description: İşletim sistemi, Node.js sürümü, MCP istemcisi ve offline/live modu.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Tekrarlama adımları
+      description: Kullanılan araç, anonimleştirilmiş girdi ve sorunu oluşturan adımlar.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Beklenen ve gerçekleşen sonuç
+      description: Varsa hata kodunu ve güvenli bir özeti ekleyin.
+    validations:
+      required: true

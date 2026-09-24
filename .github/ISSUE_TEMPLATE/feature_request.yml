@@ -1,0 +1,23 @@
+name: Özellik isteği
+description: Çözülmesini istediğiniz ihtiyacı anlatın.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: İhtiyaç
+      description: Hangi işi yapmaya çalışıyorsunuz, mevcut davranış nerede yetersiz kalıyor? Özel bilgi paylaşmayın.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Beklenen sonuç
+      description: Özellik tamamlandığında hangi somut davranış mümkün olmalı?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Denenen alternatifler
+      description: Varsa mevcut araçlarla denediğiniz yaklaşımı anlatın.

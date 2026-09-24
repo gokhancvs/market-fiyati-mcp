@@ -18,6 +18,7 @@
     "format:check": "prettier . --check",
     "lint": "eslint --ext .ts,.mjs src tests scripts --quiet",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "release:check": "node scripts/check-release.mjs",
     "start": "node dist/src/index.js",
     "test": "npm run build && node --import ./tests/no-network.mjs --test tests/*.test.mjs dist/tests/*.test.js",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test"

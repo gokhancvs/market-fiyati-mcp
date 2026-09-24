@@ -341,6 +341,7 @@ bu kayıtları da silebilir. Paylaşılabilir doğrulama kapsamı aşağıdaki b
 - [Ajan kuralları](AGENTS.md)
 - [Canlı test rehberi](docs/live-testing.md)
 - [Doğrulama](docs/verification.md)
+- [Sürüm hazırlama ve iş takibi](docs/releasing.md)
 
 Sunucu resmi Market Fiyatı ürünü değildir. Satın alma/sipariş işlemi ve barkodla
 sorgulama desteklenmez. Uzak API değişiklikleri sözleşme güncellemesi gerektirebilir.
