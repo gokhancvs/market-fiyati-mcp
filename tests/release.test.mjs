@@ -1,12 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
+import yaml from 'js-yaml';
 
 const script = fileURLToPath(new URL('../scripts/check-release.mjs', import.meta.url));
+const workflow = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
+
+test('release workflow publishes verified tags directly', () => {
+  const parsed = yaml.load(readFileSync(workflow, 'utf8'));
+  assert.equal(parsed.jobs.publish.needs, 'verify');
+  const command = parsed.jobs.publish.steps.find((step) => step.name === 'Publish verified release').run;
+  assert.match(command, /gh release create "\$RELEASE_TAG" --verify-tag/);
+  assert.doesNotMatch(command, /--draft/);
+});
 
 function check({
   tag = 'v1.0.0',

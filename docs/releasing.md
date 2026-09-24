@@ -18,7 +18,7 @@ Yayımlanan tag taşınmaz; değişiklik yeni sürüm alır.
 
 **Beklenen:** Kontroller geçer; sürüm alanları ve notları aynı sürümü gösterir.
 
-## 2. Tag ve taslak release
+## 2. Tag ve GitHub release
 
 Aşağıdaki `1.0.1` örneğini hedef sürümle değiştirin:
 
@@ -29,19 +29,19 @@ git push origin v1.0.1
 gh workflow run release.yml --ref main -f tag=v1.0.1
 ```
 
-GitHub arayüzü: **Actions → Draft release → Run workflow**, dal `main`, tag `v1.0.1`.
+GitHub arayüzü: **Actions → Publish release → Run workflow**, dal `main`, tag `v1.0.1`.
 Yerel RTK kuralı varsa komutların başına `rtk` ekleyin.
 
 - Tag, workflow'un test ettiği commit ile **birebir aynı** olmalıdır. Arada `main`'e yeni commit göndermeyin.
-- Workflow yalnız `main`'de çalışır; bütün kontroller geçince **taslak** oluşturur.
+- Workflow yalnız `main`'de çalışır; bütün kontroller geçince release'i doğrudan yayımlar.
 - Mevcut release/tag değiştirilmez; aynı sürümü yeniden oluşturmak hatadır.
-- Taslağı inceleyip **Publish release** ile yayımlayın. Otomasyon kendiliğinden yayımlamaz.
+- Workflow'u çalıştırmadan önce hedef tag'i ve sürüm notlarını doğrulayın; başarılı çalışma hemen yayımlar.
 - Kararlı sürüm pre-release değildir. GitHub ZIP/TAR kaynak arşividir; derlenmiş npm paketi değildir.
 
 ## 3. npm arşivini doğrulayın
 
 Paket adı `market-fiyati-mcp`. npm'den kaldırılan `1.0.0` tekrar kullanılamaz;
-bu deponun npm hazırlığı `1.0.1` ile başlar. GitHub taslağı npm yayını başlatmaz.
+bu deponun npm hazırlığı `1.0.1` ile başlar. GitHub release'i npm yayını başlatmaz.
 
 1. `npm pack` çalıştırın. `prepack` derlemeyi yeniler; arşiv yalnız çalışma JavaScript'i,
    seçili belgeler ve npm'in zorunlu dosyalarını içerir. Test/yerel arşiv/geliştirme betikleri dışarıda kalır.
