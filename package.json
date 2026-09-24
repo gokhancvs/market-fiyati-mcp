@@ -1,7 +1,6 @@
 {
   "name": "market-fiyati-mcp",
-  "version": "1.0.0",
-  "private": true,
+  "version": "1.0.1",
   "license": "MIT",
   "author": "Gökhan Çavuş",
   "description": "Market Fiyati MCP server for product search, prices and shopping comparisons",
@@ -21,7 +20,8 @@
     "release:check": "node scripts/check-release.mjs",
     "start": "node dist/src/index.js",
     "test": "npm run build && node --import ./tests/no-network.mjs --test tests/*.test.mjs dist/tests/*.test.js",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
@@ -37,5 +37,23 @@
     "eslint-plugin-import": "2.32.0",
     "prettier": "3.9.5",
     "typescript": "5.9.3"
+  },
+  "files": [
+    "dist/src/**/*.js",
+    "docs",
+    "examples/mcp-config.json",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gokhancvs/market-fiyati-mcp.git"
+  },
+  "homepage": "https://github.com/gokhancvs/market-fiyati-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/gokhancvs/market-fiyati-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

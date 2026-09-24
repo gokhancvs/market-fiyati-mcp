@@ -6,14 +6,23 @@ En yeni kayıt üsttedir; henüz bir sürüm tag'ine dâhil olmayan değişiklik
 
 ## Yayımlanmamış
 
-### Değişenler
+Henüz değişiklik yok.
 
-- README, üç adımlı kurulum ve bağlantı akışı, tahmini süreler ve başarı işaretleriyle yeniden düzenlendi.
-- Araç seçimi ve sonuçları yorumlama özeti öne alındı; teknik ayrıntılar, kullanım izinleri ve lisans dört açılır bölümde korundu.
+## 1.0.1 — 2026-09-24
+
+Bu kayıt npm dağıtımı için hazırlanan sürümü açıklar; npm yayınının gerçekleştiğini göstermez.
 
 ### Eklenenler
 
 - Sürüm değişikliklerini izlemek için bu değişiklik günlüğü eklendi.
+- `1.0.1` için npm yayın hazırlığı: seçili dosyalardan paketleme, paketlemeden önce derleme ve npm depo bilgileri.
+- Dağıtım arşivinin geliştirme dosyalarını dışladığını ve offline MCP olarak çalıştığını doğrulayan paket testi.
+- Sürümü sabitlenmiş `npx` bağlantı örneği ve arşiv üzerinden elle yayınlama adımları.
+
+### Değişenler
+
+- README, üç adımlı kurulum ve bağlantı akışı, tahmini süreler ve başarı işaretleriyle yeniden düzenlendi.
+- Araç seçimi ve sonuçları yorumlama özeti öne alındı; teknik ayrıntılar, kullanım izinleri ve lisans dört açılır bölümde korundu.
 
 ## 1.0.0 — 2026-09-24
 

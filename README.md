@@ -8,6 +8,29 @@ için TypeScript stdio MCP sunucusu. **15 araç, 3 kaynak, 3 istem şablonu** i�
 **Başlangıç durumu:** `offline`. Market Fiyatı API'sine istek gönderilmez.
 Bağlantıyı kurabilirsiniz; gerçek ürün ve fiyat sorguları bu modda engellenir.
 
+## npm ile bağlanın · yayın sonrası yaklaşık 1 dakika
+
+`1.0.1` npm'de yayımlandıktan sonra Node.js 22 veya üzeriyle aşağıdaki MCP
+istemci yapılandırmasını kullanabilirsiniz. Depoyu klonlamanız veya derlemeniz gerekmez.
+
+```json
+{
+  "mcpServers": {
+    "market-fiyati": {
+      "command": "npx",
+      "args": ["-y", "market-fiyati-mcp@1.0.1"],
+      "env": { "MARKET_FIYATI_MODE": "offline" }
+    }
+  }
+}
+```
+
+`npx` paketi ve bağımlılıklarını npm'den indirebilir. Market Fiyatı API'sine erişim
+`offline` modunda kapalıdır. **Başarı işareti:** İstemcide `market_status` yanıtı
+`offline` gösterir. GUI uygulaması `npx` bulamazsa `command` alanına mutlak yolunu yazın.
+
+Kaynak kodla çalışmak veya henüz yayımlanmamış değişiklikleri denemek için aşağıdaki üç adımı izleyin.
+
 ## 1. Kurun · yaklaşık 2–5 dakika
 
 **Gereken:** Node.js 22 veya üzeri. Süre internet bağlantısına ve bilgisayara göre değişir.
@@ -398,12 +421,12 @@ sayılır; temiz klonda bulunmaz ve kurulum/test için gerekli değildir. Yerel
 arşivleri ayrıca yedekleyin; yok sayılan dosyaları silen temizlik komutları
 bu kayıtları da silebilir. Paylaşılabilir doğrulama kapsamı aşağıdaki belgede yer alır.
 
-| İhtiyaç                           | Belge                                                                          |
-| --------------------------------- | ------------------------------------------------------------------------------ |
-| API sözleşmesi ve sistem yapısı   | [API](docs/api.md) · [Mimari](docs/architecture.md)                            |
-| Geliştirme kuralları              | [Ajan kuralları](AGENTS.md)                                                    |
-| Test kapsamı ve canlı test süreci | [Doğrulama](docs/verification.md) · [Canlı test rehberi](docs/live-testing.md) |
-| Sürüm hazırlama ve değişiklikler  | [Sürüm hazırlama](docs/releasing.md) · [Değişiklik günlüğü](CHANGELOG.md)      |
+| İhtiyaç                           | Belge                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------ |
+| API sözleşmesi ve sistem yapısı   | [API](docs/api.md) · [Mimari](docs/architecture.md)                                  |
+| Geliştirme kuralları              | [Ajan kuralları](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/AGENTS.md) |
+| Test kapsamı ve canlı test süreci | [Doğrulama](docs/verification.md) · [Canlı test rehberi](docs/live-testing.md)       |
+| Sürüm hazırlama ve değişiklikler  | [Sürüm hazırlama](docs/releasing.md) · [Değişiklik günlüğü](CHANGELOG.md)            |
 
 Sunucu resmi Market Fiyatı ürünü değildir. Satın alma/sipariş işlemi ve barkodla
 sorgulama desteklenmez. Uzak API değişiklikleri sözleşme güncellemesi gerektirebilir.

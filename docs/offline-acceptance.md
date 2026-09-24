@@ -1,5 +1,7 @@
 # MCP istemcisiyle çevrimdışı sentetik kabul
 
+Bu rehber kaynak depo klonu içindir; npm paketi geliştirme ve test dosyalarını içermez.
+
 Bu kit yalnız sentetik veriyi MCP istemcisinde yorumlama ve Stop/kapatma davranışını gözlemlemek içindir. Gerçek fiyat, stok, kampanya, yürüyüş rotası veya uzak API doğrulaması sağlamaz. Üretim MCP'sinin adı `market-fiyati`; aşağıdaki ayrı sunucuyu `market-fiyati-synthetic-acceptance` adıyla tanımlayın. Üretim sunucusunun veri araçlarını bu kabul sırasında çağırmayın.
 
 Proje kökünde `MARKET_FIYATI_MODE=offline npm run build` çalıştırın. İstemci dışında doğrudan denemek için komut `MARKET_FIYATI_MODE=offline node tests/fixtures/acceptance-server.mjs` olur; stdout yalnız JSON-RPC içindir, terminale bir başlangıç başlığı yazmaz. Node.js 22 veya üstü gerekir.

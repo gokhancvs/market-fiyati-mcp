@@ -1,5 +1,7 @@
 # Sürüm hazırlama
 
+Bu rehber kaynak depo klonu içindir; npm paketi geliştirme ve test dosyalarını içermez.
+
 Tek geliştirme dalı `main`'dir. Sürümler `v1.0.0` biçimindeki Git tag'leri ve
 GitHub Releases ile izlenir; tag yeni bir dal oluşturmaz. Hata düzeltmelerinde
 patch, geriye uyumlu özelliklerde minor, uyumsuz sözleşme değişikliklerinde major
@@ -39,7 +41,33 @@ hata verir. Workflow yalnız `main` üzerinden çalışır.
 Taslağı GitHub Releases sayfasından gözden geçirip **Publish release** ile
 yayımlayın. Otomasyon kendiliğinden yayımlamaz. Kararlı sürümlerde pre-release
 seçeneği kapalı olmalıdır. GitHub kaynak ZIP/TAR arşivlerini sağlar; bunlar hazır
-derlenmiş paket değildir. `private: true` npm yayımını engellemeye devam eder.
+derlenmiş paket değildir. npm yayını aşağıdaki ayrı adımlarla yapılır; GitHub taslağı oluşturmak npm yayını başlatmaz.
+
+## npm paketini hazırlama ve yayımlama
+
+Paket adı `market-fiyati-mcp` olarak kalır. npm'de kaldırılmış bir sürüm numarası
+tekrar kullanılamaz. İlk npm kaydındaki `1.0.0` kaldırıldığı için bu deponun npm
+hazırlığı `1.0.1` ile başlar. Önceki Git tag'ini taşımayın.
+
+1. Sürümü `package.json`, lockfile ve MCP sunucu kimliğinde eşitleyin; README'deki
+   sabit sürümlü `npx` örneğini ve CHANGELOG'u güncelleyin. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
+2. `npm pack` ile dağıtım arşivini üretin. `prepack` derlemeyi yeniler. Pakette
+   yalnız çalışma JavaScript dosyaları, seçili belgeler ve npm'in zorunlu dosyaları bulunur;
+   testler, yerel arşivler ve geliştirme betikleri bulunmaz.
+3. Arşivi ayrı bir dizinde `npm install /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --ignore-scripts`
+   ile kurun. Kurulum npm bağımlılıklarını indirebilir; doğrulamayı `offline` modunda yapın.
+   CLI `--help`, MCP bağlantısı ve `market_status` sonucunu kontrol edin.
+4. Test edilen kaynak commit'ini ve sürüm tag'ini önceki bölümdeki süreçle kaydedin.
+   `npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --dry-run --access public` ile
+   incelenen arşivi kontrol edin. Dry-run hesap yetkisini veya sürüm uygunluğunu kanıtlamaz.
+5. npm oturumunda aynı arşivi `npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --access public`
+   ile yayımlayın; npm'in istediği hesap doğrulamasını tamamlayın. Ardından
+   `npm view market-fiyati-mcp@1.0.1 version dist.integrity` ile yayını doğrulayın.
+
+Örnek sürümü her yayında güncelleyin. Yayımlama geri alınsa bile aynı ad/sürüm
+çifti yeniden kullanılamaz. Token veya tek kullanımlık kodları depoya kaydetmeyin.
+Paket testi arşivi geçici dizinde açarak `--help`, stdio bağlantısı ve offline
+status yanıtını kontrol eder; test sırasında bağımlılık indirmez.
 
 ## Bakım ve iş takibi
 
