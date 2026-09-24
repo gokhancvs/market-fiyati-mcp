@@ -1,19 +1,14 @@
 # API sözleşmesi
 
-Bu belge bağımsız MCP uygulamasının teknik sözleşmesini açıklar; sağlayıcının
-resmî geliştirici dokümantasyonu veya API kullanım izni değildir.
-[Amaç ve kullanım izinleri](../README.md#amaç-ve-kullanım-izinleri) ayrıca geçerlidir.
-
-Sunucu yalnız sabit API kökenlerine erişir:
-`https://api.marketfiyati.org.tr` ve
-`https://harita.marketfiyati.org.tr/Service/api/v1`.
-Canlı doğrulama kapsamı [doğrulama notlarında](verification.md) yer alır.
-Deneysel uçlar ayrı ortam ayarı gerektirir; normal uçlar için de uzak davranış
-garantisi verilmez.
+**Çağrınıza ait bölümü açın; filtre ve kimlik değerlerini API yanıtından alın.**
+Bu, bağımsız MCP uygulamasının sözleşmesidir; sağlayıcının resmî belgesi veya kullanım izni değildir.
+[İzinler](../README.md#amaç-ve-kullanım-izinleri) · [Doğrulama sınırı](verification.md).
 
 ## Endpoint'ler
 
-Katalog 12 uzak endpoint içerir; bunların 6 tanesi deneyseldir.
+Sabit kökenler: `https://api.marketfiyati.org.tr` ve `https://harita.marketfiyati.org.tr/Service/api/v1`.
+Katalog: **12 endpoint, 6 deneysel**. `market://endpoints` okumak ağ isteği yapmaz.
+Deneysel erişim ortam ayarı gerektirir; hiçbir uç için uzak davranış garantisi değildir.
 
 | Method / path                          | İşlev                              | Deneysel |
 | -------------------------------------- | ---------------------------------- | -------- |
@@ -30,100 +25,130 @@ Katalog 12 uzak endpoint içerir; bunların 6 tanesi deneyseldir.
 | GET `/AutoSuggestion/Search?words=...` | Adres önerileri (harita kökeni)    | Evet     |
 | GET `/ReverseGeocode?Lat=...&Lon=...`  | Koordinattan adres (harita kökeni) | Evet     |
 
-`/api/v1/store`, `/api/v1/generate` ve barkod identityType desteklenmez.
-Harita tile'ları veri aracı değildir. Endpoint kataloğu `market://endpoints`
-kaynağından okunabilir; okuma ağ isteği üretmez.
+`/api/v1/store`, `/api/v1/generate`, barkod `identityType` ve harita tile veri aracı desteklenmez.
+
+### MCP araç adları
+
+| Grup          | Araçlar                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Keşif         | `market_status`, `market_get_categories`, `market_list_markets`, `market_find_nearby_depots`                                            |
+| Ürün          | `market_search_products`, `market_search_by_category`, `market_get_product`, `market_find_similar_products`, `market_find_alternatives` |
+| Geçmiş/toplu  | `market_get_price_history`, `market_sync_products`                                                                                      |
+| Konum         | `market_geocode_address`, `market_reverse_geocode`                                                                                      |
+| Karşılaştırma | `market_compare_product_offers`, `market_compare_basket`                                                                                |
+
+Kaynaklar: `market://guide`, `market://endpoints`, `market://status`.
+İstemler: `compare_shopping_list`, `find_best_product_price`, `analyze_price_history`.
 
 ## Bağlam
 
-Upstream seçilmemiş bir şubeden teklif döndürürse teklif verisi korunur ve
-`warnings` kapsam dışı şubeler için açık uyarı taşır. Böyle bir yanıttaki tüm
-tekliflerin istenen kapsam içinde olduğu iddia edilmemelidir.
-Ürün/sepet karşılaştırmalarının sıralaması, `offers`, `unavailableOffers`, grupları
-ve `splitBasket` hesapları yalnız çağrıdaki `depots` kümesini kullanır. Dış teklifler
-`data.outOfScopeOffers=[{productId,offer}]` içinde ham alanları ve harita bağlantılarıyla
-korunur; fiyat veya toplam hesabına girmez. Hiç seçili teklif yoksa en ucuz fiyat ve
-tam sepet toplamı null olur. Bu dış teklifler de değerlendirme referansları taşır.
+Her ürün çağrısı `latitude`, `longitude`, `distance` (**km**) ve boş olmayan `depots` alır.
+Şube kimliği zincir anahtarı + şube ID'sinden oluşan opak string'dir.
 
-Ürün istekleri `latitude`, `longitude`, `distance` (km) ve `depots` alır. Şube
-kimlikleri zincir anahtarı ve şube ID'sinden oluşan opak string'lerdir. MCP kullanıcı
-konumunu veya şubeleri hatırlamaz; AI bunları her çağrıda verir. Konum/yarıçap
-değişmediyse AI elindeki şube listesini tekrar kullanabilir. Şubeler henüz bilinmiyorsa
-yakın şube aracıyla alınır; kullanıcının elle seçim yapması gerekmez. Araçlar konumu
-tahmin etmez, verilen kapsamı kendiliğinden genişletmez.
+1. Verilmiş konum/yarıçap ve ona ait şubeleri kullanın; değişmediyse AI önceki listeyi kullanabilir.
+2. Şubeler eksikse yakın şube aracını bir kez çağırın. Elle seçim isteğe bağlıdır.
+3. Bağlamı her çağrıya ekleyin. Sunucu konumu hatırlamaz, tahmin etmez veya kapsamı genişletmez.
 
-Yerel sınırlar: 50 km yarıçap, sayfada 100 sonuç, 500 seçili şube, sepette en fazla
-5 ürün ve retry dâhil 5 HTTP denemesi, ürün başına 50 paket. Retry arttığında etkin
-ürün sınırı düşer; `market_status.limits` kaynak alınır. Bunlar backend sınırı
-veya ban güvenliği iddiası değildir. HTTP istekleri yalnız
-Accept ve gerekirse Content-Type header'larını kullanır; yönlendirmeler engellenir.
+| Yerel sınır           | Değer                                        |
+| --------------------- | -------------------------------------------- |
+| Yarıçap / seçili şube | 50 km / 500                                  |
+| Sayfa boyutu          | Varsayılan 25, en fazla 100                  |
+| Sepet                 | En fazla 5 ürün, retry dâhil 5 HTTP denemesi |
+| Miktar                | Ürün başına 50 paket                         |
+
+Bunlar backend kotası veya ban güvenliği garantisi değildir. Etkin sınırları `market_status.limits` verir.
+HTTP yalnız Accept ve gerektiğinde Content-Type gönderir; yönlendirmeler engellenir.
+
+**Kapsam dışı teklif korunur.** Ham ürün yanıtları daraltılmaz; `warnings` kapsam dışını açıklar.
+Türetilmiş sıralama, `offers`, `unavailableOffers`, gruplar ve `splitBasket` yalnız seçili `depots` içindir.
+Dış teklifler `data.outOfScopeOffers=[{productId,offer}]` içinde ham alan, harita ve değerlendirme
+referanslarıyla kalır; hesaplara girmez. Seçili teklif yoksa en ucuz fiyat/tam sepet toplamı null'dır.
 
 ## Kategori ve arama
 
-429/502/503/504 yanıtlarındaki geçerli `Retry-After` aynı köken için bekleme
-durumu oluşturur. Retry bütçesi bitse de kuyruktaki çağrılar süre dolmadan
-gönderilmez; kalan `retryAfterMs` ile hata döner. API ve harita kökenlerinin
-bekleme süreleri ayrıdır. Süre dolunca normal istek yapılabilir.
+### Filtreyi kurun
 
-Kategori yanıtı `{content:[{id,parentId,name,children:[]}]}`. ID number,
-parentId number/null; ağaç recursive'dir. Yerel `query` Türkçe harf kurallarıyla
-filtreler, `parentId` o düğümün çocuklarını seçer, `flat` düzleştirir. Ek alanlar korunur.
+| İşlem                 | Girdi / davranış                                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Kategori ağacı        | `{content:[{id,parentId,name,children:[]}]}`; ID number, parentId number/null, özyinelemeli ağaç; ek alanlar korunur |
+| Yerel kategori seçimi | `query` Türkçe harf kurallarıyla filtreler; `parentId` düğümün çocuklarını seçer; `flat` düzleştirir                 |
+| Metin araması         | `{keywords,pages,size,...filters,...context}`                                                                        |
+| Kategori araması      | `menu_category`, `main_category`, `sub_category` alanlarından en az biri; Türkçe isim dizileri, ID/slug değil        |
+| Diğer filtreler       | `market_names`, `brand`, `refined_quantity_unit`, `refined_volume_weight`, `offer_price`, `offer_discount`           |
 
-Metin araması `{keywords,pages,size,...filters,...context}`; kategori araması
-`menu_category`, `main_category` veya `sub_category` alanlarından en az birini
-ister. Üç seviye Türkçe isim dizileridir; ID/slug yerine isim kullanılır.
-Sayfalama sıfırdan başlar. Varsayılan sayfa boyutu 25'tir; otomatik sayfa döngüsü yoktur.
-Yerel son sayfa endeksi 10000'dir. Sınırda başka eşleşmeler olabilirse
-`meta.pagination.nextPage:null` ve `PAGINATION_LIMIT_REACHED` döner; bu null
-tam kapsam kanıtı değildir. Boş geç sayfa otomatik sorgu üretmez.
+Filtre değerlerini kategori ağacı/facetMap'ten alın. Yanıt facet'i `offer_market`, istekte `market_names` olur.
+Gramajı metne yazmak kesin filtre değildir. Bilinen filtre ve sıralamayı tek aramada birleştirin:
 
-Diğer filtreler: `market_names`, `brand`, `refined_quantity_unit`,
-`refined_volume_weight`, `offer_price`, `offer_discount`. Dizilerin değerlerini
-API facet'lerinden alın. Yanıt facet'i `offer_market` istek tarafında
-`market_names` olarak gönderilir.
+```json
+{
+  "keywords": "yoğurt",
+  "latitude": 41,
+  "longitude": 29,
+  "distance": 1,
+  "depots": ["bim-example"],
+  "pages": 0,
+  "size": 25,
+  "refined_volume_weight": ["3 KG"],
+  "order": { "name": "offer_unit_price", "type": "asc" }
+}
+```
 
-Fiyat filtresi aralıkları `10-50`, `100-*` veya `100+`; indirim yalnız `["true"]`
-veya alanı atlama şeklindedir. `order={name:"lowest_price"|"offer_unit_price",
-type:"asc"|"desc"}`; varsayılan sıralamada `order` yoktur. UI'ye özgü bir
-`price_range` alanı API'ye gönderilmez.
+Konum/şube örnektir: gerçek konum kullanıcıdan, şube ID'si o konumun API yanıtından gelmelidir.
 
-İndirim filtresi, ürünün `discount` işareti ve referans fiyatı arasında
-garanti edilmiş eşdeğerlik varsayılmaz; MCP ham değerleri korur.
-Filtre kullanımı yanıtın üst `warnings` dizisinde belirsizlik uyarısı üretir;
-filtreye eşleşmek ürünün kendi `discount` alanını geçersiz kılmaz. MCP false
-teklifleri yerel olarak elemez veya indirimli olarak yeniden etiketlemez.
-`discount=false` API'nin teklifi indirimli işaretlemediğini, true işaretlediğini
-belirtir; eksik alan bilinmiyor kalır. Referans fiyat/oran/promosyon metni bu
-boolean'ın yerine geçmez. False ve yüksek referans fiyat birlikte geldiğinde
-otomatik çelişki uyarısı verilmez; fiyat farkından indirim yüzdesi hesaplanmaz.
+- Fiyat aralıkları: `10-50`, `100-*`, `100+`.
+- İndirim filtresi: `["true"]` veya alanı atlama.
+- Sıralama: `order.name=lowest_price|offer_unit_price`, `order.type=asc|desc`; varsayılan için `order` atlanır.
+- UI alanı `price_range` API'ye gönderilmez.
 
-Yanıt: `{numberOfFound,searchResultType,content:[Product],facetMap}`.
-`numberOfFound` toplam eşleşmedir; sayfa veya şube stok sayısı değildir.
-Toplam, dönen ürün sayısından küçükse veya sayfalı uçta dolu sayfanın offset'i
-ile dönen ürün sayısının toplamından küçükse yanıt `INVALID_RESPONSE` olur.
-`facetMap` null olabilir. Sonuç türü 2/3 bulanık arama uyarısı üretir; tür 0'a
-özel semantik atanmaz. Arama metnindeki gramaj kesin filtre sayılmaz.
+### Sayfalama ve eşleşme
+
+Yanıt: `{numberOfFound,searchResultType,content:[Product],facetMap}`. `facetMap` null olabilir.
+
+| Durum                      | Anlam                                                                                               |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `pages=0`                  | İlk sayfa; her çağrı bir sayfa alır, otomatik tarama yok                                            |
+| `meta.pagination.nextPage` | Sonraki çağrılabilir sayfa                                                                          |
+| Son endeks `10000`         | Daha fazla eşleşme olabilirse `nextPage:null` + `PAGINATION_LIMIT_REACHED`; tam kapsam kanıtı değil |
+| `numberOfFound`            | Toplam eşleşme; sayfa veya şube stok sayısı değil                                                   |
+| `searchResultType=2/3`     | Bulanık arama uyarısı; 0'a özel anlam atanmaz                                                       |
+
+Toplam, dönen ürün sayısından veya dolu sayfanın offset'i + ürün sayısından küçükse `INVALID_RESPONSE`.
+Boş geç sayfa otomatik ek sorgu üretmez. Önceki yanıt açıklama için kullanılırsa özgün `retrievedAt` belirtilir.
+
+### İndirim işaretini koruyun
+
+| `discount` | Yorum                                                                                   |
+| ---------- | --------------------------------------------------------------------------------------- |
+| `true`     | API indirimli işaretlemiş; kampanya/üyelik uygunluğu doğrulanmış değil                  |
+| `false`    | API indirimli işaretlememiş; filtre kullanıldı diye teklif elenmez/yeniden etiketlenmez |
+| Eksik      | Bilinmiyor                                                                              |
+
+İndirim filtresi üst `warnings` içinde belirsizlik uyarısı üretir; ürün işaretini geçersiz kılmaz.
+`discountlessPrice` geçmiş satış kanıtı değildir. Referans fiyat/oran/promosyon metni boolean'ın
+yerine geçmez; fiyat farkından indirim yüzdesi üretilmez. False + yüksek referans fiyat otomatik çelişki sayılmaz.
+Kesin şartlar korunur; açıklayıcı tercihler yakın alternatifleri erkenden elememeli.
+Ayrıntılı karar kaynağı `market://guide`'dır.
 
 ## Ürün ve teklifler
 
-Detay: `{identity,identityType:"id",pages:0,size:1,...context}`. Kimlik string'dir,
-baştaki sıfırlar korunur. Benzer ürün: `{id,keywords,pages,size,...context}`;
-keywords için ürün başlığını kullanın. Alternatif araması ek `marketName` alır;
-yalnız bu zincirin `depots` ID'leri kabul edilir. Benzerlik eşdeğerlik değildir.
+| İşlem      | Girdi                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------- |
+| Detay      | `{identity,identityType:"id",pages:0,size:1,...context}`; kimlik string, baştaki sıfırlar korunur |
+| Benzer     | `{id,keywords,pages,size,...context}`; keywords için ürün başlığı                                 |
+| Alternatif | Ek `marketName`; yalnız bu zincirin şube ID'leri                                                  |
 
-Detay (tek ürün/sepet karşılaştırmalarının dahili sorguları dâhil) ve sync
-yanıtlarında beklenmeyen veya yinelenen ürün ID'si
-`INVALID_RESPONSE` üretir; boş yanıt kabul edilir. Sync eksik kimlikleri
-`meta.missingProductIds` içinde bildirir. Bu iki araçta `nextPage` daima null'dır;
-otomatik ikame veya erişilemeyen bir sonraki sayfa önerisi yapılmaz.
+Benzerlik eşdeğerlik değildir. Aramadaki teklifler yeterliyse ek detay çağırmayın;
+eksik bilgi/fiyat yenilemesi gerektiğinde çağırın. Ürün karşılaştırması detayı kendisi alır,
+sepet her ürün için ayrıca detay sorgular; aynı detayı iki kez istemeyin.
 
-Product: `id`, `title`, `productDepotInfoList`; isteğe bağlı `brand`, `imageUrl`,
-`refinedVolumeOrWeight`, `refinedQuantityUnit`, `categories`, `menu_category`,
-`main_category`, `sub_category`. Resim/gramaj eksik olabilir; ek alanlar korunur.
-Teklifin `marketAdi` zincir anahtarı boş veya yalnız whitespace olamaz;
-geçersizse bütün yanıt `INVALID_RESPONSE` olur. Geçerli kaynak değeri trim edilmez.
+Detay (karşılaştırmalar dâhil) ve sync: beklenmeyen/yinelenen ürün ID'si `INVALID_RESPONSE`;
+boş yanıt geçerli. Sync eksik ID'leri `meta.missingProductIds` verir. Bu iki uçta `nextPage` daima null;
+otomatik ikame veya erişilemeyen sayfa önerisi yoktur.
 
-Offer alanları:
+**Product:** `id`, `title`, `productDepotInfoList` zorunlu. İsteğe bağlı alanlar:
+`brand`, `imageUrl`, `refinedVolumeOrWeight`, `refinedQuantityUnit`, `categories`,
+`menu_category`, `main_category`, `sub_category`. Eksik resim/gramaj ve ek alanlar korunur.
+Boş/whitespace `marketAdi` tüm yanıtı geçersiz kılar; geçerli değer trim edilmez.
 
 | Alan                          | Anlam                                                                     |
 | ----------------------------- | ------------------------------------------------------------------------- |
@@ -139,163 +164,163 @@ Offer alanları:
 | discountRatio / promotionText | Nullable indirim oranı / promosyon metni                                  |
 | maps                          | MCP'nin ürettiği `{google,apple,yandex}` HTTPS linkleri veya `null`       |
 
-MCP fiyat farkını kendisi hesaplar; verinin belirli stok veya promosyon uygunluğu
-anlamına geldiğini varsaymaz. `retrievedAt` canlı sorgunun tamamlandığı andır.
-Buradaki fiyat farkı teklif karşılaştırmasıdır; referans fiyattan kampanya yüzdesi
-türetilmez. Fiyat geçmişi geçmiş indirim işaretlerini veya referans fiyatlarını
-içermez; sabit seri geçmişte sürekli indirim etiketi bulunduğunu kanıtlamaz.
+`retrievedAt` sorgunun tamamlandığı andır; `indexTime` için zaman dilimi varsayılmaz.
+Fiyat farkı teklif karşılaştırmasıdır, kampanya yüzdesi değildir. Promosyon alanları stok/üyelik garantisi vermez.
+Geçmiş fiyat serisi geçmiş indirim/referans işaretlerini içermez; sabit seri sürekli indirim etiketi kanıtlamaz.
 
 ### Harita bağlantıları
 
-Yanıt şeması önce doğrulanır: null/string koordinat veya yakın şubede eksik
-`location.lat/lon` alanı `INVALID_RESPONSE` üretir. `maps:null` toleransı şemadan
-geçen fakat aralık dışı sayılara ve tekliflerde opsiyonel koordinatların
-eksikliğine uygulanır; bilinmeyen tipler sayıya dönüştürülmez.
+1. Önce şema doğrulanır: null/string koordinat veya yakın şubede eksik `location.lat/lon` → `INVALID_RESPONSE`.
+2. Şemadan geçen şube koordinatları kullanılır: sonlu enlem [-90,90], boylam [-180,180].
+   Aralık dışı sayılar veya teklifte eksik opsiyonel koordinat → `maps:null`. Tipler sayıya zorlanmaz.
+3. URL'ler yerel üretilir; kullanıcının konumu yedek olmaz. Kaynağın `maps` alanı MCP bağlantılarıyla değiştirilir.
 
-`maps` alanı yakındaki şubelerin her öğesine ve tüm ürün yanıtlarındaki
-`productDepotInfoList` tekliflerine eklenir. Ürün karşılaştırmasının `offers` ve
-`unavailableOffers` dizileri ile sepet gruplarının ve `splitBasket` sonucunun
-`lines[].offer` nesneleri bu alanı korur. Sepette birden fazla şube olabileceği
-için grup düzeyinde tek bir harita bağlantısı üretilmez.
+| Sağlayıcı | URL şablonu                                                         |
+| --------- | ------------------------------------------------------------------- |
+| Google    | `https://www.google.com/maps/search/?api=1&query=<enlem,boylam>`    |
+| Apple     | `https://maps.apple.com/?ll=<enlem,boylam>&q=<enlem,boylam>`        |
+| Yandex    | `https://yandex.com/maps/?ll=<boylam,enlem>&pt=<boylam,enlem>&z=16` |
 
-Bağlantılar yalnız şubenin `latitude/longitude` veya yakın şube yanıtındaki
-`location.lat/lon` değerlerinden yerel olarak üretilir. Enlem [-90,90], boylam
-[-180,180] aralığında sonlu sayı olmalıdır; eksik veya geçersiz koordinatlarda
-`maps: null` döner. Kullanıcının konumu yedek koordinat olarak kullanılmaz.
-Kaynak yanıttaki olası `maps` alanı yerine MCP kendi bağlantılarını üretir.
+Parametreler URL-encode edilir. `maps` yakın şubenin her öğesinde ve her `productDepotInfoList`
+teklifinde bulunur; karşılaştırma `offers`/`unavailableOffers`, sepet/split `lines[].offer` içinde korunur.
+Çok şubeli sepete grup düzeyinde tek link verilmez. Link koordinata işaret koyar; işletme kaydı/rota değildir.
+Üretimi ağ/API anahtarı gerektirmez.
 
-- Google: `https://www.google.com/maps/search/?api=1&query=<enlem,boylam>`.
-- Apple: `https://maps.apple.com/?ll=<enlem,boylam>&q=<enlem,boylam>`.
-- Yandex: `https://yandex.com/maps/?ll=<boylam,enlem>&pt=<boylam,enlem>&z=16`.
-
-Parametreler URL-encode edilir. Bağlantılar koordinata işaret koyar; doğrulanmış
-işletme kimliği veya yol tarifi iddiası taşımaz. Üretim sırasında harita
-sağlayıcılarına istek yapılmaz ve API anahtarı gerekmez.
-
-Sağlayıcı belgeleri: [Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started),
-[Apple Map Links](https://developer.apple.com/library/archive/featuredarticles/iPhoneURLScheme_Reference/MapLinks/MapLinks.html),
-[Yandex Maps web URLs](https://yandex.com/dev/yandex-apps-launch-maps/doc/en/concepts/yandexmaps-web).
+Sağlayıcı belgeleri: [Google](https://developers.google.com/maps/documentation/urls/get-started),
+[Apple](https://developer.apple.com/library/archive/featuredarticles/iPhoneURLScheme_Reference/MapLinks/MapLinks.html),
+[Yandex](https://yandex.com/dev/yandex-apps-launch-maps/doc/en/concepts/yandexmaps-web).
 
 ## Fiyat geçmişi
 
-Değişim yüzdesi normalize kuruş değerleriyle hesaplanır; başlangıç sıfır kuruşa
-yuvarlanıyorsa yüzde null'dır. Ham ilk/son/min/maks fiyatlar aynen korunur.
-Sayısal TRY çıktısına dönüşürken bir kuruşu bile kaybedecek büyük tutarlar
-`INVALID_PRICE` üretir; güvenli integer kuruş olmak tek başına yeterli değildir.
+İstek: `{uniqueId,depots,latitude,longitude,distance}`; tercihen ürün tekliflerinde dönen şube ID'leri.
+Yanıt: `[{name:<market>,series:[{name:"YYYY-MM-DD",value:<number|null>}]}]`.
 
-İstek `{uniqueId,depots,latitude,longitude,distance}`. Yanıt
-`[{name:<market>,series:[{name:"YYYY-MM-DD",value:<number|null>}]}]`.
-`value` sonlu negatif olmayan sayı veya açık null olabilir; metin, boolean,
-nesne ve eksik alan reddedilir. Null eksik gözlemdir, sıfıra çevrilmez.
-`from/to` yalnız MCP'de yerel filtre uygulanır; API'ye gönderilmez. Seriler tarih
-sırasına sokulur; null noktalar ve ek upstream alanları korunur.
-`summary.points` filtre sonrası tüm kayıtları, `availablePoints` sayısal,
-`missingPoints` null kayıtları sayar. Özetin `from/to` tarihleri ilk/son sayısal
-kayda aittir. İlk/son/min/maks/değişim yalnız sayısal kayıtlardan hesaplanır.
-İlk sayısal değer sıfırsa yüzde fark null'dır. Boş aralık boş seri ve null
-istatistik üretir; tümü-null aralık noktaları korur, tarih/fiyat/değişim
-istatistikleri null olur. Tarih aralığında hiç döndürülmemiş günler üretilmez
-ve sayımlara eklenmez. Filtre sonrası null varsa `HISTORY_MISSING_VALUES`
-uyarısı vardır; filtre dışındaki null noktalar bu uyarıyı tetiklemez.
-Aynı zincirde birden
-fazla şubenin geçmişinin nasıl birleştiği bilinmiyor.
+| Kural            | Sonuç                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| `value`          | Sonlu, negatif olmayan sayı veya açık null; metin/boolean/nesne/eksik alan reddedilir |
+| `from/to`        | Yalnız yerel tarih filtresi; API'ye gönderilmez                                       |
+| Sıralama         | Tarihe göre; null noktalar/ek alanlar korunur, hiç dönmeyen günler üretilmez/sayılmaz |
+| `summary.points` | Filtre sonrası tüm noktalar; `availablePoints` sayısal, `missingPoints` null          |
+| Özet             | İlk/son/min/maks/değişim ve `from/to` yalnız sayısal gözlemlerden                     |
+
+Null eksik gözlemdir, sıfır değildir. Boş aralık boş seri + null istatistik; tümü-null aralık noktaları
+korur ama tarih/fiyat/değişim istatistikleri null olur. Filtre içinde null → `HISTORY_MISSING_VALUES`;
+filtre dışındaki null uyarı üretmez. Aynı zincirde çoklu şube serilerinin birleşimi bilinmiyor.
+
+Değişim yüzdesi normalize kuruşla hesaplanır; başlangıç sıfırsa/sıfıra yuvarlanırsa null.
+Ham ilk/son/min/maks korunur. TRY çıktısında bir kuruş kaybı yaratacak büyüklük → `INVALID_PRICE`;
+güvenli integer kuruş tek başına yeterli değildir.
 
 ## Market, konum ve toplu sorgu
 
-Market listesi yanıtında `content` dizisindeki `marketAdi` ve varsa `name/isActive`
-alanları kullanılır. Liste hardcoded değildir.
-Önceki canlı kayıtlar `/api/v1/categories` için HTTP 500 gösterir; neden bilinmiyor.
-MCP `HTTP_ERROR`, `status:500`, `endpoint:markets`, `activeStatus:unknown` ile
-açıklayıcı hata verir; başarılı boş liste uydurmaz. 500 otomatik tekrar edilmez.
-Bu uç ürün kategori ağacı `/api/v3/info/categories` değildir. Arama/karşılaştırma
-bu listeye bağlı değildir; liste hatası diğer uçları devre dışı bırakmaz.
+| İşlem          | Sözleşme                                                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Market listesi | `content[].marketAdi`, varsa `name/isActive`; hardcoded liste yok                                                                                              |
+| Yakın şube     | Gövde `{latitude,longitude,distance}`; yanıt array: `id`, `marketName`, `location.lat/lon`, `distance` (**metre**), opsiyonel `sellerName`; ek alanlar korunur |
+| Adres önerisi  | URL-encoded `words`; tuple 0=adres, 7=boylam, 8=enlem. Sonlu sayı/sayısal metin kabul; boolean/array/boş metin reddedilir. Diğer kolonlar `raw`                |
+| Ters geocode   | Query **Lat/Lon**; sıra `Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi`                                                                               |
+| Sync           | `{identities,identityType:"id",pages:0,size:<id sayısı>,...context}`; en fazla 100 ID; yanıt `content`                                                         |
 
-Yakın şube gövdesi yalnız `{latitude,longitude,distance}`. Beklenen yanıt array;
-öğeler `id`, `marketName`, `location.lat/lon`, `distance` (metre), isteğe bağlı
-`sellerName` içerir. Ek alanlar korunur.
+Market listesi önceki canlı kayıtlarda HTTP 500 verdi; neden bilinmiyor.
+Hata: `HTTP_ERROR`, `status:500`, `endpoint:markets`, `activeStatus:unknown`; başarılı boş liste uydurulmaz.
+500 otomatik tekrarlanmaz; aynı başarısız liste sorgusunu yinelemeyin. Bu uç ürün kategori ağacı değildir;
+arama/karşılaştırmanın önkoşulu olmaz ve hatası diğer araçları durdurmaz.
+Ürünlerde görülen zincir adları tam liste/aktiflik garantisi değildir.
 
-Adres araması `words` query parametresini URL-encode eder. Beklenen tuple'da
-0 adres, 7 boylam, 8 enlemdir. Koordinatlar sonlu sayılar veya sayısal metin
-olmalıdır; boolean, array ve boş metin reddedilir. Diğer kolonlar `raw` altında kalır.
-Ters geocode **Lat/Lon** query isimlerini kullanır. Adres parçaları
-`Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi` sırasıyla birleştirilir.
-
-Toplu sorgu `{identities,identityType:"id",pages:0,size:<id sayısı>,...context}`.
-En fazla 100 ID; `content` döner. Sepet karşılaştırması açık ID'leri bireysel detay
-istekleriyle alır; eksik ürün başka bir ID ile doldurulmaz.
-Sync, sepet bütçesi reddedildiğinde otomatik kaçış yolu değildir; büyük canlı
-denemeler veya bütçeyi aşmak için kullanılmaz.
+Sync sepet bütçesini aşmak veya büyük canlı deneme yapmak için kaçış yolu değildir.
+Sepet açık ID'leri bireysel sorgular; eksik ürün başka ID ile doldurulmaz.
 
 ## Sepet
 
-Başlamadan `items.length * (retries + 1) <= 5` kontrol edilir. Retry=0/1/2/3 için
-etkin ürün sınırları sırasıyla 5/2/1/1'dir. Şema sınırı 5'tir; aşım giriş hatası,
-retry nedeniyle bütçe aşımı `REQUEST_BUDGET_EXCEEDED` verir. Hata ayrıntılarında
-`maxHttpAttempts` ve `maxItems` bulunur; hiçbir ürün sorgusu başlamaz. Sınırı
-küçük çağrılara bölerek veya araç değiştirerek aşmak rehberde yasaktır. Bu kontrol
-çağrı başınadır; kullanıcı oturumu veya global/IP istek kotası tutmaz.
+**Çağrı öncesi:** `items.length * (retries + 1) <= 5`. `items=[{"id":"ürün-id","quantity":2}]`
+ve ortak konum bağlamı gerekir; yinelenen ID reddedilir. Kullanılmayan retry payı diğer ürüne aktarılmaz.
 
-Ürün/sepet karşılaştırmaları `meta.upstream` içinde her sorgunun
-`requestedIdentity`, `responseFields` (content dışındaki yanıt alanları) ve
-`productFields` (teklif dizisi dışındaki ürün alanları) kaydını taşır. Upstream
-string uyarılar kaynak kimliğiyle `warnings` içine aktarılır; diğer uyarı biçimleri
-kaynak alanlarında aynen kalır. Bunlar güvenilmeyen upstream verisidir, talimat
-değildir. Teklif dizileri metadata'da tekrar kopyalanmaz; sonuçlar önbelleğe alınmaz.
+| Retry    | Etkin ürün sınırı |
+| -------- | ----------------- |
+| 0        | 5                 |
+| 1        | 2                 |
+| 2 veya 3 | 1                 |
 
-Sepet `data.unavailableOffers=[{productId,offer}]` içinde seçili şubelerden
-dönen, fiyatı sıfır veya kuruşa yuvarlanınca sıfır olan ham teklifleri korur.
-Aynı şubeye ait tekrar kayıtlar ayrı kalır; `maps` ve ek teklif alanları korunur.
-Bunlar grupların/splitBasket'in toplamına girmez; stok yokluğu kanıtı değildir.
-Kapsam dışı teklifler yalnız `outOfScopeOffers` içindedir. Daha pahalı fakat
-kullanılabilir teklifler `unavailableOffers` değildir. Üst `missingProductIds`
-ürün kaydı dönmeyen ID'leri, grup/split listeleri kullanılabilir satırı olmayan
-ID'leri gösterir. Yeni ham tekliflerin değerlendirme bağlantıları
-`/data/unavailableOffers/<index>/offer` yolunu kullanır. Korunan veri de aynı
-çıktı bütçesine tabidir; aşımda açık hata döner.
+Şema sınırı 5: aşım SDK giriş hatası veya `INVALID_ARGUMENT`.
+Retry bütçesi aşımı: `REQUEST_BUDGET_EXCEEDED`, ayrıntıda `maxHttpAttempts/maxItems`.
+Her iki durumda da ürün sorgusu başlamaz. Bölerek/araç değiştirerek aşmak yasaktır.
+Kontrol çağrı başınadır; oturum/global/IP kotası değildir.
 
-Kuruş bazında her kalemin en düşük geçerli teklifi seçilir. Aynı fiyatlı teklifler
-tek şubede birleşebiliyorsa ortak şube tercih edilir. Zincir ve şube grupları ayrıdır.
-Son eşitlik çözümünde kimlikler locale'den bağımsız UTF-16 code-unit sırasıyla karşılaştırılır.
-Eksik kalemde `total=null`, yalnız bulunanlar için `subtotal`; seçili tekliflerin
-birden çok şubeden olması `requiresMultipleDepots` ile görünür. Sıfır fiyat
-kullanılabilir sayılmaz. splitBasket zincirler arası teorik minimumdur.
+### Toplamı okuyun
 
-Hesaplanan para değerleri ondalık half-up yöntemiyle en yakın kuruşa yuvarlanır
-(`10.075 → 10.08`). Paket fiyatı önce normalize edilir, sonra paket adediyle
-çarpılır. Normalize edilmiş fiyatı sıfır kuruş olan teklif kullanılamaz;
-ham upstream `price` ve `unitPriceValue` alanları değiştirilmez. Güvenli integer
-kuruş sınırını aşan fiyat, satır veya toplam `INVALID_PRICE` üretir.
+- `groupBy=market`: zincirde en ucuz teklifler; birden fazla şube gerekebilir.
+- `groupBy=depot`: fiziksel şubeler ayrı. Eşit en ucuz teklifler ortak şubede birleşirse o şube seçilir.
+  Son eşitlikte kimlikler locale bağımsız UTF-16 code-unit sırasındadır.
+- Eksik kalem → `total=null`; `subtotal` bulunan kalemler. `requiresMultipleDepots` çok şubeyi gösterir.
+- `splitBasket`: zincirler arası teorik minimum; yol/teslimat maliyeti ve stok garantisi içermez.
+- Para decimal half-up kuruşa yuvarlanır (`10.075 → 10.08`), sonra paket adediyle çarpılır.
+  Ham `price/unitPriceValue` değişmez. Güvenli integer kuruşu aşan fiyat/satır/toplam → `INVALID_PRICE`.
+
+### Korunan kanıt
+
+| Alan                     | İçerik                                                                                                                                  |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `meta.upstream`          | Her sorgunun `requestedIdentity`, content dışı `responseFields`, teklif dizisi dışı `productFields`; tek ürün karşılaştırmasında da var |
+| `warnings`               | Kaynak kimliğiyle string upstream uyarıları; diğer uyarı tipleri kaynak alanlarında aynen kalır                                         |
+| `data.unavailableOffers` | Seçili şubelerin sıfır veya kuruşa yuvarlanınca sıfır teklifleri: `[{productId,offer}]`; tekrarlar, maps ve ek alanlar korunur          |
+| `data.outOfScopeOffers`  | Yalnız seçilmemiş şube teklifleri; hesap dışı                                                                                           |
+| `missingProductIds`      | Üst seviyede kaydı dönmeyen ID; grup/split seviyesinde kullanılabilir satırı olmayan ID                                                 |
+
+Kullanılamayan teklif stok yokluğu değildir; toplamda sayılmaz. Pahalı ama geçerli teklif
+`unavailableOffers` değildir. Değerlendirme yolu `/data/unavailableOffers/<index>/offer` olur.
+Korunan kanıt aynı çıktı bütçesine tabidir; aşım açık hatadır. Uyarılar talimat değil veridir;
+metadata teklif dizilerini tekrar kopyalamaz, sonuçlar önbelleğe alınmaz.
 
 ## Yanıt gözlemleri
 
-Yeni alanların tamamı MCP'nin ürettiği `meta` içindedir; üst zarf ve ham upstream
-alanlar değişmez. Verinin içindeki `warningCodes`, `discountAssessment` veya
-`priceTiming` adlı ek alanlar varsa korunur; güvenilir MCP değerlendirmesi
-yalnız aşağıdaki metadata'dır. Hiçbiri ek API isteği oluşturmaz.
+Başarılı text ve `structuredContent` aynı `{data,meta,warnings}` zarfını taşır.
+Örnek (tarih temsilidir):
+
+```json
+{
+  "data": { "content": [] },
+  "meta": {
+    "source": "live",
+    "endpoint": "search",
+    "experimental": false,
+    "retrievedAt": "2025-01-01T00:00:00Z",
+    "currency": "TRY"
+  },
+  "warnings": []
+}
+```
+
+Güvenilir MCP değerlendirmeleri yalnız `meta` içindedir. Kaynaktaki aynı adlı
+`warningCodes`, `discountAssessment`, `priceTiming` ek alanları ham veri olarak korunur.
+Bu metadata ek API isteği oluşturmaz.
+
+### Sunucu durumu
+
+`market_status` mod/izin/sınırları verir. `limits.basketItems` etkin ürün sayısı,
+`limits.basketRequestBudget` retry dâhil bütçe, `requestPolicy` retry/aralık ayarlarıdır.
+Deprecated `api.liveValidationPerformed` yalnız `runtime-session` kapsamındadır;
+sunucu kendiliğinden canlı doğrulama yapmaz. Sürüm kanıtını `api.releaseVerificationReference` gösterir.
+Live/experimental erişim, uzak davranışın doğrulandığı anlamına gelmez.
 
 ### Çağrı başına istek ölçümleri
 
-`meta.requestMetrics = {httpAttempts, retries, durationMs}` tüm servis başarıları
-ve uygulama hatalarında bulunur. `httpAttempts`, HTTP taşıyıcısının fetch çağrısı
-başlatma sayısıdır. Senkron fetch hatası, timeout, gövde/JSON hatası ve sonradan
-oluşan şema/hesaplama hataları bu sayıyı silmez. `retries` yalnız aynı uzak isteğin
-başlatılmış ek denemeleridir; sepetin ikinci ürünü retry sayılmaz.
+`meta.requestMetrics={httpAttempts,retries,durationMs}` servis başarıları ve uygulama hatalarında bulunur.
 
-Yerel status, offline/deneysel kilit, giriş/bütçe reddi, cooldown ve gönderilmeden
-iptal edilen çağrılar sıfır denemedir. Sepet hatası önce tamamlanan ürünleri de
-kapsar. Eşzamanlı araç çağrılarının sayaçları birbirinden ayrıdır; dönen değerler
-anlık kopyadır. `durationMs` monoton saatle ölçülen, kuyruk ve servis işlemleri
-dâhil geçen süredir; endpoint gecikmesi veya upstream SLA ölçümü değildir.
+| Alan / durum       | Yorum                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `httpAttempts`     | Başlatılan fetch sayısı; senkron fetch, timeout, gövde/JSON, sonraki şema/hesaplama hatalarında silinmez |
+| `retries`          | Aynı uzak isteğin başlatılmış ek denemeleri; sepetin ikinci ürünü retry değildir                         |
+| `durationMs`       | Monoton saatle kuyruk + servis süresi; endpoint gecikmesi/SLA değildir                                   |
+| Sıfır deneme       | Yerel status, offline/deneysel kilit, giriş/bütçe reddi, cooldown, gönderim öncesi iptal                 |
+| Kısmi sepet hatası | Önce tamamlanan ürünlerin denemeleri de sayılır                                                          |
 
-Bu bilgi istek teslimini, güvenli kotayı veya ban olmayacağını kanıtlamaz.
-Sunucu oturum/IP toplamı saklamaz; çağıran AI anlaşılmış toplam bütçeyi takip eder.
-SDK şema denetimi handler'dan önce reddederse uygulama zarfı/ölçümleri olmayabilir.
-Bu durumda eksik metadata'yı gerçekleşmiş HTTP isteği gibi yorumlamayın.
+Sayaçlar eşzamanlı çağrılarda ayrıdır; yanıt anlık kopyadır. Teslim, güvenli kota veya bansız çalışma
+kanıtlamaz. Toplam oturum bütçesini AI izler. SDK handler öncesi giriş reddinde zarf/ölçüm olmayabilir;
+eksik metadata'yı yapılmış HTTP isteği saymayın.
 
 ### Şube kapsamı
 
-Altı ürün endpoint'inin sonuçlarında ve iki karşılaştırma aracında
-`meta.depotCoverage` bulunur:
+Altı ürün endpoint'i ve iki karşılaştırmada `meta.depotCoverage` bulunur:
 
 | Alan                                   | Anlam                                                          |
 | -------------------------------------- | -------------------------------------------------------------- |
@@ -308,63 +333,46 @@ Altı ürün endpoint'inin sonuçlarında ve iki karşılaştırma aracında
 | `unreturnedStatus`                     | Her zaman `unknown`; stok yok iddiası değildir                 |
 | `perProduct`                           | `productId` ile aynı kapsam alanları; iç içe `perProduct` yok  |
 
-Kapsam, aramanın yalnız bu sayfasına veya açık ID sorgularına aittir.
-Sync/sepetin eksik ürünleri de `perProduct` içinde boş dönen şube kümesiyle
-gösterilir. Sıfır fiyatlı teklif dönen kanıt sayılır; kullanılabilir fiyat sayılmaz.
-Yinelenen teklifler şube sayısını artırmaz. Tüm şubelerin en az bir üründe görünmesi
-her ürünün her şubede gözlendiği anlamına gelmez; `perProduct` ayrıca değerlendirilir.
-Tüm şubeler görünse bile stok veya tüm fiyatların kapsandığı garanti edilmez.
-Kontrollü canlı örnekte çoklu şube yanıtında görünmeyen bir şubenin aynı ürün
-teklifi, açık tek-şube sorgusunda döndü. Bu, tüm endpoint'ler için belirli bir
-seçim algoritmasını kanıtlamaz. MCP ham şube kapsamını aynen iletir; ürün yanıtlarının tekliflerini daraltmaz.
-Türetilmiş karşılaştırmaları seçili şubelerle sınırlar, dış teklifleri ayrı korur
-ve eksik şubeler için otomatik ek istek başlatmaz.
+- Kapsam yalnız bu sayfa/açık ID'lerdir. Sync/sepet eksik ID'leri `perProduct` içinde boş dönen kümeyle yer alır.
+- Sıfır fiyat dönen kanıttır, kullanılabilir fiyat değildir. Tekrar teklifler benzersiz şube sayısını artırmaz.
+- Tüm şubelerin bir üründe görünmesi, her üründe görünmesi değildir; `perProduct` okunmalıdır.
+- Tüm şubeler görünse de stok/tüm fiyat garantisi yoktur. Facet sayıları fiyat kapsamı değildir.
+- Kontrollü canlı örnekte çoklu yanıtta eksik şube, tek-şube sorgusunda teklif döndürdü.
+  Bu genel seçim algoritması kanıtı değildir; eksik şubeler otomatik taranmaz.
 
 ### İndirim ve fiyat zamanları
 
-`meta.offerAssessments` her dönen teklif için `{productId, depotId, offerIndex,
-discountAssessment, priceTiming}` kaydı içerir. `offerIndex` özgün ürün teklif
-dizisinde sıfırdan başlar. Karşılaştırmalarda kayıtlar yalnız seçilmiş satırları
-değil tüm kaynak teklifleri kapsar; ham teklifi tekrar kopyalamaz.
+`meta.offerAssessments`: her kaynak teklif için `{productId,depotId,offerIndex,discountAssessment,priceTiming}`.
+`offerIndex` özgün dizide sıfır tabanlıdır; yalnız seçili satırları değil tüm teklifleri kapsar, ham teklifi kopyalamaz.
 
-İki karşılaştırma aracı ayrıca `meta.offerAssessmentRefs` döndürür. Her
-`{path, assessmentIndex}` kaydında `path`, üst yanıttaki teklife giden JSON pointer
-(ör. `/data/offers/0` veya `/data/groups/0/lines/0/offer`), `assessmentIndex` ise
-`meta.offerAssessments` dizisinin indeksidir. Sıralanmış teklifler, kullanılamayan
-teklifler, `outOfScopeOffers[].offer` ve sepet/splitBasket satırları bu bağlantılarla eşleştirilir. Özgün
-`offerIndex` sıralama sonrasında çıktı dizisinin indeksi olarak kullanılmaz;
-aynı şubenin birden fazla teklifi olsa da kaynak eşleşmesi korunur.
+| API işareti | `discountAssessment` |
+| ----------- | -------------------- |
+| `true`      | `unverified`         |
+| `false`     | `not_indicated`      |
+| Eksik       | `unknown`            |
 
-`discountAssessment` değerleri:
+Referans fiyat, `discountRatio` ve `promotionText` bu sonucu değiştirmez; hiçbir değer kampanyayı doğrulamaz/indirim yüzdesi üretmez.
 
-- `unverified`: Yalnız `discount=true`; API indirim işareti var, kampanya uygunluğu doğrulanmış değil.
-- `not_indicated`: Yalnız `discount=false`; API indirim işareti yok.
-- `unknown`: `discount` alanı yok; referans fiyat, oran veya metinden işaret türetilmez.
+**23.09.2026 uyumluluk değişikliği:** `inconsistent` ve `DISCOUNT_INCONSISTENT` artık üretilmez.
+Eski false/yüksek referans kayıtları `not_indicated` olur. Önceden yalnız referans/oran/metinle
+`unverified` sayılanlar artık false ise `not_indicated`, işaret eksikse `unknown` olur.
+Metadata, ham teklifler ve diğer üç değer korunur. İstemciler kaldırılan değere/koda bağlı olmamalıdır;
+aynı adlı upstream alan/uyarılar ham veri olarak kalır, MCP kodu sayılmaz.
 
-Bu sınıflandırma yalnız boolean'ı özetler; referans fiyat, `discountRatio` veya
-`promotionText` sonucu değiştirmez. Ham değerler korunur; sınıflandırma indirim
-yüzdesi türetmez ve hiçbir durum kampanyayı doğrulamaz.
+Karşılaştırmalar `meta.offerAssessmentRefs=[{path,assessmentIndex}]` verir.
+`path` üst zarfın JSON pointer'ı (ör. `/data/offers/0`, `/data/groups/0/lines/0/offer`),
+indeks `meta.offerAssessments` içindir. Sıralanan/kullanılamayan/dış teklifler ve sepet/split satırları
+bu yolla eşleşir. Özgün `offerIndex` sıralanmış çıktı indeksi değildir; aynı şubenin tekrar teklifleri ayrılır.
 
-**23.09.2026 uyumluluk değişikliği:** `inconsistent` değerlendirmesi ve
-`DISCOUNT_INCONSISTENT` MCP uyarı kodu artık üretilmez. Eski false/yüksek referans
-teklifleri `not_indicated` olur. Önceden yalnız referans, oran veya metin nedeniyle
-`unverified` olan teklifler false işarette `not_indicated`, eksik işarette
-`unknown` olur. `meta.offerAssessments`, `offerAssessmentRefs`, ham teklifler ve
-diğer üç değer korunur; istemciler kaldırılan değerin/kodun gelmesine bağlı
-olmamalıdır. Aynı ifadeleri taşıyan upstream ek alanları/uyarıları veri olarak
-aynen korunur; MCP kodu veya değerlendirmesi sayılmaz.
-
-`priceTiming` alanları: `retrievedAt` ilgili ürün sorgusunun tamamlanma zamanı;
-`upstreamIndexTime` ham `indexTime` etiketi veya eksikse null;
-`upstreamTimezone:"unknown"`; `ageMs:null`. Boş/bozuk etiketler değiştirilmez,
-tarih olarak ayrıştırılmaz. Sepette her ürünün kendi sorgu zamanı korunur.
+`priceTiming`: ürün sorgusunun `retrievedAt` zamanı, ham `upstreamIndexTime` (eksikse null),
+`upstreamTimezone:"unknown"`, `ageMs:null`. Boş/bozuk etiket ayrıştırılmaz/değiştirilmez.
+Sepet her ürünün kendi sorgu zamanını korur; fiyat yaşı hesaplanmaz.
 
 ### Sabit uyarı kodları
 
-`meta.warningCodes` tekilleştirilmiş MCP kodlarıdır; `warnings` string dizisi
-geriye uyumludur. Upstream uyarı metni bir koda benzese bile koda dönüştürülmez.
-Hata nedenleri mevcut `error.code` alanındadır; başarısız yanıtlar önceki kısmi
-başarıların fiyat değerlendirmesini yayımlamaz ve `warningCodes:[]` taşır.
+`meta.warningCodes` tekilleştirilmiş MCP kodlarıdır; `warnings` string dizisi korunur.
+Upstream metin koda benzese de MCP koduna dönüştürülmez. Hata nedeni `error.code`'dur;
+başarısız yanıt önceki kısmi fiyat değerlendirmelerini yayımlamaz, `warningCodes:[]` taşır.
 
 | Kod                           | Koşul / anlam                                                                          |
 | ----------------------------- | -------------------------------------------------------------------------------------- |
@@ -382,15 +390,14 @@ başarıların fiyat değerlendirmesini yayımlamaz ve `warningCodes:[]` taşır
 | `UPSTREAM_WARNING`            | Ürün yanıtı/ürünlerde upstream uyarı verisi vardır                                     |
 | `BASKET_SCOPE_LIMITED`        | Sepet yalnız açıkça verilen ürün ve konum kapsamındadır                                |
 
-`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS` ve `PAGINATION_LIMIT_REACHED` için açıklayıcı string uyarı da
-eklenir. Tekrarlı upstream uyarı stringleri mevcut kaynak kimlikleriyle korunur;
-kodların tekilleştirilmesi ham uyarıları silmez. Kod kataloğu `market://guide`
-içinde `src/observations.ts` kaydından yayımlanır.
+`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS`, `PAGINATION_LIMIT_REACHED` açıklayıcı string de ekler.
+Tekrarlı upstream stringler kaynak kimliğiyle korunur; kod tekilleştirme ham uyarıları silmez.
+Katalog `src/observations.ts` üzerinden `market://guide`'a aktarılır.
 
 ## Kaynak kullanım sınırları
 
-Sınırlar yereldir; uzak API kotası değildir. `market_status.limits` değerleri
-bildirir. Sabit işleme sınırları araç girdisi veya ortam ayarıyla yükseltilmez.
+**Sınırlar yereldir; API kotası değildir.** `market_status.limits` ile okunur.
+Sabit işleme limitleri araç girdisi/ortamla yükseltilmez.
 
 | Sınır                                                | Davranış                                                                                                                                       |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -403,29 +410,44 @@ bildirir. Sabit işleme sınırları araç girdisi veya ortam ayarıyla yükselt
 | 128 upstream uyarı girdisi, 65.536 byte string uyarı | Yanıt/ürün `warnings` alanlarında çağrı başına toplam; scalar bir girdidir; string byte hesabı JSON tırnak ve escape karakterlerini içerir     |
 | 8 MiB çıktı zarfı                                    | Kompakt JSON UTF-8; text serileştirmesi ve structuredContent çoğaltması öncesi denetlenir; ayrıca 2.000.000 değer ve derinlik 80 sınırı vardır |
 
-Girdi/uyarı/teklif bütçesi aşımı `RESOURCE_LIMIT_EXCEEDED`, çıktı bütçesi aşımı
-`OUTPUT_TOO_LARGE` üretir. Kaynak sınırı hataları `resource` ve `limit` taşır;
-MCP `isError=true`,
-`data:null`, boş warnings ve warningCodes döndürür. Hiçbir kısmi fiyat sonucu veya
-kırpılmış upstream alanı başarılı sonuç olarak yayımlanmaz. Kabul edilen veride ek
-alanlar ve uyarılar korunur. Bütçesi dolan sepette sonraki ürün sorguları başlamaz;
-o ana kadar yapılan HTTP denemeleri hata `meta.requestMetrics` alanında kalır.
-Hata zarfı da aynı çıktı bütçesine tabidir. Büyük/geçersiz hata tanılaması sabit
-`OUTPUT_TOO_LARGE` zarfına dönüşür; geçerli sonlu sayaçlar korunur. Başarısız
-`INVALID_RESPONSE` yalnız güvenilir endpoint ayrıntısını taşır; upstream path,
-anahtar ve değerleri tanılamaya kopyalanmaz. Başarılı ek alanlar ve uyarılar korunur.
+### Hata çıktısı
 
-Uyarı sayısı ve kaynak koleksiyon boyutları prefiksli uyarı dizileri, şema kopyaları,
-harita bağlantıları ve değerlendirmeler üretilmeden önce kontrol edilir. JSON
-boyutu tam bir JSON string veya anahtar/değer dizisi üretmeden artımlı sayılır.
-Çıktı zarfı sınırı tüm MCP mesajının sınırı değildir: aynı zarf text ve
-structuredContent olarak taşındığı ve text tekrar escape edildiği için JSON-RPC
-mesajı yaklaşık üç katına, küçük protokol alanları eklenerek çıkabilir.
+| Hata                      | Davranış                                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| `RESOURCE_LIMIT_EXCEEDED` | Girdi/uyarı/teklif bütçesi aşıldı                                                       |
+| `OUTPUT_TOO_LARGE`        | Çıktı bütçesi aşıldı; büyük/geçersiz hata tanılaması da sabit bu zarfa dönüşür          |
+| Kaynak sınırı             | Ayrıntıda `resource`, `limit`; `isError=true`, `data:null`, boş `warnings/warningCodes` |
+| `INVALID_RESPONSE`        | Yalnız güvenilir endpoint ayrıntısı; upstream path/anahtar/değer tanılamaya kopyalanmaz |
 
-İptal edilen bekleyen istek hemen FIFO'dan çıkarılır, dinleyicisi temizlenir ve
-kapasiteyi serbest bırakır; sonradan fetch başlatmaz. Aktif isteğin iptali, seri
-aralık, Retry-After köken beklemesi ve retry/sepet bütçeleri korunur.
-Gelen JSON-RPC istek kimliği yanıtına kadar geçici olarak izlenir. Sayısal `0` ve
-boş string kimlikli araç çağrılarının iptali de çalışır; yinelenen aktif kimlikli JSON-RPC isteği
-reddedilir. Tamamlanmış kimlik yeniden kullanılabilir. Bağlantı kapanınca geçici
-kayıtlar iptal edilip silinir.
+Kısmi fiyat veya kırpılmış kaynak alanı başarı diye verilmez. Kabul edilen ek alan/uyarılar korunur.
+Bütçe dolunca sonraki sepet sorgusu başlamaz; önceki denemeler hata metadata'sında kalır.
+Hata zarfı da çıktı bütçesine tabidir; geçerli sonlu sayaçlar korunur.
+
+Kontroller uyarı prefiksleri, şema kopyaları, harita ve değerlendirmeler üretilmeden yapılır.
+JSON boyutu tam string/anahtar-değer dizisi üretmeden artımlı sayılır.
+**8 MiB zarf, JSON-RPC mesaj sınırı değildir:** text + structuredContent ve escape nedeniyle mesaj
+küçük protokol alanlarıyla birlikte yaklaşık üç katına çıkabilir.
+
+### Retry, kuyruk ve iptal
+
+- Varsayılan retry 0, seri aralık 1 saniye. HTTP 500, timeout, ağ hatası ve sıradan 4xx tekrarlanmaz.
+- 429/502/503/504 için geçerli Retry-After, aynı kökeni retry bütçesi bitse de bekletir.
+  5 saniyeyi aşan beklemede erken deneme yapılmaz; hata iletilir. Kuyruktaki çağrı süre dolmadan
+  gönderilmez, kalan `retryAfterMs` döner. API/harita beklemesi ayrıdır; süre dolunca normal istek mümkündür.
+- Bekleyen iptal FIFO kaydını/dinleyicisini hemen kaldırır, kapasiteyi boşaltır ve sonradan fetch başlatmaz.
+  Aktif iptal, seri aralık ve retry/sepet bütçeleri korunur.
+- JSON-RPC kimliği yanıtına kadar izlenir. Sayısal `0`/boş string iptali çalışır;
+  yinelenen aktif kimlik reddedilir, tamamlanan kimlik yeniden kullanılabilir. Kapanış kayıtları iptal eder/siler.
+- MCP SDK varsayılan istek süresi 60 saniyedir; istemci değiştirebilir. HTTP timeout tek denemeye aittir.
+  Sunucu ilerleme bildirimi üretmez. Küçük sepet de yavaş upstream'de istemci süresini aşabilir.
+
+İstemci cancellation veya stdio kapanışı aktif/bekleyen işleri iptal eder.
+Gerçek istemcinin timeout/Stop kabulü yalnız sentetik gecikme ve sahte fetch ile yapılır;
+uzun/büyük sepet, canlı yük/süre/kota keşif testleri yapılmaz.
+
+### Diğer hata kodları
+
+Uygulama hataları `isError=true` ve `error.code` taşır; SDK giriş hataları yalnız MCP metni olabilir.
+`NETWORK_DISABLED`, `EXPERIMENTAL_DISABLED`, `INVALID_ARGUMENT`, `HTTP_ERROR`, `RATE_LIMITED`,
+`TIMEOUT`, `CANCELLED`, `RESPONSE_TOO_LARGE`, `QUEUE_FULL`, `INVALID_PRICE` ve
+`REQUEST_BUDGET_EXCEEDED` ilgili koşulu bildirir. Ham hata gövdesi dışarı verilmez.

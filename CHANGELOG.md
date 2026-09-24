@@ -1,16 +1,16 @@
 # Değişiklik günlüğü
 
-Kullanıcıları ve geliştiricileri etkileyen değişiklikler burada izlenir.
-En yeni kayıt üsttedir; henüz bir sürüm tag'ine dâhil olmayan değişiklikler
-**Yayımlanmamış** bölümünde tutulur.
+**En yeni değişiklikleri aşağıda okuyun.** Henüz tag almayanlar **Yayımlanmamış** bölümündedir.
 
 ## Yayımlanmamış
 
-Henüz değişiklik yok.
+### Değişenler
+
+- Dokümanlar kısa adımlar ve tablolarla yeniden düzenlendi; README/API tekrarları azaltıldı.
 
 ## 1.0.1 — 2026-09-24
 
-Bu kayıt npm dağıtımı için hazırlanan sürümü açıklar; npm yayınının gerçekleştiğini göstermez.
+npm dağıtımı için hazırlanan sürüm; npm yayını kanıtı değildir.
 
 ### Eklenenler
 
@@ -26,7 +26,7 @@ Bu kayıt npm dağıtımı için hazırlanan sürümü açıklar; npm yayının�
 
 ## 1.0.0 — 2026-09-24
 
-İlk sürüm tag'i: `v1.0.0`. Ayrıntılar: [sürüm notları](docs/releases/v1.0.0.md).
+İlk Git sürümü: `v1.0.0`. [sürüm notları](docs/releases/v1.0.0.md).
 
 ### Eklenenler
 

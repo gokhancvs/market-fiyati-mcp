@@ -1,62 +1,56 @@
 # Kullanıcıyla canlı test
 
-Kullanıcının test onayı, sağlayıcının API/veri kullanım izni yerine geçmez.
-Canlı aşamadan önce [kullanım koşulları ve gerekli izinler](../README.md#amaç-ve-kullanım-izinleri)
-netleştirilmelidir. Belirsizlik sürüyorsa çevrimdışı testlerle devam edin.
+**Önce offline kontrolleri çalıştırın.** Canlı çağrı ancak kullanıcı birlikte test
+etmeyi açıkça başlattığında ve [sağlayıcı izinleri](../README.md#amaç-ve-kullanım-izinleri)
+netleştiğinde yapılır. Kullanıcı onayı, API/veri kullanım izni değildir; belirsizlikte offline kalın.
 
-Canlı API çağrısı, kullanıcı açıkça birlikte test aşamasını başlattıktan sonra yapılır.
-Uzun/büyük sepet için canlı test yapılmaz:
-API engelleme riski nedeniyle yük, süre veya sınır keşfi denemeleri yapılmamalı;
-sepeti küçük çağrılara bölerek aynı yükü üretmek bu kısıtı aşmaz. Aşağıdaki küçük
-kabul senaryoları da ayrıca canlı test izni gerektirir.
+## 1. Hazırlayın
 
-## Hazırlık
-
-1. `MARKET_FIYATI_MODE=offline npm run check` ile tip kontrolü, derleme ve sentetik testleri çalıştırın.
+1. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
 2. İstemcide `market_status` ile offline modunu doğrulayın.
-3. `market://guide` ve `market://endpoints` okuyun. Kullanıcının konumu ve yarıçapı
-   için verilmiş şubeleri belirleyin; eksik bağlamı not edin. Elle mağaza seçimi
-   isteğe bağlıdır. Offline hazırlıkta uzak sorgu yapılmaz.
+3. `market://guide` ve `market://endpoints` okuyun; kullanıcı konumunu, yarıçapı ve
+   bunlara ait mevcut şubeleri belirleyin. Eksikleri not edin; henüz uzak sorgu yapmayın.
 
-## Canlı aşama
+**Hazır sayılır:** Kontroller geçti, bağlam biliniyor, canlı test ve sağlayıcı izinleri net.
 
-1. İstemci ortamını `MARKET_FIYATI_MODE=live` yapıp sunucuyu yeniden başlatın.
-   Başlangıç istek göndermez; önce `market_status` kontrol edilir.
-   Şubeler eksikse operatör ayrıca `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true`
-   ayarladıktan sonra yakın şubeleri bir kez sorgulayın. Her ürün çağrısına
-   gerekli konum, yarıçap ve şube bağlamını açıkça verin.
-2. Bilinen kategori/filtre değerlerini kullanın; eksikse kategori/facet keşfi yapın.
-   Tek bir aramada ürün türü, gramaj ve sıralama parametrelerini API'ye gönderin.
-   Sonuç sayısını ve sayfalama kapsamını kontrol edin. Normal kullanımda arama
-   teklifleri yeterliyse ek detay sorgusu gerekmeyebilir; aşağıdaki çağrılar ayrı
-   uçların entegrasyon testleri içindir.
-3. Bir ürün ID'sini ve gramajını doğrulayıp detay, benzerler, fiyat geçmişi alın.
-4. Kategori ve fiyat/gramaj/indirim filtrelerini ayrı ayrı kontrol edin.
-5. İki ürünle sepeti market ve depot düzeyinde karşılaştırın. Eksik ürünün toplamı
-   null olmalı; farklı şubeler tek mağaza diye birleştirilmemelidir.
+## 2. Küçük canlı kabulü çalıştırın
 
-## Deneysel uçlar
+Yalnız izinli aşamada:
 
-Gerçek AI istemcisinde iki ürünlü küçük canlı kabul, dönen fiyatların ve
-market/depot gruplarının sunumunu sınar. Önce market, sonra depot düzeyinde
-kontrol edin. Önce `market_status` etkin ürün limitini okuyun; retry açılmışsa
-iki ürün bile bütçeyi aşabilir. SDK sentetik testleri 5 ürün, bütçe reddi ve
-timeout/iptal akışını kapsar; bu, kullanılan gerçek istemcinin aynı boyut/süreyi
-desteklediğini kanıtlamaz.
+1. Operatör ortamını `MARKET_FIYATI_MODE=live` yapıp sunucuyu yeniden başlatın.
+   Önce `market_status` okuyun; başlangıç istek göndermez. Şubeler eksikse operatör
+   deneysel erişimi açtıktan sonra yakın şubeleri bir kez sorgulayın. Elle seçim isteğe bağlıdır.
+2. Ürün türü, gramaj ve sıralamayı bilinen API filtreleriyle tek aramada birleştirin.
+   Değerler eksikse kategori/facet keşfi yapın; sonuç sayısı ve sayfa kapsamını kontrol edin.
+3. Bir ürünün ID/gramajını doğrulayın; ayrı endpoint testleri için detay, benzer ve geçmiş fiyat alın.
+   Normal kullanımda arama teklifleri yeterliyse detay çağrısı gerekmeyebilir.
+4. Kategori, fiyat, gramaj ve indirim filtrelerini ayrı kontrol edin.
+5. Etkin `limits.basketItems` iki ürüne izin veriyorsa küçük sepeti önce market, sonra depot bazında karşılaştırın.
+   **Beklenen:** Eksik kalemde `total=null`; farklı şubeler tek mağaza gibi sunulmaz.
 
-İstemci timeout'u, durdurma düğmesi ve uzun bekleme kabulü ayrı bir çevrimdışı
-çalışmadır: ağ engelleyici ve sahte fetch ile sentetik gecikme kullanılır.
-Uzun sepet, canlı timeout veya yük denemesi yapılmaz. SDK test başarısı kullanılan
-masaüstü istemcisinin kabulü olarak kaydedilmez. Geçmiş küçük canlı örneklerden
-güvenli istek kotası çıkarmayın; desteklenen kapsam ve istek bütçesi ayrıca
-belirlenmelidir. Sepeti sessizce bölmeyin ve kısmi sonucu tam sepet diye sunmayın.
+Her ürün çağrısına konum, yarıçap ve şubeleri açıkça ekleyin. Retry ayarı iki ürünün bile bütçeyi aşmasına yol açabilir.
 
-Gerektiğinde `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ile market listesi, geocode,
-yakın şubeler, toplu ürün yenileme, alternatifler ve ters geocode işlemini sırayla test edin.
-Her yanıtı `docs/api.md` sözleşmesiyle karşılaştırın. Gerçek biçim farklıysa şemayı
-ve sentetik regresyon testini güncelleyin; doğru olduğu varsayımıyla dönüştürmeyin.
+## 3. Gerekliyse deneysel uçları sınayın
 
-HTTP 429 ve bekleme bilgisini kullanıcıya gösterin. Hata raporlarına kesin konum,
-kişisel header veya token eklemeyin. Test bitince modu kullanıcının tercihine göre
-offline'a geri alın. Uzak doğrulama sonucunu yalnız gerçekten denenmiş işlemler
-ve gözlenen sonuçlarla belgeleyin.
+Operatör `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ayarlar. Gereken uçları sırayla deneyin:
+market listesi, geocode/ters geocode, yakın şubeler, toplu yenileme ve alternatifler.
+
+Yanıtı [API sözleşmesiyle](api.md) karşılaştırın. Farklı biçimi tahminle dönüştürmeyin;
+şemayı ve sentetik regresyon testini güncelleyin.
+
+## Sınırı koruyun
+
+- **Uzun/büyük sepet, yük, süre ve kota keşfi canlı yapılmaz.** Listeyi küçük çağrılara bölmek veya sync'e geçmek yasağı aşmaz.
+- Timeout, Stop ve uzun bekleme kabulü [sentetik kabul kitiyle](offline-acceptance.md) yapılır; gerçek ağ engellenir.
+- SDK'nin 5 ürün/bütçe/iptal testleri gerçek masaüstü istemcisinin kabulü değildir.
+- Küçük canlı örneklerden güvenli kota çıkarmayın; kapsam/bütçeyi ayrıca belirleyin. Kısmi sepeti tam göstermeyin.
+
+## 4. Sonucu kaydedin
+
+1. HTTP 429 ve bekleme bilgisini kullanıcıya gösterin.
+2. Yalnız denenen işlem, endpoint/sürüm/tarih ve gözlenen sonucu kaydedin.
+   Kesin konum, token ve kişisel header'ları rapora koymayın.
+3. Test bitince kullanıcının tercihine göre offline'a dönün.
+
+**Geçme ölçütü:** Dönen fiyatlar, market/depot ayrımı ve belirsizlikler gerçek istemcide doğru sunuldu.
+Bu kabul, denenmeyen uçlara veya daha büyük yüke genellenmez.

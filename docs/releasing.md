@@ -1,84 +1,85 @@
 # Sürüm hazırlama
 
-Bu rehber kaynak depo klonu içindir; npm paketi geliştirme ve test dosyalarını içermez.
+**Önce yeni sürüm numarasını seçin.** Bu rehber kaynak depo klonu içindir;
+npm paketi geliştirme/test dosyalarını içermez.
 
-Tek geliştirme dalı `main`'dir. Sürümler `v1.0.0` biçimindeki Git tag'leri ve
-GitHub Releases ile izlenir; tag yeni bir dal oluşturmaz. Hata düzeltmelerinde
-patch, geriye uyumlu özelliklerde minor, uyumsuz sözleşme değişikliklerinde major
-sürümü artırın. Yayımlanan tag'leri taşımayın; düzeltmeler için yeni sürüm çıkarın.
+Tek geliştirme dalı `main`; sürümler `v1.0.0` biçiminde tag + GitHub Releases ile izlenir.
+Tag yeni dal değildir. Patch = düzeltme, minor = geriye uyumlu özellik, major = uyumsuz sözleşme.
+Yayımlanan tag taşınmaz; değişiklik yeni sürüm alır.
 
-## Tag ve taslak release
+## 1. Sürümü ve kontrolleri hazırlayın
 
-1. `main` üzerinde `npm version <sürüm> --no-git-tag-version` ile `package.json`
-   ve lockfile sürümlerini birlikte güncelleyin. `src/server.ts` içindeki MCP sunucu
-   kimliğinin sürümünü de eşitleyin. Zaten aynı sürümdeyse bu adımı atlayın.
-2. `docs/releases/v<sürüm>.md` dosyasına özellikleri, kurulum bilgilerini,
-   doğrulama kapsamını ve bilinen sınırlamaları yazın. Gerçekleşmeyen canlı
-   doğrulamayı başarılı göstermeyin.
-3. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın; değişiklikleri
-   Conventional Commits biçiminde commit edin ve `main` dalını push'layın.
-4. Test edilen commit üzerinde açıklamalı tag oluşturup doğrulayın ve gönderin:
+1. `npm version <sürüm> --no-git-tag-version` çalıştırın; paket ve lockfile birlikte güncellenir.
+   `src/server.ts` kimliğini aynı sürüme getirin. Zaten eşitse atlayın.
+2. README'deki sabit `npx` sürümünü, CHANGELOG'u ve `docs/releases/v<sürüm>.md` notunu güncelleyin.
+   Notta özellik, kurulum, doğrulama kapsamı ve bilinen sınırlar yer alsın; gerçekleşmeyen canlı başarı yazmayın.
+3. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
+4. Conventional Commit oluşturup `main`'i push'layın.
+
+**Beklenen:** Kontroller geçer; sürüm alanları ve notları aynı sürümü gösterir.
+
+## 2. Tag ve taslak release
+
+Aşağıdaki `1.0.1` örneğini hedef sürümle değiştirin:
+
+```sh
+git tag -a v1.0.1 -m "Release v1.0.1"
+npm run release:check -- v1.0.1
+git push origin v1.0.1
+gh workflow run release.yml --ref main -f tag=v1.0.1
+```
+
+GitHub arayüzü: **Actions → Draft release → Run workflow**, dal `main`, tag `v1.0.1`.
+Yerel RTK kuralı varsa komutların başına `rtk` ekleyin.
+
+- Tag, workflow'un test ettiği commit ile **birebir aynı** olmalıdır. Arada `main`'e yeni commit göndermeyin.
+- Workflow yalnız `main`'de çalışır; bütün kontroller geçince **taslak** oluşturur.
+- Mevcut release/tag değiştirilmez; aynı sürümü yeniden oluşturmak hatadır.
+- Taslağı inceleyip **Publish release** ile yayımlayın. Otomasyon kendiliğinden yayımlamaz.
+- Kararlı sürüm pre-release değildir. GitHub ZIP/TAR kaynak arşividir; derlenmiş npm paketi değildir.
+
+## 3. npm arşivini doğrulayın
+
+Paket adı `market-fiyati-mcp`. npm'den kaldırılan `1.0.0` tekrar kullanılamaz;
+bu deponun npm hazırlığı `1.0.1` ile başlar. GitHub taslağı npm yayını başlatmaz.
+
+1. `npm pack` çalıştırın. `prepack` derlemeyi yeniler; arşiv yalnız çalışma JavaScript'i,
+   seçili belgeler ve npm'in zorunlu dosyalarını içerir. Test/yerel arşiv/geliştirme betikleri dışarıda kalır.
+2. Ayrı dizinde kurun: `npm install /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --ignore-scripts`.
+   npm bağımlılıkları indirilebilir; Market Fiyatı doğrulaması offline kalır.
+3. Kurulu CLI'da `--help`, MCP bağlantısı ve `market_status` sonucunu kontrol edin.
+4. Aynı arşivle prova yapın:
 
    ```sh
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   npm run release:check -- v1.0.0
-   git push origin v1.0.0
+   npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --dry-run --access public
    ```
 
-5. GitHub Actions'tan **Draft release → Run workflow** seçin. Dal `main`,
-   `tag` girdisi `v1.0.0` olmalıdır. CLI karşılığı:
+**Beklenen:** Kurulu sunucu offline yanıt verir; arşiv içeriği doğru görünür.
+Dry-run hesap yetkisini/sürüm uygunluğunu kanıtlamaz.
+Otomatik paket testi arşivi açar ve bu CLI/MCP kontrollerini bağımlılık indirmeden yapar.
 
-   ```sh
-   gh workflow run release.yml --ref main -f tag=v1.0.0
-   ```
+## 4. Yayımlayın
 
-Örnek sürümü yeni sürümle değiştirin. Tag oluşturma ile workflow başlatma arasında
-`main`'e yeni commit göndermeyin: tag'in workflow'un test ettiği commit ile birebir
-aynı olması zorunludur. Kontrollerin tamamı geçince otomasyon taslak oluşturur.
-Mevcut release'i güncellemez veya tag'i taşımaz; aynı sürüm için yeniden oluşturma
-hata verir. Workflow yalnız `main` üzerinden çalışır.
+Yalnız gerçek yayın istendiğinde, doğrulanan arşivi gönderin:
 
-Taslağı GitHub Releases sayfasından gözden geçirip **Publish release** ile
-yayımlayın. Otomasyon kendiliğinden yayımlamaz. Kararlı sürümlerde pre-release
-seçeneği kapalı olmalıdır. GitHub kaynak ZIP/TAR arşivlerini sağlar; bunlar hazır
-derlenmiş paket değildir. npm yayını aşağıdaki ayrı adımlarla yapılır; GitHub taslağı oluşturmak npm yayını başlatmaz.
+```sh
+npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --access public
+npm view market-fiyati-mcp@1.0.1 version dist.integrity
+```
 
-## npm paketini hazırlama ve yayımlama
-
-Paket adı `market-fiyati-mcp` olarak kalır. npm'de kaldırılmış bir sürüm numarası
-tekrar kullanılamaz. İlk npm kaydındaki `1.0.0` kaldırıldığı için bu deponun npm
-hazırlığı `1.0.1` ile başlar. Önceki Git tag'ini taşımayın.
-
-1. Sürümü `package.json`, lockfile ve MCP sunucu kimliğinde eşitleyin; README'deki
-   sabit sürümlü `npx` örneğini ve CHANGELOG'u güncelleyin. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
-2. `npm pack` ile dağıtım arşivini üretin. `prepack` derlemeyi yeniler. Pakette
-   yalnız çalışma JavaScript dosyaları, seçili belgeler ve npm'in zorunlu dosyaları bulunur;
-   testler, yerel arşivler ve geliştirme betikleri bulunmaz.
-3. Arşivi ayrı bir dizinde `npm install /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --ignore-scripts`
-   ile kurun. Kurulum npm bağımlılıklarını indirebilir; doğrulamayı `offline` modunda yapın.
-   CLI `--help`, MCP bağlantısı ve `market_status` sonucunu kontrol edin.
-4. Test edilen kaynak commit'ini ve sürüm tag'ini önceki bölümdeki süreçle kaydedin.
-   `npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --dry-run --access public` ile
-   incelenen arşivi kontrol edin. Dry-run hesap yetkisini veya sürüm uygunluğunu kanıtlamaz.
-5. npm oturumunda aynı arşivi `npm publish /mutlak/yol/market-fiyati-mcp-1.0.1.tgz --access public`
-   ile yayımlayın; npm'in istediği hesap doğrulamasını tamamlayın. Ardından
-   `npm view market-fiyati-mcp@1.0.1 version dist.integrity` ile yayını doğrulayın.
-
-Örnek sürümü her yayında güncelleyin. Yayımlama geri alınsa bile aynı ad/sürüm
-çifti yeniden kullanılamaz. Token veya tek kullanımlık kodları depoya kaydetmeyin.
-Paket testi arşivi geçici dizinde açarak `--help`, stdio bağlantısı ve offline
-status yanıtını kontrol eder; test sırasında bağımlılık indirmez.
+npm'in hesap doğrulamasını tamamlayın. **Başarı işareti:** Registry sürümü ve integrity
+incelenen arşivle eşleşir. Token/tek kullanımlık kodları depoya kaydetmeyin.
+Kaldırılsa bile aynı paket/sürüm çifti yeniden kullanılamaz.
 
 ## Bakım ve iş takibi
 
-Her `main` push'unda mevcut platform matrisi ve bağımlılık denetimi çalışır.
-Aynı workflow/dal için eski push/PR kontrolleri iptal edilebilir; manuel release
-kontrolleri bu iptal grubundan ayrıdır. Pazartesi 07:00 UTC (Türkiye saatiyle
-10:00) zamanlaması yalnız üretim bağımlılığı denetimini çalıştırır; GitHub'ın
-zamanlanmış işleri gecikebilir. `npm audit --omit=dev` geliştirme bağımlılıklarını
-kapsamaz. Güncellemeleri elle uygulayıp lockfile ile birlikte doğrulayın.
+| İş                                  | Kural                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Her `main` push'u                   | Platform matrisi + bağımlılık denetimi; aynı workflow/dalda eski push/PR kontrolleri iptal edilebilir |
+| Manuel release                      | Eski push/PR iptal grubundan ayrı                                                                     |
+| Pazartesi 07:00 UTC / 10:00 Türkiye | Yalnız üretim bağımlılığı denetimi; GitHub zamanlaması gecikebilir                                    |
+| `npm audit --omit=dev`              | Geliştirme bağımlılıklarını kapsamaz; sürümleri elle güncelleyip lockfile ile doğrulayın              |
+| Issues                              | Hata/özellik formu, `bug`/`enhancement`/`documentation`, hedef milestone; ilk milestone `v1.0.0`      |
 
-Issues içindeki hata/özellik formlarını ve `bug`, `enhancement`, `documentation`
-etiketlerini kullanın. İşi hedef sürüm milestone'una bağlayın; ilk milestone
-`v1.0.0`'dır. Token, kişisel koordinat veya ham tanılama verisi issue'ya eklemeyin.
-Tek dal tercihi nedeniyle otomatik Dependabot PR'ları yapılandırılmaz.
+Tek dal tercihi nedeniyle otomatik Dependabot PR'ları yoktur.
+Token, kişisel koordinat ve ham tanılamayı issue'ya eklemeyin.

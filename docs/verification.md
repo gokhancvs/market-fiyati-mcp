@@ -1,61 +1,59 @@
 # Doğrulama kapsamı
 
-## Çevrimdışı kontroller
+**Kaynak depo klonunda çalıştırın:**
 
-`MARKET_FIYATI_MODE=offline npm run check` biçim ve lint denetimlerini, tip
-kontrolünü, derlemeyi ve otomatik testleri çalıştırır. Lint regresyonu kaynak ve
-test dosyalarında geçerli TypeScript'in kabulünü, kullanılmayan değişkenlerin
-ve açık `any` kullanımının reddini doğrular. Testler sentetik girdiler ve enjekte edilen sahte fetch
-kullanır; `tests/no-network.mjs` gerçek ağ erişimini engeller.
+```sh
+MARKET_FIYATI_MODE=offline npm run check
+```
 
-Kontroller giriş/yanıt sözleşmelerini, para ve sepet hesaplarını, fiyat geçmişini,
-uyarıların korunmasını, taşıma hatalarını, retry/iptal davranışını ve MCP
-entegrasyonunu kapsar. Seçilmeyen şubelerin sıralama ve sepet toplamından
-dışlanması, ham kanıt ve değerlendirme bağlantılarının korunması, FIFO kapasitesi
-ve bekleyen iptallerin temizliği ayrıca test edilir. Sentetik büyüme testi çok
-sayıda şube ve ayrık eşit fiyat kümelerinde alan erişimi sayısını ölçer; süre
-eşiği veya canlı yük testi değildir.
+**Beklenen:** Biçim, lint, tip kontrolü, derleme ve otomatik testler geçer.
+Testler sentetik girdiler/sahte fetch kullanır; `tests/no-network.mjs` gerçek ağ erişimini engeller.
 
-Sepette sıfır ve kuruşa yuvarlanınca sıfır olan tekliflerin ham alanlarıyla
-korunması, kapsam dışı tekliflerden ayrılması ve özgün değerlendirmeye bağlanması
-test edilir. Bu ek ham verinin de çıktı bütçesine girdiği ve aşımda kısmi başarı
-yerine açık MCP hatası döndüğü doğrulanır.
+## Neler sınanıyor?
 
-Sepet eşitliklerinde locale'den bağımsız kimlik sırası, endpoint allowlist'inde
-yalnız doğrudan tanımlı anahtarların kabulü ve çevrimdışı ağ engelinin izole
-alt süreçteki self-test'i de doğrulanır. Ağ testi gerçek bağlantı kurmadan
-fetch, TCP, HTTP, HTTPS, TLS ve HTTP/2 girişlerini sınar; DNS/UDP veya tüm özel
-HTTP/2 sağlayıcıları için kapsam iddia etmez.
+| Alan            | Kapsam                                                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Sözleşmeler     | Girdi/yanıt şemaları, kesin ID'ler, zincir anahtarı, sayfalama toplam/sınır koşulları; yalnız doğrudan endpoint allowlist anahtarları  |
+| Para ve sepet   | Kuruş hesabı, eksik toplamlar, locale bağımsız eşitlik çözümü, geçmiş fiyat/null gözlemler                                             |
+| Kapsam ve kanıt | Seçilmemiş tekliflerin hesap dışı kalması; sıfır/sıfıra yuvarlanan tekliflerin ham alanları ve değerlendirme bağlantılarıyla korunması |
+| Taşıma          | Hatalar, retry, timeout/iptal, FIFO kapasitesi; bekleyen iptal/dinleyici temizliği                                                     |
+| Dağıtım         | npm arşivinin çalışma dosyalarıyla sınırlanması, arşivden CLI ve offline MCP çalışması                                                 |
 
-Kaynak sınırı testleri uyarıların genişletilmeden reddini, kabul sınırında alan
-korunmasını, sepet boyunca biriken bütçeleri, teklifsiz ürünlerin şube metadata’sını
-büyütmeden reddini, JSON derinlik/değer/byte sınırlarını,
-Unicode/escape hesabını ve büyük çıktının MCP hata zarfına dönüşmesini kapsar.
-Ek regresyonlar sonlu olmayan JSON sayılarını, ilk geçersiz yanıt alanında durmayı,
-uzun facet anahtarlarının tanılamaya taşınmamasını ve büyük/geçersiz hata
-ayrıntılarının sabit bütçeli MCP hatasına dönüşmesini kapsar. SDK sınırında
-sayısal sıfır/boş kimlik, erken iptal, iki yönde yinelenen kimlik, yanıt
-callback'inde hemen tekrar kullanım ve kapanış temizliği;
-ürün zincir anahtarı ve sayfalama toplam/sınır koşulları sentetik olarak sınanır.
-Kapsam ilgili sürümün test dosyalarından okunmalıdır.
+### Kaynak ve hata sınırları
 
-[Çevrimdışı MCP kabul kiti](offline-acceptance.md), gerçek MCP stdio istemcisini
-sentetik ürünlerle sınar ve masaüstü Stop/kapatma ile modelin sonuç yorumunu
-ayrı elle değerlendirmek için senaryolar sağlar. SDK test başarısı, masaüstü
-kabulünün veya canlı API davranışının gözlendiği anlamına gelmez.
+| Kontrol             | Beklenen davranış                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------- |
+| Bütçeler            | Kaynak/ürün/teklif/uyarı toplamları sepet boyunca birikir; ham korunan veri de sayılır               |
+| Erken sınırlandırma | Uyarılar genişletilmeden, teklifsiz ürünler şube metadata'sı büyütülmeden reddedilir                 |
+| JSON                | Derinlik/değer/byte, Unicode/escape ve sonlu olmayan sayılar denetlenir; ilk geçersiz alanda durulur |
+| Tanılama            | Uzun facet anahtarları hataya kopyalanmaz; büyük/geçersiz hata sabit bütçeli MCP hatasına dönüşür    |
+| Aşım                | Kısmi başarı yerine açık hata; kabul edilen ek alan ve uyarılar korunur                              |
 
-## Canlı davranışın sınırları
+### SDK ve geliştirme
 
-Yerel test başarısı uzak API'nin erişilebilirliğini, stok durumunu, fiyatların
-kasa fiyatıyla eşleşmesini veya kampanya koşullarını doğrulamaz. Deneysel erişimin
-açık olması canlı doğrulama kanıtı değildir. Ürün ve şube kapsamı her yanıtta
-ayrıca değerlendirilir; eksik teklif stok yok anlamına gelmez.
+- SDK: `0`/boş kimlik, erken iptal, iki yönde yinelenen kimlik, yanıt callback'inde hemen yeniden kullanım ve kapanış temizliği.
+- Entegrasyon: bellek içi SDK ve stdio; başarının gerçek masaüstü kabulü sayılmaması.
+- Lint: geçerli TypeScript kabul; kullanılmayan değişken ve açık `any` reddi.
+- Büyüme testi: çok şube/ayrık eşit fiyat kümelerinde alan erişimi sayısı; süre eşiği veya canlı yük testi değil.
+- Ağ engeli: izole alt süreçte fetch, TCP, HTTP, HTTPS, TLS, HTTP/2; gerçek bağlantı kurulmaz.
+  DNS/UDP ve tüm özel HTTP/2 sağlayıcıları için kapsam iddia edilmez.
 
-Market listesi için başarılı erişim garantisi verilmez; bu uçtaki hata diğer
-arama ve karşılaştırma işlemlerinin çalışmasına engel değildir. Uzun sepet ve
-yük denemeleri canlı kabul kapsamına dahil değildir. İstemci timeout/iptal
-akışlarının gerçek masaüstü kabulü, sentetik testlerden ayrı değerlendirilir.
+Kesin kapsam ilgili sürümün test dosyalarındadır. CI: Ubuntu Node 22/24, macOS Node 24;
+ayrı üretim bağımlılığı denetimi npm advisory servisine erişir. Uygulama testleri Market Fiyatı API'sine bağlanmaz.
 
-Canlı testler yalnız kullanıcıyla, [canlı test rehberine](live-testing.md) göre
-yürütülür. Sözleşmeler ve sonuçların yorumlanması [API belgesinde](api.md)
-açıklanır. Bu belge oturum sonuçları veya ham ölçüm dökümleri içermez.
+## Bu sonuçlar neyi kanıtlamaz?
+
+| Yerel başarı         | Kanıtlamadığı şey                                               |
+| -------------------- | --------------------------------------------------------------- |
+| Sentetik test        | Uzak API erişimi, gerçek stok, kasa fiyatı veya kampanya koşulu |
+| Deneysel erişim açık | Başarılı canlı doğrulama                                        |
+| Teklif dönmedi       | Stok yokluğu; kapsam her yanıtta ayrıca değerlendirilir         |
+| SDK iptal testi      | Gerçek masaüstü istemcisinin timeout/Stop davranışı             |
+| Küçük canlı örnek    | Uzun sepet/yük desteği veya güvenli kota                        |
+
+Market listesine başarılı erişim garantisi yoktur; bu uçtaki hata bağımsız arama/karşılaştırmayı engellemez.
+Bu belge kapsamı açıklar, oturum sonucu veya ham ölçüm dökümü içermez.
+
+**Sonraki kontrolü seçin:** [Sentetik istemci kabulü](offline-acceptance.md) veya
+kullanıcının açık test başlangıcıyla [canlı test](live-testing.md).
+Yanıt yorumları [API sözleşmesindedir](api.md).
