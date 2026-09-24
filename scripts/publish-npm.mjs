@@ -46,9 +46,10 @@ export async function publishNpm(
     assert.ok(difference >= 0 && next[difference] > previous[difference], 'Version must be newer than npm latest');
   }
   publish(pack.filename);
-  for (let attempt = 0; attempt < 6; attempt++) {
+  // Allow registry propagation five minutes of waiting (60 waits of five seconds).
+  for (let attempt = 0; attempt < 61; attempt++) {
     if (matches(await read())) return;
-    if (attempt < 5) await wait();
+    if (attempt < 60) await wait();
   }
   throw new Error('Published version not visible in registry; rerun to verify, never change the existing tag');
 }

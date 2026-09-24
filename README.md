@@ -37,7 +37,7 @@ Yayımlanmış [npm paketini](https://www.npmjs.com/package/market-fiyati-mcp) N
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.2"],
+      "args": ["-y", "market-fiyati-mcp@1.0.4"],
       "env": { "MARKET_FIYATI_MODE": "offline" }
     }
   }

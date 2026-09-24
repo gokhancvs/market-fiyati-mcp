@@ -34,12 +34,12 @@ bakın. Bu bağlantı kurulmadan tag gönderilirse npm adımı başarısız olur
 
 ## 2. Sürümü hazırlama
 
-Yayımlanmış veya kaldırılmış sürüm numaraları yeniden kullanılamaz. Aşağıdaki komutlar `1.0.2`
+Yayımlanmış veya kaldırılmış sürüm numaraları yeniden kullanılamaz. Aşağıdaki komutlar `1.0.4`
 sürümünün hazırlanmasını örnekler; sonraki yayınlarda yeni bir sürüm numarası seçin.
 
-1. `npm version 1.0.2 --no-git-tag-version` ile `package.json` ve lockfile'daki sürümü birlikte güncelleyin.
+1. `npm version 1.0.4 --no-git-tag-version` ile `package.json` ve lockfile'daki sürümü birlikte güncelleyin.
    `src/server.ts` içindeki MCP sunucu sürümünü de aynı değere getirin.
-2. README'deki sabit `npx` sürümünü, CHANGELOG'u ve `docs/releases/v1.0.2.md` sürüm notunu hazırlayın.
+2. README'deki sabit `npx` sürümünü, CHANGELOG'u ve `docs/releases/v1.0.4.md` sürüm notunu hazırlayın.
    Sürüm notu kurulumu, değişiklikleri ve doğrulama sınırlarını anlatmalıdır. Sentetik testleri live başarı
    gibi göstermeyin.
 3. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
@@ -51,9 +51,9 @@ Test edilmiş commit üzerinde şu komutları çalıştırın:
 
 ```sh
 git fetch origin main
-git tag -a v1.0.2 -m "Release v1.0.2"
-npm run release:check -- v1.0.2
-git push origin v1.0.2
+git tag -a v1.0.4 -m "Release v1.0.4"
+npm run release:check -- v1.0.4
+git push origin v1.0.4
 ```
 
 Ortamınızda RTK kuralı varsa komutların başına `rtk` ekleyin.
@@ -74,6 +74,8 @@ durdurur.
    kurulan CLI'ın yardım çıktısını, stdio bağlantısını ve offline durumunu doğrular. Başarılı arşiv saklanır.
 4. **Test edilmiş arşivin kendisi** OIDC ile npmjs.com'a public ve `latest` olarak gönderilir. Registry'deki
    sürüm ve SHA-512 integrity değeri eşleşmeden sonraki adıma geçilmez.
+   Registry görünürlüğü için ilk kontrolden sonra en fazla 60 kez, beşer saniye beklenir; HTTP isteklerinin
+   süresi bu beş dakikalık beklemeye eklenir. Sınır aşılırsa aynı tag ile başarısız işi yeniden çalıştırın.
 5. Sürüm notlarıyla bir GitHub Release oluşturulur ve test edilmiş `.tgz` dosyası eklenir.
 
 **Başarılı sayılır:** GitHub Actions'taki "Publish release" çalışması yeşildir, npm'deki sürüm ve integrity
@@ -91,8 +93,8 @@ değerini geri çekemez. Yayınlar sırayla çalışır; GitHub kuyruğu en fazl
 
 ```sh
 npm pack
-npm install /mutlak/yol/market-fiyati-mcp-1.0.2.tgz --ignore-scripts
-npm publish /mutlak/yol/market-fiyati-mcp-1.0.2.tgz --dry-run --access public
+npm install /mutlak/yol/market-fiyati-mcp-1.0.4.tgz --ignore-scripts
+npm publish /mutlak/yol/market-fiyati-mcp-1.0.4.tgz --dry-run --access public
 ```
 
 Kurulumu ayrı ve geçici bir klasörde yapın; CLI ve MCP doğrulaması offline modda kalsın. Dry-run, yayın

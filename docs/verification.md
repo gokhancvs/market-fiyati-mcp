@@ -21,7 +21,7 @@ ve fake fetch kullanır. `tests/no-network.mjs` gerçek ağ erişimini engeller.
 
 Yayın testleri ayrıca şunları sahte registry yanıtlarıyla sınar: tag ile `main` arasındaki ilişki, OIDC
 workflow adımlarının sırası, daha önce kullanılmış sürümlerin tekrar gönderilmemesi ve registry integrity
-kontrolü. Bu testler gerçek GitHub OIDC yetkilendirmesini veya gerçek bir npm yayınını kanıtlamaz.
+kontrolü. Gecikmeli registry görünürlüğü ile bekleme sınırı sonunda durma da ağ isteği göndermeden sınanır. Bu testler gerçek GitHub OIDC yetkilendirmesini veya gerçek bir npm yayınını kanıtlamaz.
 
 ### Kaynak ve hata sınırları
 

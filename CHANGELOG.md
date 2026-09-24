@@ -6,7 +6,25 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 Henüz değişiklik yok.
 
+## 1.0.4 — 2026-09-24
+
+Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.4.md) bakın.
+
+### Düzeltilenler
+
+- npm yayını kabul edildikten sonra registry'de görünürlük için toplam bekleme süresi 25 saniyeden
+  beş dakikaya çıkarıldı. Gecikmeli doğrulama sırasında paket yeniden gönderilmez; integrity kontrolü korunur.
+- Paket, MCP sunucusu ve bağlantı örneğinin sürümleri `1.0.4` olarak eşitlendi.
+
+## 1.0.3 — 2026-09-24
+
+Türkçe dokümantasyon düzenlemeleri ve otomatik yayın akışı npm'de yayımlandı. Registry görünürlüğü
+geciktiği için yayın sonrası doğrulama tamamlanamadı ve GitHub Release oluşturulmadı.
+
 ## 1.0.2 — 2026-09-24
+
+Yalnızca Git tag'i oluşturuldu; npm yayını yapılmadı. Registry'deki `latest` zaten `1.0.3` olduğu için
+sürümün geriye gitmesini önleyen kontrol yayını durdurdu.
 
 Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.2.md) bakın.
 

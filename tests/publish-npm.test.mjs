@@ -27,6 +27,12 @@ test('new npm version publishes the tested archive and waits for matching regist
   assert.deepEqual(calls, ['tested.tgz']);
 });
 
+test('delayed registry visibility succeeds after sixty polling waits without republishing', async () => {
+  const { result, calls } = run([...Array(61).fill({}), released]);
+  await result;
+  assert.deepEqual(calls, ['tested.tgz']);
+});
+
 test('a matching existing npm version is verified without publishing again', async () => {
   const { result, calls } = run([released]);
   await result;
@@ -44,7 +50,7 @@ test('used versions, registry errors and missing proof prevent publication or su
     await assert.rejects(result, error);
     assert.equal(calls.length, publishes);
   }
-  const { result, calls } = run(Array(7).fill({}));
+  const { result, calls } = run([...Array(62).fill({}), released]);
   await assert.rejects(result, /not visible/);
   assert.equal(calls.length, 1);
 });
