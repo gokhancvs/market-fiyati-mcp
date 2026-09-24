@@ -6,6 +6,8 @@
 
 ### Değişenler
 
+- Main geçmişindeki yeni kararlı tag push’unda offline kontroller, npm OIDC yayını, integrity doğrulaması ve GitHub Release otomatik çalışır.
+
 - Dokümanlar kısa adımlar ve tablolarla yeniden düzenlendi; README/API tekrarları azaltıldı.
 
 ## 1.0.1 — 2026-09-24

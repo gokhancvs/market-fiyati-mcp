@@ -25,9 +25,9 @@ GUI Node'u bulamazsa onun da mutlak yolunu kullanın. Doğrudan `node`, stdout'u
 **Başarı işareti:** Kurulum, derleme ve kontroller hatasız tamamlanır.
 
 <details>
-<summary>npm ile bağlantı · yalnız npm yayını tamamlandıktan sonra</summary>
+<summary>npm ile bağlantı</summary>
 
-Bu örnek, `1.0.1` npm'de yayımlandıktan sonra kullanılabilir:
+Yayımlanmış [npm paketini](https://www.npmjs.com/package/market-fiyati-mcp) Node.js 22+ ile bağlayın:
 
 ```json
 {

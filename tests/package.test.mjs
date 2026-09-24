@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,6 +59,12 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     const status = await client.callTool({ name: 'market_status', arguments: {} });
     assert.notEqual(status.isError, true);
     assert.equal(status.structuredContent.data.mode, 'offline');
+    const destination = process.env.MARKET_FIYATI_PACK_DESTINATION;
+    if (destination) {
+      mkdirSync(destination, { recursive: true });
+      copyFileSync(join(temp, packed.filename), join(destination, packed.filename));
+      writeFileSync(join(destination, 'pack.json'), JSON.stringify([packed]));
+    }
   } finally {
     await client.close();
     rmSync(temp, { recursive: true, force: true });

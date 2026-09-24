@@ -19,6 +19,10 @@ Testler sentetik girdiler/sahte fetch kullanır; `tests/no-network.mjs` gerçek 
 | Taşıma          | Hatalar, retry, timeout/iptal, FIFO kapasitesi; bekleyen iptal/dinleyici temizliği                                                     |
 | Dağıtım         | npm arşivinin çalışma dosyalarıyla sınırlanması, arşivden CLI ve offline MCP çalışması                                                 |
 
+Yayın testleri ayrıca tag/main ilişkisini, OIDC workflow sırasını, kullanılmış sürümlerin
+yeniden gönderilmemesini ve registry integrity kontrolünü sahte registry yanıtlarıyla sınar.
+Bu kontroller gerçek GitHub OIDC yetkilendirmesini veya npm yayınını kanıtlamaz.
+
 ### Kaynak ve hata sınırları
 
 | Kontrol             | Beklenen davranış                                                                                    |

@@ -16,4 +16,5 @@ assert.equal(lock.packages?.['']?.version, version, 'lockfile root version must 
 assert.ok(readFileSync(`docs/releases/${tag}.md`, 'utf8').trim(), 'Cannot use empty release notes');
 const revision = (ref) => execFileSync('git', ['rev-parse', '--verify', ref], { encoding: 'utf8' }).trim();
 assert.equal(revision(`refs/tags/${tag}^{commit}`), revision('HEAD'), 'Release tag must point to the tested commit');
+execFileSync('git', ['merge-base', '--is-ancestor', 'HEAD', 'refs/remotes/origin/main']);
 console.log(`Release metadata verified: ${tag}`);
