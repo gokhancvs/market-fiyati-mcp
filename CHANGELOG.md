@@ -6,9 +6,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 Henüz değişiklik yok.
 
-## 1.0.3 — 2026-09-24
+## 1.0.2 — 2026-09-24
 
-Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.3.md) bakın.
+Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.2.md) bakın.
 
 ### Değişenler
 
