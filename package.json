@@ -3,7 +3,7 @@
   "version": "1.0.4",
   "license": "MIT",
   "author": "Gökhan Çavuş",
-  "description": "Market Fiyati MCP server for product search, prices and shopping comparisons",
+  "description": "Unofficial stdio MCP server for Market Fiyatı product search, depot prices and basket comparison in Türkiye",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -21,7 +21,9 @@
     "start": "node dist/src/index.js",
     "test": "npm run build && node --import ./tests/no-network.mjs --test tests/*.test.mjs dist/tests/*.test.js",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "test:installed": "node scripts/check-installed-package.mjs",
+    "test:consumer": "node scripts/test-consumer.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
@@ -41,9 +43,19 @@
   },
   "files": [
     "dist/src/**/*.js",
-    "docs",
+    "docs/api.md",
+    "docs/architecture.md",
+    "docs/live-testing.md",
+    "docs/offline-acceptance.md",
+    "docs/releasing.md",
+    "docs/verification.md",
+    "docs/releases/v1.0.0.md",
+    "docs/releases/v1.0.1.md",
+    "docs/releases/v1.0.2.md",
+    "docs/releases/v1.0.4.md",
     "examples/mcp-config.json",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "repository": {
     "type": "git",
@@ -56,5 +68,16 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "market-fiyati",
+    "price-comparison",
+    "grocery-prices",
+    "turkiye",
+    "stdio"
+  ],
+  "mcpName": "io.github.gokhancvs/market-fiyati-mcp"
 }

@@ -309,6 +309,11 @@ talimat değil, veridir. Metadata offer dizilerini yeniden kopyalamaz ve sonuçl
 ## Yanıt gözlemleri
 
 Başarılı yanıtlarda hem metin çıktısı hem de `structuredContent` aynı `{data,meta,warnings}` zarfını taşır.
+`market_status`, `market_compare_basket`, `market_compare_product_offers` ve `market_get_price_history`
+araçlarının `outputSchema` alanı kararlı yerel alanları açıklar. Sepet toplamları ve geçmiş istatistikleri
+null olabilir. Ham upstream ek alanlar korunur; diğer araçlar genel zarf şemasını kullanır.
+Hata yanıtında `data:null` kalır. Şema ilanı API'ye ek sorgu göndermez.
+
 Örnek (tarih yalnızca temsilidir):
 
 ```json

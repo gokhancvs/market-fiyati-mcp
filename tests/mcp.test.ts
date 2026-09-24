@@ -1,3 +1,4 @@
+import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv-provider.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -1119,6 +1120,64 @@ test('MCP rejects amplified output with a small explicit error instead of duplic
         ).requestMetrics.httpAttempts,
         1
       );
+    }
+  );
+});
+
+// The discovered contract must reject invalid stable fields, without dropping unknown upstream data.
+test('stable output schemas validate fields, nullable values and additive data', async () => {
+  await withClient(
+    async () => Response.json(itemResponse('A')),
+    async (client) => {
+      const listed = (await client.listTools()).tools;
+      const validator = new AjvJsonSchemaValidator();
+      for (const [name, args, key] of [
+        ['market_status', {}, 'mode'],
+        ['market_compare_basket', { ...context, items: [{ id: 'A', quantity: 1 }] }, 'groupBy'],
+        ['market_compare_product_offers', { ...context, identity: 'A' }, 'currency']
+      ] as const) {
+        const schema = listed.find((tool) => tool.name === name)!.outputSchema!;
+        const validate = validator.getValidator(schema as Parameters<AjvJsonSchemaValidator['getValidator']>[0]);
+        const result = (await client.callTool({ name, arguments: args })) as CallToolResult;
+        assert.notEqual(result.isError, true);
+        assert.equal(validate(result.structuredContent).valid, true);
+        const envelope = result.structuredContent!;
+        assert.equal(validate({ ...envelope, data: { ...(envelope.data as object), [key]: 42 } }).valid, false);
+        assert.equal(validate({ ...envelope, data: { ...(envelope.data as object), extra: 'preserved' } }).valid, true);
+        assert.equal(validate({ data: null, meta: {}, warnings: [], error: { code: 'CANCELLED' } }).valid, true);
+      }
+    }
+  );
+  await withClient(
+    async () =>
+      Response.json([
+        { name: 'test', extra: 'preserved', series: [{ name: '2026-09-01', value: null, future: true }] }
+      ]),
+    async (client) => {
+      const listed = (await client.listTools()).tools;
+      const schema = listed.find((tool) => tool.name === 'market_get_price_history')!.outputSchema!;
+      const validate = new AjvJsonSchemaValidator().getValidator(
+        schema as Parameters<AjvJsonSchemaValidator['getValidator']>[0]
+      );
+      const result = (await client.callTool({
+        name: 'market_get_price_history',
+        arguments: { ...context, uniqueId: 'A' }
+      })) as CallToolResult;
+      assert.notEqual(result.isError, true);
+      const envelope = result.structuredContent!;
+      const data = envelope.data as {
+        series: { extra: string; series: { value: null; future: boolean }[] }[];
+        summary: object[];
+      };
+      assert.equal(validate(envelope).valid, true);
+      assert.equal(data.series[0]!.extra, 'preserved');
+      assert.equal(data.series[0]!.series[0]!.future, true);
+      assert.equal(data.series[0]!.series[0]!.value, null);
+      assert.equal(
+        validate({ ...envelope, data: { ...data, summary: [{ ...data.summary[0], first: 'not a price' }] } }).valid,
+        false
+      );
+      assert.deepEqual(JSON.parse((result.content as { text: string }[])[0]!.text), envelope);
     }
   );
 });

@@ -42,6 +42,9 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 - **Ham veri korunur.** Fiyat geçmişindeki null değerler kaybolmaz; istatistikler yalnızca sayısal
   gözlemlerden hesaplanır. Metadata üretmek ek sorgu yapmaz ve tüm ham offer'ları yeniden kopyalamaz.
 
+`output-schemas.ts`, status ve yerel türetilmiş sonuçların keşfedilebilir çıktı sözleşmelerini tanımlar.
+Analiz hesaplarını değiştirmez; upstream ek alanlar korunur.
+
 Arama kararlarının tek kaynağı `src/guidance.ts` dosyası ve onu yayımlayan `market://guide` resource'udur.
 Filtreleme ve sıralamayı API yapar; adayların ne anlama geldiğini çağıran AI açıklar. İndirim filtresi,
 API'nin indirim işaretini değiştirmez. Market listesi endpoint'inin HTTP 500 hatası diğer endpoint'leri

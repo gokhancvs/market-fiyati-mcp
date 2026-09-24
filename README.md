@@ -5,32 +5,14 @@ ve sepet karşılaştırması yapmak için bir stdio MCP sunucusu.
 
 **15 tool · 3 resource · 3 prompt.** Node.js 22 veya üzeri gerekir.
 
-## 1. Kurulum (yaklaşık 2–5 dakika)
+Unofficial stdio MCP server for Turkish grocery prices. Requires Node.js 22+.
+Offline by default: status and tool discovery work; remote price requests are blocked.
+Read the [usage permissions](#amaç-ve-kullanım-izinleri) before live use.
 
-Proje klasöründe şu komutları çalıştırın:
+## 1. npm ile kurulum (yaklaşık 1 dakika)
 
-```sh
-npm ci --ignore-scripts
-npm run build
-npm run check
-```
-
-Süre, internet bağlantınıza ve bilgisayarınıza göre değişir. `npm ci` paketleri indirmek için npm'e
-bağlanabilir, ancak Market Fiyatı API'sine istek göndermez. Ortamınızda RTK kuralı varsa komutların
-başına `rtk` ekleyin.
-
-Ardından [örnek MCP yapılandırmasını](examples/mcp-config.json) kendi istemcinize uyarlayın:
-`command` alanına `node`, argüman olarak da `dist/src/index.js` dosyasının **mutlak yolunu** yazın.
-MCP istemciniz (örneğin bir masaüstü uygulaması) `node` komutunu bulamazsa onun için de mutlak yol kullanın. Sunucuyu doğrudan
-`node` ile başlatmak, stdout'un yalnızca MCP trafiği için kullanılmasını sağlar.
-
-**Başarılı sayılır:** Kurulum, derleme ve kontroller hatasız tamamlanır.
-
-<details>
-<summary>npm paketiyle bağlanma</summary>
-
-Yayımlanmış [npm paketini](https://www.npmjs.com/package/market-fiyati-mcp) Node.js 22+ ile şu
-şekilde bağlayabilirsiniz:
+Kaynak kodu klonlamadan, [örnek MCP yapılandırmasını](examples/mcp-config.json) istemcinizin
+stdio sunucu ayarlarına uyarlayın:
 
 ```json
 {
@@ -44,10 +26,9 @@ Yayımlanmış [npm paketini](https://www.npmjs.com/package/market-fiyati-mcp) N
 }
 ```
 
-`npx` paketi npm'den indirebilir. **Offline mod, Market Fiyatı API'sine giden tüm istekleri engeller.**
-MCP istemciniz `npx` komutunu bulamazsa programın mutlak yolunu kullanın.
-
-</details>
+`npx` paketi npm'den indirebilir. İstemci `npx` komutunu bulamazsa programın mutlak yolunu kullanın.
+**Offline mod gerçek fiyat veya sahte fiyat demosu sağlamaz; Market Fiyatı API isteklerini engeller.**
+Sunucu stdio üzerinden JSON-RPC konuşur; normal çalışma sırasında stdout yalnızca MCP trafiğidir.
 
 ## 2. Bağlantıyı doğrulama (yaklaşık 1 dakika)
 
@@ -58,7 +39,7 @@ MCP istemcinize şunu yazın:
 **Beklenen sonuç:** Tool yanıt verir ve mod `offline` olarak görünür. Sunucunun başlaması, tool
 listesinin alınması ve resource okunması ağ isteği oluşturmaz. Bu modda gerçek fiyat sorguları engellenir.
 
-`npm start` komutu terminalde gelen mesajları bekler. HTTP portu açmaz; stdio üzerinden JSON-RPC kullanır.
+Sunucu HTTP portu açmaz; stdio üzerinden JSON-RPC kullanır.
 
 ## 3. Ne yapmak istiyorsunuz?
 
@@ -72,6 +53,28 @@ listesinin alınması ve resource okunması ağ isteği oluşturmaz. Bu modda ge
 
 Konum, yarıçap ve şubeler her ürün çağrısında açıkça verilir. MCP bu context'i hatırlamaz; sonuç cache'i
 tutmaz ve aramayı gizlice genişletmez. Live erişimi açıp açmamak operatörün kararıdır.
+
+İlk ürün aramasında konum, yarıçap ve boş olmayan `depots` listesi gerekir. Konuma uygun bilinen
+şube kimliklerini kullanın. Şubeler bilinmiyorsa `market_find_nearby_depots` deneysel erişim gerektirir;
+operatör izin verdiğinde bir kez keşif yapıp dönen şubelerle arayın. `NETWORK_DISABLED` offline ağ
+kilidini, `EXPERIMENTAL_DISABLED` deneysel erişim kilidini belirtir. AI bu ayarları kendiliğinden açmamalıdır.
+İzinli geçiş için [live test rehberini](docs/live-testing.md) izleyin.
+
+## Kaynak koddan geliştirme
+
+Depoyu klonladıktan sonra:
+
+```sh
+npm ci --ignore-scripts
+npm run build
+npm run check
+```
+
+Yerel kaynakla bağlanmak için istemcide program olarak `node`, argüman olarak
+`dist/src/index.js` dosyasının mutlak yolunu ve `MARKET_FIYATI_MODE=offline` kullanın.
+Gerekirse `node` yolunu da mutlak yazın. `npm start` terminalde stdio mesajlarını bekler.
+`npm ci` npm'e bağlanabilir; uygulama testleri Market Fiyatı API'sine bağlanmaz.
+Ortamınızda RTK kuralı varsa geliştirme komutlarının başına `rtk` ekleyin.
 
 ## Sonuçları doğru okumak
 
@@ -107,6 +110,8 @@ Live kullanıma geçmeden önce [Market Fiyatı kullanım koşullarını](https:
 okuyun ve gerekli yazılı izinleri sağlayıcıyla netleştirin. O zamana kadar `offline` modunu kullanın.
 Ticari amaç gütmemek, veri saklamamak ya da endpoint'e teknik olarak erişebilmek kullanım izni anlamına
 gelmez. Bu depo, üçüncü taraf API'lere erişim izni vermez.
+
+Güvenlik açığı bildirmek için [özel bildirim yönergesini](SECURITY.md) kullanın.
 
 ## Lisans
 

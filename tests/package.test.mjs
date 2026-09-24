@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +19,28 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const guard = fileURLToPath(new URL('./no-network.mjs', import.meta.url));
+
+test('unlisted documentation cannot enter the published package', () => {
+  const temp = mkdtempSync(join(tmpdir(), 'market-package-scope-'));
+  try {
+    const source = join(temp, 'source');
+    mkdirSync(source);
+    copyFileSync(join(root, 'package.json'), join(source, 'package.json'));
+    cpSync(join(root, 'docs'), join(source, 'docs'), { recursive: true });
+    writeFileSync(join(source, 'docs/package-probe.md'), 'Private draft; must not ship.');
+    const [packed] = JSON.parse(
+      execFileSync('npm', ['pack', '--ignore-scripts', '--offline', '--json', '--pack-destination', temp], {
+        cwd: source,
+        encoding: 'utf8',
+        env: { ...process.env, npm_config_cache: join(temp, 'cache') }
+      })
+    );
+    assert.ok(!packed.files.some(({ path }) => path === 'docs/package-probe.md'));
+    assert.ok(packed.files.some(({ path }) => path === 'docs/api.md'));
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+});
 
 test('npm tarball excludes development files and runs the offline MCP outside the checkout', async () => {
   const temp = mkdtempSync(join(tmpdir(), 'market-package-'));
@@ -23,13 +54,27 @@ test('npm tarball excludes development files and runs the offline MCP outside th
       })
     );
     const paths = packed.files.map(({ path }) => path);
+    const publicFiles = new Set([
+      'docs/api.md',
+      'docs/architecture.md',
+      'docs/verification.md',
+      'docs/offline-acceptance.md',
+      'docs/live-testing.md',
+      'docs/releasing.md',
+      'docs/releases/v1.0.0.md',
+      'docs/releases/v1.0.1.md',
+      'docs/releases/v1.0.2.md',
+      'docs/releases/v1.0.4.md',
+      'examples/mcp-config.json',
+      'package.json',
+      'SECURITY.md',
+      'README.md',
+      'LICENSE',
+      'CHANGELOG.md'
+    ]);
     assert.ok(
-      paths.every((path) =>
-        /^(dist\/src\/.*\.js|docs\/.*\.md|examples\/mcp-config\.json|package\.json|README\.md|LICENSE|CHANGELOG\.md)$/.test(
-          path
-        )
-      ),
-      'Tarball must contain only runtime JavaScript and public documentation'
+      paths.every((path) => /^dist\/src\/.*\.js$/.test(path) || publicFiles.has(path)),
+      'Tarball must contain only runtime JavaScript and explicitly public documentation'
     );
     for (const path of ['dist/src/index.js', 'README.md', 'LICENSE', 'CHANGELOG.md']) {
       assert.ok(paths.includes(path), `Missing ${path}`);
@@ -37,6 +82,15 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     execFileSync('tar', ['-xzf', join(temp, packed.filename), '-C', temp]);
     const cwd = join(temp, 'package');
     const manifest = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'));
+    const example = JSON.parse(readFileSync(join(cwd, 'examples/mcp-config.json'), 'utf8'));
+    assert.equal(example.mcpServers['market-fiyati'].command, 'npx');
+    assert.deepEqual(example.mcpServers['market-fiyati'].args, ['-y', `${manifest.name}@${manifest.version}`]);
+    assert.equal(example.mcpServers['market-fiyati'].env.MARKET_FIYATI_MODE, 'offline');
+    const registry = JSON.parse(readFileSync(join(root, 'server.json'), 'utf8'));
+    assert.equal(registry.name, manifest.mcpName);
+    assert.equal(registry.version, manifest.version);
+    assert.equal(registry.packages[0].identifier, manifest.name);
+    assert.equal(registry.packages[0].version, manifest.version);
     assert.notEqual(manifest.private, true, 'Package must permit publication');
     const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
     assert.equal(lock.version, manifest.version);

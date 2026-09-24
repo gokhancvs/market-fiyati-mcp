@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gokhancvs/market-fiyati-mcp",
+  "description": "Unofficial stdio MCP for Turkish grocery prices, branch offers and basket comparisons.",
+  "repository": {
+    "url": "https://github.com/gokhancvs/market-fiyati-mcp",
+    "source": "github"
+  },
+  "version": "1.0.4",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "market-fiyati-mcp",
+      "version": "1.0.4",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MARKET_FIYATI_MODE",
+          "description": "Operator-controlled API access; offline blocks all remote price requests. See usage permissions before live access.",
+          "format": "string",
+          "default": "offline",
+          "choices": ["offline", "live"],
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
