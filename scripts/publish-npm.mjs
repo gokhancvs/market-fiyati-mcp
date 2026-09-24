@@ -52,7 +52,16 @@ export async function publishNpm(
       return { metadata: {}, delay: Number.isNaN(retryAfter) ? 5000 : Math.max(5000, retryAfter) };
     }
     assert.ok(response.status === 200 || response.status === 404, `Registry HTTP ${response.status}`);
-    return { metadata: await response.json(), delay: 5000 };
+    try {
+      return { metadata: await response.json(), delay: 5000 };
+    } catch (error) {
+      if (
+        retry &&
+        (error instanceof TypeError || (error instanceof Error && ['AbortError', 'TimeoutError'].includes(error.name)))
+      )
+        return { metadata: {}, delay: 5000 };
+      throw error;
+    }
   };
   const matches = (metadata) => {
     const version = metadata.versions?.[pack.version];

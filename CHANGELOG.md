@@ -4,7 +4,17 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
-Henüz değişiklik yok.
+- npm kurulumu ve offline başlangıç README'de öne çıkarıldı; örnek sürüm pini paketle doğrulanır.
+  Keşif anahtar kelimeleri ve sonraki yayın için MCP Registry metadata hazırlığı eklendi.
+- Paket belgeleri açık dosya listesine alındı. Ayrı npm cache ve üretim bağımlılıklarıyla bağımsız
+  tüketici/binary kontrolü eklendi; yayın işi aynı test edilmiş arşivi ayrıca kurar.
+- Yeni npm yayınında `latest` doğrulanır; geçici registry ve gövde okuma hataları toplam beş dakikalık
+  süre içinde yalnız doğrulama isteğini tekrarlar. Integrity uyuşmazlığı ve bozuk JSON hemen durdurur.
+- Status, sepet, ürün karşılaştırması ve fiyat geçmişi için kararlı çıktı alanları şemada ilan edilir;
+  null değerler ve upstream ek alanlar korunur.
+- Özel güvenlik bildirim politikası ve güvenlik güncellemelerine yönelik Dependabot yapılandırması eklendi.
+
+Bu değişiklikler henüz npm'de veya MCP Registry'de yayımlanmadı. Canlı API davranışı için yeni doğrulama yoktur.
 
 ## 1.0.4 — 2026-09-24
 
@@ -20,6 +30,9 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.4.md) bakın.
 
 Türkçe dokümantasyon düzenlemeleri ve otomatik yayın akışı npm'de yayımlandı. Registry görünürlüğü
 geciktiği için yayın sonrası doğrulama tamamlanamadı ve GitHub Release oluşturulmadı.
+Kaynak commit'i npm provenance kaydında
+[`4eafbea13e2653e9bea16e17d180ed4de3689873`](https://github.com/gokhancvs/market-fiyati-mcp/commit/4eafbea13e2653e9bea16e17d180ed4de3689873)
+olarak belirtilir. Tarihsel npm paketi yeniden yayımlanmaz; güncel kurulum README'dedir.
 
 ## 1.0.2 — 2026-09-24
 

@@ -69,6 +69,52 @@ test('post-publication permanent errors and mismatching evidence fail immediatel
   }
 });
 
+test('post-publication body disconnects and timeouts retry within the verification deadline', async () => {
+  for (const error of [
+    new TypeError('terminated'),
+    new DOMException('body timeout', 'TimeoutError'),
+    new DOMException('body aborted', 'AbortError')
+  ]) {
+    const broken = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(error);
+        }
+      })
+    );
+    const responses = [{}, broken, released];
+    const { result, calls } = run(responses);
+    await result;
+    assert.equal(responses.length, 0);
+    assert.deepEqual(calls, ['tested.tgz']);
+  }
+  let clock = 0;
+  let reads = 0;
+  await assert.rejects(
+    publishNpm(pack, {
+      now: () => clock,
+      fetch: async () => {
+        reads++;
+        if (reads === 1) return Response.json({});
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              clock += 300000;
+              controller.error(new TypeError('terminated'));
+            }
+          })
+        );
+      },
+      publish: () => {},
+      wait: async () => {
+        throw new Error('must not wait after deadline');
+      }
+    }),
+    /deadline/
+  );
+  assert.equal(reads, 2);
+});
+
 test('verification deadline includes requests and never polls before Retry-After', async () => {
   for (const header of ['8', new Date(18000).toUTCString()]) {
     let clock = 10000;
