@@ -1,0 +1,40 @@
+{
+  "name": "market-fiyati-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "author": "Gökhan Çavuş",
+  "description": "Market Fiyati MCP server for product search, prices and shopping comparisons",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "market-fiyati-mcp": "dist/src/index.js"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "format": "prettier . --write && npm run lint -- --fix --fix-type layout",
+    "format:check": "prettier . --check",
+    "lint": "eslint --ext .ts,.mjs src tests scripts --quiet",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/index.js",
+    "test": "npm run build && node --import ./tests/no-network.mjs --test tests/*.test.mjs dist/tests/*.test.js",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.19",
+    "@typescript-eslint/eslint-plugin": "8.70.1",
+    "@typescript-eslint/parser": "8.70.1",
+    "eslint": "8.57.1",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-import": "2.32.0",
+    "prettier": "3.9.5",
+    "typescript": "5.9.3"
+  }
+}

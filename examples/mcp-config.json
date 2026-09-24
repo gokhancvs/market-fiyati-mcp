@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "market-fiyati": {
+      "command": "node",
+      "args": ["/absolute/path/market-fiyati-mcp/dist/src/index.js"],
+      "env": { "MARKET_FIYATI_MODE": "offline" }
+    }
+  }
+}

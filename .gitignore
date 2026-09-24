@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.superpowers/
+.env
+*.log
+*.tgz
+.DS_Store
+/reports/
+/plans/
+/docs/reviews/
+/docs/superpowers/
+/docs/implementation-plan.md
+.env.*
+!.env.example
