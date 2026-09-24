@@ -1,63 +1,66 @@
 # Doğrulama kapsamı
 
-**Kaynak depo klonunda çalıştırın:**
+Kaynak deponun klonunda şu komutu çalıştırın:
 
 ```sh
 MARKET_FIYATI_MODE=offline npm run check
 ```
 
-**Beklenen:** Biçim, lint, tip kontrolü, derleme ve otomatik testler geçer.
-Testler sentetik girdiler/sahte fetch kullanır; `tests/no-network.mjs` gerçek ağ erişimini engeller.
+**Beklenen sonuç:** Biçim, lint, tip kontrolü, derleme ve otomatik testler geçer. Testler sentetik veriler
+ve fake fetch kullanır. `tests/no-network.mjs` gerçek ağ erişimini engeller.
 
-## Neler sınanıyor?
+## Neler test ediliyor?
 
-| Alan            | Kapsam                                                                                                                                 |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Sözleşmeler     | Girdi/yanıt şemaları, kesin ID'ler, zincir anahtarı, sayfalama toplam/sınır koşulları; yalnız doğrudan endpoint allowlist anahtarları  |
-| Para ve sepet   | Kuruş hesabı, eksik toplamlar, locale bağımsız eşitlik çözümü, geçmiş fiyat/null gözlemler                                             |
-| Kapsam ve kanıt | Seçilmemiş tekliflerin hesap dışı kalması; sıfır/sıfıra yuvarlanan tekliflerin ham alanları ve değerlendirme bağlantılarıyla korunması |
-| Taşıma          | Hatalar, retry, timeout/iptal, FIFO kapasitesi; bekleyen iptal/dinleyici temizliği                                                     |
-| Dağıtım         | npm arşivinin çalışma dosyalarıyla sınırlanması, arşivden CLI ve offline MCP çalışması                                                 |
+| Alan            | Kapsam                                                                                                                                                                                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sözleşmeler     | Girdi ve yanıt şemaları, kesin ID sorgularında beklenmeyen veya tekrarlı ID'lerin reddi, zincir anahtarı, sayfalamadaki toplam ve sınır koşulları. Yalnızca allowlist'in kendi endpoint anahtarları kabul edilir; `toString` veya `__proto__` gibi miras kalan anahtarlar reddedilir. |
+| Para ve sepet   | Kuruş hesabı, eksik sepet toplamları, locale'den bağımsız eşitlik çözümü, fiyat geçmişi ve null gözlemler                                                                                                                                                                             |
+| Kapsam ve kanıt | Seçilmemiş şubelerin offer'larının hesaba katılmaması; sıfır veya kuruşa yuvarlanınca sıfır olan offer'ların ham alanları ve değerlendirme bağlantılarıyla korunması                                                                                                                  |
+| Transport       | Hatalar, retry, timeout ve iptal, FIFO kapasitesi; bekleyen iptallerin ve dinleyicilerin temizlenmesi                                                                                                                                                                                 |
+| Dağıtım         | npm arşivinin yalnızca çalışma dosyalarını içermesi; arşivden kurulan CLI'ın ve offline MCP sunucusunun çalışması                                                                                                                                                                     |
 
-Yayın testleri ayrıca tag/main ilişkisini, OIDC workflow sırasını, kullanılmış sürümlerin
-yeniden gönderilmemesini ve registry integrity kontrolünü sahte registry yanıtlarıyla sınar.
-Bu kontroller gerçek GitHub OIDC yetkilendirmesini veya npm yayınını kanıtlamaz.
+Yayın testleri ayrıca şunları sahte registry yanıtlarıyla sınar: tag ile `main` arasındaki ilişki, OIDC
+workflow adımlarının sırası, daha önce kullanılmış sürümlerin tekrar gönderilmemesi ve registry integrity
+kontrolü. Bu testler gerçek GitHub OIDC yetkilendirmesini veya gerçek bir npm yayınını kanıtlamaz.
 
 ### Kaynak ve hata sınırları
 
-| Kontrol             | Beklenen davranış                                                                                    |
-| ------------------- | ---------------------------------------------------------------------------------------------------- |
-| Bütçeler            | Kaynak/ürün/teklif/uyarı toplamları sepet boyunca birikir; ham korunan veri de sayılır               |
-| Erken sınırlandırma | Uyarılar genişletilmeden, teklifsiz ürünler şube metadata'sı büyütülmeden reddedilir                 |
-| JSON                | Derinlik/değer/byte, Unicode/escape ve sonlu olmayan sayılar denetlenir; ilk geçersiz alanda durulur |
-| Tanılama            | Uzun facet anahtarları hataya kopyalanmaz; büyük/geçersiz hata sabit bütçeli MCP hatasına dönüşür    |
-| Aşım                | Kısmi başarı yerine açık hata; kabul edilen ek alan ve uyarılar korunur                              |
+| Kontrol             | Beklenen davranış                                                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bütçeler            | Kaynak, ürün, offer ve uyarı toplamları sepet boyunca birikir. Korunan ham veri de bu toplamlara dâhildir.                                          |
+| Erken sınırlandırma | Uyarı sınırı aşılırsa uyarılar genişletilmeden, ürün sınırı aşılırsa (offer'ı olmayan ürünler dâhil) şube metadata'sı üretilmeden istek reddedilir. |
+| JSON                | Derinlik, değer sayısı, byte boyutu, Unicode ve escape karakterleri ile sonlu olmayan sayılar denetlenir. İlk geçersiz alanda durulur.              |
+| Tanılama            | Uzun facet anahtarları hata mesajına kopyalanmaz. Büyük veya geçersiz bir hata, boyutu sınırlı sabit bir MCP hatasına dönüşür.                      |
+| Aşım                | Kısmi başarı yerine açık hata döner. Kabul edilmiş ek alanlar ve uyarılar korunur.                                                                  |
 
 ### SDK ve geliştirme
 
-- SDK: `0`/boş kimlik, erken iptal, iki yönde yinelenen kimlik, yanıt callback'inde hemen yeniden kullanım ve kapanış temizliği.
-- Entegrasyon: bellek içi SDK ve stdio; başarının gerçek masaüstü kabulü sayılmaması.
-- Lint: geçerli TypeScript kabul; kullanılmayan değişken ve açık `any` reddi.
-- Büyüme testi: çok şube/ayrık eşit fiyat kümelerinde alan erişimi sayısı; süre eşiği veya canlı yük testi değil.
-- Ağ engeli: izole alt süreçte fetch, TCP, HTTP, HTTPS, TLS, HTTP/2; gerçek bağlantı kurulmaz.
-  DNS/UDP ve tüm özel HTTP/2 sağlayıcıları için kapsam iddia edilmez.
+- **SDK:** `0` veya boş string istek kimliği, erken iptal, iki yönde yinelenen kimlik, bir kimliğin yanıt
+  callback'i içinde hemen yeniden kullanılması ve kapanışta temizlik.
+- **Entegrasyon:** Bellek içi SDK ve stdio testleri. Bu testlerin başarısı, gerçek bir masaüstü istemcide
+  kabul testi yapıldığı anlamına gelmez.
+- **Lint:** Geçerli TypeScript kabul edilir; kullanılmayan değişken ve açık `any` reddedilir.
+- **Büyüme testi:** Çok sayıda şube ve ayrık eşit fiyat grupları olduğunda alan erişim sayısı ölçülür. Bu bir
+  süre eşiği veya live yük testi değildir.
+- **Ağ engeli:** İzole bir alt süreçte fetch, TCP, HTTP, HTTPS, TLS ve HTTP/2 denenir; gerçek bağlantı
+  kurulmaz. DNS, UDP ve tüm özel HTTP/2 sağlayıcıları için kapsam iddia edilmez.
 
-Kesin kapsam ilgili sürümün test dosyalarındadır. CI: Ubuntu Node 22/24, macOS Node 24;
-ayrı üretim bağımlılığı denetimi npm advisory servisine erişir. Uygulama testleri Market Fiyatı API'sine bağlanmaz.
+Kesin kapsam, ilgili sürümün test dosyalarında görülebilir. CI, Ubuntu üzerinde Node 22/24 ve macOS üzerinde
+Node 24 ile çalışır. Ayrı bir üretim bağımlılığı denetimi npm advisory servisine bağlanır. Uygulama testleri
+Market Fiyatı API'sine bağlanmaz.
 
 ## Bu sonuçlar neyi kanıtlamaz?
 
-| Yerel başarı         | Kanıtlamadığı şey                                               |
-| -------------------- | --------------------------------------------------------------- |
-| Sentetik test        | Uzak API erişimi, gerçek stok, kasa fiyatı veya kampanya koşulu |
-| Deneysel erişim açık | Başarılı canlı doğrulama                                        |
-| Teklif dönmedi       | Stok yokluğu; kapsam her yanıtta ayrıca değerlendirilir         |
-| SDK iptal testi      | Gerçek masaüstü istemcisinin timeout/Stop davranışı             |
-| Küçük canlı örnek    | Uzun sepet/yük desteği veya güvenli kota                        |
+| Yerel başarı                  | Kanıtlamadığı şey                                                    |
+| ----------------------------- | -------------------------------------------------------------------- |
+| Sentetik testlerin geçmesi    | Uzak API'ye erişim, gerçek stok, kasadaki fiyat veya kampanya koşulu |
+| Deneysel erişimin açık olması | Live doğrulamanın başarılı olduğu                                    |
+| Bir şube için offer dönmemesi | Stok olmadığı; kapsam her yanıtta ayrıca değerlendirilir             |
+| SDK iptal testinin geçmesi    | Gerçek masaüstü istemcinin timeout veya Stop davranışı               |
+| Küçük bir live örnek          | Uzun sepet veya yük desteği ya da güvenli bir kota                   |
 
-Market listesine başarılı erişim garantisi yoktur; bu uçtaki hata bağımsız arama/karşılaştırmayı engellemez.
-Bu belge kapsamı açıklar, oturum sonucu veya ham ölçüm dökümü içermez.
+Market listesi endpoint'ine başarılı erişim garanti edilmez. Bu endpoint'teki hata, aramayı ve
+karşılaştırmayı engellemez. Bu belge yalnızca kapsamı açıklar; test oturumu sonucu veya ham ölçüm içermez.
 
-**Sonraki kontrolü seçin:** [Sentetik istemci kabulü](offline-acceptance.md) veya
-kullanıcının açık test başlangıcıyla [canlı test](live-testing.md).
-Yanıt yorumları [API sözleşmesindedir](api.md).
+**Sonraki adım:** [Sentetik istemci kabulü](offline-acceptance.md) ya da kullanıcı açıkça başlattığında
+[live test](live-testing.md). Yanıtların nasıl yorumlanacağı [API sözleşmesinde](api.md) anlatılır.
