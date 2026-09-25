@@ -37,6 +37,7 @@ export const outputSchemas = {
         liveRequestsEnabled: z.boolean(),
         experimentalEndpointsEnabled: z.boolean(),
         currency: z.literal('TRY'),
+        locationDefaults: z.strictObject({ configured: z.boolean() }),
         limits: z.looseObject({ basketItems: count, basketRequestBudget: z.literal(BASKET_REQUEST_BUDGET) }),
         requestPolicy: z.looseObject({ retries: count, minIntervalMs: count, scope: z.string() }),
         api: z.looseObject({

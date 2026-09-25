@@ -2,7 +2,7 @@ import { assertOutputBudget } from './resource-limits.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { schemas, type Operation } from './contracts.js';
+import { type Operation } from './contracts.js';
 import { MarketService, type Envelope } from './service.js';
 import { AppError, publicError } from './errors.js';
 import { GUIDE } from './guidance.js';
@@ -185,7 +185,7 @@ export function createServer(service: MarketService): McpServer {
       tool.name,
       {
         description: tool.description,
-        inputSchema: schemas[tool.operation],
+        inputSchema: service.inputSchema(tool.operation),
         outputSchema:
           tool.operation in outputSchemas ? outputSchemas[tool.operation as keyof typeof outputSchemas] : outputSchema,
         annotations: {

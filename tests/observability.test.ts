@@ -102,7 +102,10 @@ test('metrics report zero attempts for local status and preflight rejections', a
     }),
     failure(0, 0, 'REQUEST_BUDGET_EXCEEDED')
   );
-  await assert.rejects(s.execute('nearest', { latitude: 0, longitude: 0 }), failure(0, 0, 'EXPERIMENTAL_DISABLED'));
+  await assert.rejects(
+    s.execute('nearest', { latitude: 0, longitude: 0, distance: 1 }),
+    failure(0, 0, 'EXPERIMENTAL_DISABLED')
+  );
   await assert.rejects(
     new MarketService(new OfflineTransport(), readConfig({})).execute('categories', {}),
     failure(0, 0, 'NETWORK_DISABLED')
