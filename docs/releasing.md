@@ -5,6 +5,13 @@ Yalnız istenen aşamaları tamamlayın; verilmiş onayı yeniden istemeyin.
 
 **Yeni kararlı tag’i push etmek npm ve GitHub yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
 
+Sözleşme diff'inde önceden geçerli bir çağrı için yeni zorunlu girdi varsa, sürüm hazırlığında
+uyumluluk etkisini ve geçiş yolunu açıkça inceleyin; uyumsuz değişiklik için major sürüm ve
+migration belgesi gerekir. Eski çağrı fixture'larını review kapısında çalıştırın: yeni patch
+sürümünde sessiz bir kırılmayı test/diff incelemesiyle yakalayın. `1.0.6` sürümünde otomatik
+1 km yarıçap kaldırıldı ve bu eski yarıçapsız çağrıları kırdı; yayımlanmış sürümün tag'i ve
+paketi geriye dönük değiştirilmez.
+
 ## 1. Sürümü hazırlayın
 
 ```sh

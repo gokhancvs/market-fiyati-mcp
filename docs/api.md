@@ -61,6 +61,20 @@ birleştiren opak string’dir. Zincir adı, şube ID’sinin yerine geçmez.
 | Çağrı yarıçapı farklı | Distance env yarıçapını değiştirir. Verilmezse env yarıçapı kullanılır.                                                         |
 | Özel araçlar          | Ters geocode yalnız koordinat alır. Kategori/adres arama gibi konumsuz araçlar değişmez.                                        |
 
+`1.0.6` sürümünde otomatik 1 km yarıçap kaldırıldı. Önceki sürümlerde geçerli olan şu
+`market_search_products` çağrısı, env konumu yoksa artık `distance` eksikliği nedeniyle reddedilir:
+
+```json
+{ "keywords": "yoğurt", "latitude": 41, "longitude": 29, "depots": ["bim-example"], "pages": 0, "size": 5 }
+```
+
+Geçiş için çağrıya `"distance": 2` ekleyin veya
+`MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE` ve `MARKET_FIYATI_DISTANCE`
+env değerlerinin üçünü birlikte ayarlayın. Tam env üçlüsü varsa yukarıdaki çağrı,
+çağrıdaki koordinatları ve env'deki yarıçapı kullanır. `bim-example` yalnız yer tutucudur;
+API'den dönen uygun şube ID'sini kullanın. Bu zorunlu girdi değişikliği `1.0.6` patch
+sürümünde eski çağrılar için uyumluluk kırılmasıdır.
+
 `market_status.data.locationDefaults.configured` yalnız ayarın varlığını bildirir; gerçek değerler
 status veya tool şemasına yazılmaz. Env desteği offline/deneysel kilitleri açmaz.
 

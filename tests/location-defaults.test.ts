@@ -239,3 +239,19 @@ test('configured location does not enable network or experimental endpoints', as
     assert.equal(calls.length, 0);
   });
 });
+
+test('legacy search without distance needs an explicit or configured radius', async () => {
+  const legacy = { keywords: 'yoğurt', latitude: 41, longitude: 29, depots: ['bim-test'], pages: 0, size: 5 };
+  await withLocationClient({}, async (client, calls) => {
+    const result = await client.callTool({ name: 'market_search_products', arguments: legacy });
+    assert.equal(result.isError, true);
+    assert.equal(calls.length, 0);
+  });
+  await withLocationClient(configured, async (client, calls) => {
+    const result = await client.callTool({ name: 'market_search_products', arguments: legacy });
+    assert.notEqual(result.isError, true);
+    assert.equal(calls[0]?.body.distance, 2);
+    assert.equal(calls[0]?.body.latitude, 41);
+    assert.equal(calls[0]?.body.longitude, 29);
+  });
+});

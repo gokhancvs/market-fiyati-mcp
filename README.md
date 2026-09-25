@@ -39,7 +39,7 @@ Yalnız `env` değerleri ortam değişkeni olduğu için tırnaklıdır; sunucu 
 
 Kendi konumunuz için koordinatları değiştirin. Kişisel konumunuzu özel istemci ayarında tutun; Git’e eklemeyin.
 
-Env konumu 1.0.6 ile gelir. Bu sürüm henüz npm’de yoksa [kaynak koddan çalıştırın](#kaynak-koddan-geliştirme).
+Env konumu 1.0.6 ile geldi. Paket kurulamıyorsa [kaynak koddan çalıştırın](#kaynak-koddan-geliştirme).
 `npx` paketi indirir; bulunamazsa mutlak yolunu kullanın. [Hazır Galata yapılandırması](examples/mcp-config.json).
 
 ## 2. Bağlantıyı doğrulayın
