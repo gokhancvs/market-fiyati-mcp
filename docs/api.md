@@ -46,24 +46,29 @@ Prompt'lar: `compare_shopping_list`, `find_best_product_price`, `analyze_price_h
 
 ## Context
 
-Her ürün çağrısı `latitude`, `longitude`, `distance` (**km** cinsinden) ve boş olmayan bir `depots`
-listesiyle çözümlenir. Konum alanları çağrıdan veya operatörün env üçlüsünden sağlanır; şube listesi
-her çağrıda zorunludur. Şube kimliği, zincir anahtarı ile şube ID'sinden oluşan opak bir string'dir.
+**Ürün çağrıları için:** Enlem, boylam, km yarıçapı ve boş olmayan `depots` listesi sağlayın.
+`latitude`, `longitude` ve `distance` JSON sayısıdır; string kabul edilmez. Sunucuda `number`
+(64 bit `double`) kullanılır. Yalnız env metinleri girişte sayıya çevrilir.
+**İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir.
+Konum env’den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID’si zincir anahtarıyla şube ID’sini
+birleştiren opak string’dir. Zincir adı, şube ID’sinin yerine geçmez.
 
-`MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE`, `MARKET_FIYATI_DISTANCE` ya birlikte tanımlanır
-ya hiç tanımlanmaz. Env ayarı varken tool keşfinde konum alanları isteğe bağlı görünür; gerçek değerler
-şemaya yazılmaz. `market_status.data.locationDefaults.configured` yalnız var/yok bilgisini verir.
-Tam çağrı koordinat çifti env çiftini; çağrı yarıçapı env yarıçapını geçersiz kılar. Kısmi koordinat
-çifti env ile birleştirilmez. Env yoksa üç alan da çağrıda zorunludur; **1 km varsayılanı kaldırılmıştır**.
-`market_reverse_geocode` yarıçap kullanmadığından yalnız koordinat çiftini alır; wire sözleşmesi değişmez.
-Kategori/adres arama gibi konumsuz araçlara env alanları eklenmez. Env ayarı offline/deneysel kilitleri açmaz.
+| Durum                 | Kural                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Env kurulu            | `MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE`, `MARKET_FIYATI_DISTANCE` birlikte gerekir. Tool’da bu alanlar atlanabilir. |
+| Env yok               | Üç alan da çağrıda zorunludur. **1 km varsayılanı yoktur.**                                                                     |
+| Çağrı konumu farklı   | Tam koordinat çifti env çiftini değiştirir; tek koordinat reddedilir.                                                           |
+| Çağrı yarıçapı farklı | Distance env yarıçapını değiştirir. Verilmezse env yarıçapı kullanılır.                                                         |
+| Özel araçlar          | Ters geocode yalnız koordinat alır. Kategori/adres arama gibi konumsuz araçlar değişmez.                                        |
 
-1. Kullanıcının verdiği konumu, yarıçapı ve bu konuma ait şubeleri kullanın. Bunlar değişmediyse AI önceki
-   şube listesini yeniden kullanabilir.
-2. Şubeler bilinmiyorsa yakındaki şubeleri bulan tool'u bir kez çağırın. Şubeleri elle seçmek isteğe bağlıdır.
-3. Şubeleri her çağrıya ekleyin; env konumu kullanılıyorsa koordinatları tekrar göndermek gerekmez.
-   Konum değiştiğinde eski şubelerin uygunluğunu doğrulayın veya yeniden keşfedin. Sunucu çağrıdaki
-   konumu hatırlamaz, tahmin etmez ve kapsamı kendiliğinden genişletmez.
+`market_status.data.locationDefaults.configured` yalnız ayarın varlığını bildirir; gerçek değerler
+status veya tool şemasına yazılmaz. Env desteği offline/deneysel kilitleri açmaz.
+
+1. Bilinen konumu ve ona uygun şubeleri kullanın; değişmediyse AI önceki şube listesini kullanabilir.
+2. Şubeler bilinmiyorsa bir kez keşfedin. Elle daraltmak isteğe bağlıdır.
+3. Konum değiştiğinde şubeleri doğrulayın veya yeniden keşfedin.
+
+MCP çağrı konumunu hatırlamaz, tahmin etmez veya kapsamı kendiliğinden genişletmez.
 
 | Yerel sınır            | Değer                                            |
 | ---------------------- | ------------------------------------------------ |
@@ -103,9 +108,9 @@ Bilinen filtreleri ve sıralamayı tek bir aramada birleştirin:
 ```json
 {
   "keywords": "yoğurt",
-  "latitude": 41,
-  "longitude": 29,
-  "distance": 1,
+  "latitude": 41.025591,
+  "longitude": 28.974075,
+  "distance": 4,
   "depots": ["bim-example"],
   "pages": 0,
   "size": 25,
@@ -114,8 +119,8 @@ Bilinen filtreleri ve sıralamayı tek bir aramada birleştirin:
 }
 ```
 
-Buradaki konum ve şube yalnızca örnektir. Gerçek konum kullanıcıdan, şube ID'si ise o konum için dönen API
-yanıtından gelmelidir.
+Konum örneği **Galata Kulesi**, yarıçap **4 km**’dir. `bim-example` gerçek şube ID’si değildir;
+bu konum için API’den dönen bir şube ID’siyle değiştirin.
 
 - Fiyat aralığı örnekleri: `10-50`, `100-*`, `100+`.
 - İndirim filtresi: `["true"]` verin ya da alanı hiç göndermeyin.

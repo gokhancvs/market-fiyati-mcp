@@ -4,15 +4,15 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış — 1.0.6
 
-Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.6.md) bakın.
+- **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env’den okunabilir. Tam çağrı çifti ve
+  distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.
+- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı. Üç değer env veya çağrıdan tamamlanmalıdır;
+  ters geocode yalnız koordinat kullanır.
+- **Status:** `locationDefaults.configured` ayarın varlığını gösterir; koordinatları göstermez.
+- Rehberler kısaltıldı; kullanıcı kurulumu `live` modunda Galata Kulesi ve 4 km yarıçap kullanır. Env metni ile sayısal
+  tool/API girdisi ayrımı açıklandı. Canlı API için yeni doğrulama yoktur.
 
-- Enlem, boylam ve km yarıçapı MCP env alanında bir kez ayarlanabilir. Üç değişken birlikte doğrulanır;
-  çağrıdaki tam koordinat çifti ve yarıçap ayarlı değerleri yalnız o çağrı için geçersiz kılar.
-- `market_status`, koordinatları göstermeden `locationDefaults.configured` bilgisini verir.
-  Tool şemaları ve AI rehberi ayarlı alanların çağrıda atlanmasını destekler; şubeler açıkça sağlanır.
-- **Geçiş:** Örtük 1 km yarıçapı kaldırıldı. Konum gerektiren sorgularda enlem, boylam ve distance
-  env veya çağrıdan tamamlanmalıdır. Ters geocode yalnız koordinat kullanmayı sürdürür.
-- Kurulum, canlı test ve sürüm belgeleri 1.0.6 için güncellendi. Canlı API için yeni doğrulama yoktur.
+[1.0.6 geçiş adımları](docs/releases/v1.0.6.md).
 
 ## 1.0.5 — 2026-09-25
 
