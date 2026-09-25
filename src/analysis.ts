@@ -231,6 +231,7 @@ export function summarizeHistory(history: History, from?: string, to?: string) {
     dateFilterAppliedLocally: !!(from || to)
   };
 }
+const categoryKey = (value: string) => value.normalize('NFC').toLocaleLowerCase('tr-TR').normalize('NFC');
 export function filterCategories(
   categories: Category[],
   options: {
@@ -248,14 +249,13 @@ export function filterCategories(
     return undefined;
   };
   const root = options.parentId === undefined ? categories : (find(categories)?.children ?? []);
-  const query = options.query?.toLocaleLowerCase('tr-TR');
+  const query = options.query === undefined ? undefined : categoryKey(options.query);
   if (options.flat) {
     const result: Category[] = [];
     const walk = (nodes: Category[], path: string[]) => {
       for (const node of nodes) {
         const next = [...path, node.name];
-        if (!query || node.name.toLocaleLowerCase('tr-TR').includes(query))
-          result.push({ ...node, children: [], path: next });
+        if (!query || categoryKey(node.name).includes(query)) result.push({ ...node, children: [], path: next });
         walk(node.children, next);
       }
     };
@@ -265,7 +265,7 @@ export function filterCategories(
   if (!query) return root;
   const filter = (nodes: Category[]): Category[] =>
     nodes.flatMap((node) => {
-      if (node.name.toLocaleLowerCase('tr-TR').includes(query)) return [node];
+      if (categoryKey(node.name).includes(query)) return [node];
       const children = filter(node.children);
       return children.length ? [{ ...node, children }] : [];
     });

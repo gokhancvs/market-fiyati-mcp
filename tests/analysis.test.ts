@@ -338,6 +338,47 @@ test('category queries preserve hierarchy and use Turkish case folding', () => {
   assert.equal(filterCategories(categories, { flat: false, parentId: 1 })[0]?.id, 2);
 });
 
+test('category lookup equates NFC and NFD without changing Turkish letters or source names', () => {
+  for (const sourceForm of ['NFC', 'NFD'] as const) {
+    const raw = 'ŞARKÜTERİ'.normalize(sourceForm);
+    const categories = [{ id: 2, parentId: 1, name: raw, children: [] }];
+    const tree = [{ id: 1, parentId: null, name: 'Gıda', children: categories }];
+    for (const queryForm of ['NFC', 'NFD'] as const) {
+      for (const flat of [true, false]) {
+        const found = filterCategories(categories, { flat, query: 'şarküteri'.normalize(queryForm) });
+        assert.equal(found.length, 1);
+        assert.equal(found[0]?.name, raw);
+      }
+      assert.deepEqual(
+        filterCategories(tree, { flat: true, parentId: 1, query: 'şarküteri'.normalize(queryForm) })[0]?.path,
+        [raw]
+      );
+      assert.equal(
+        filterCategories(tree, { flat: false, query: 'şarküteri'.normalize(queryForm) })[0]?.children[0]?.name,
+        raw
+      );
+    }
+  }
+  assert.equal(
+    filterCategories([{ id: 4, parentId: null, name: 'ŞARKÜTERİ', children: [] }], { flat: true, query: 'sarkuteri' })
+      .length,
+    0
+  );
+  assert.equal(
+    filterCategories([{ id: 2, parentId: null, name: 'Ispanak', children: [] }], { flat: true, query: 'ıspanak' })
+      .length,
+    1
+  );
+  assert.equal(
+    filterCategories([{ id: 3, parentId: null, name: 'İçecek', children: [] }], { flat: true, query: 'içecek' }).length,
+    1
+  );
+  assert.equal(
+    filterCategories([{ id: 3, parentId: null, name: 'İçecek', children: [] }], { flat: true, query: 'ıçecek' }).length,
+    0
+  );
+});
+
 test('basket work grows near-linearly for distinct depots and disjoint minimum-price ties', (t) => {
   for (const groupBy of ['depot', 'market'] as const) {
     const measure = (size: number) => {
