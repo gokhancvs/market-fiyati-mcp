@@ -8,6 +8,14 @@ import { fileURLToPath } from 'node:url';
 
 const registry = 'https://registry.npmjs.org/';
 
+function compareVersions(left, right) {
+  for (const value of [left, right]) assert.match(value, /^\d+\.\d+\.\d+$/, 'Expected a stable npm latest version');
+  const a = left.split('.').map(BigInt);
+  const b = right.split('.').map(BigInt);
+  const index = a.findIndex((part, i) => part !== b[i]);
+  return index < 0 ? 0 : a[index] > b[index] ? 1 : -1;
+}
+
 export async function publishNpm(
   pack,
   {
@@ -16,16 +24,44 @@ export async function publishNpm(
       execFileSync('npm', ['publish', filename, '--access', 'public', '--tag', 'latest', `--registry=${registry}`], {
         stdio: 'inherit'
       }),
-    wait = () => setTimeout(5000)
+    wait = (ms) => setTimeout(ms),
+    now = () => performance.now(),
+    wallNow = () => Date.now()
   } = {}
 ) {
-  const read = async () => {
-    const response = await request(`${registry}${encodeURIComponent(pack.name)}`, {
-      headers: { 'Cache-Control': 'no-cache' },
-      signal: AbortSignal.timeout(15000)
-    });
+  const read = async (timeout = 15000, retry = false) => {
+    let response;
+    try {
+      response = await request(`${registry}${encodeURIComponent(pack.name)}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+        signal: AbortSignal.timeout(Math.max(1, Math.ceil(timeout)))
+      });
+    } catch (error) {
+      if (!retry) throw error;
+      return { metadata: {}, delay: 5000 };
+    }
+    if (retry && [429, 502, 503, 504].includes(response.status)) {
+      const header = response.headers.get('retry-after');
+      const retryAfter =
+        header && /^\d+(?:\.\d+)?$/.test(header.trim())
+          ? Number(header) * 1000
+          : header
+            ? Date.parse(header) - wallNow()
+            : 0;
+      await response.body?.cancel();
+      return { metadata: {}, delay: Number.isNaN(retryAfter) ? 5000 : Math.max(5000, retryAfter) };
+    }
     assert.ok(response.status === 200 || response.status === 404, `Registry HTTP ${response.status}`);
-    return response.json();
+    try {
+      return { metadata: await response.json(), delay: 5000 };
+    } catch (error) {
+      if (
+        retry &&
+        (error instanceof TypeError || (error instanceof Error && ['AbortError', 'TimeoutError'].includes(error.name)))
+      )
+        return { metadata: {}, delay: 5000 };
+      throw error;
+    }
   };
   const matches = (metadata) => {
     const version = metadata.versions?.[pack.version];
@@ -34,24 +70,33 @@ export async function publishNpm(
     assert.equal(version.dist?.integrity, pack.integrity, 'Registry integrity mismatch; refusing to overwrite');
     return true;
   };
-  const metadata = await read();
+  const { metadata } = await read();
   assert.ok(!metadata.time?.unpublished?.versions?.includes(pack.version), 'Cannot reuse an unpublished version');
-  if (matches(metadata)) return;
-  const latest = metadata['dist-tags']?.latest;
-  if (latest) {
-    assert.match(latest, /^\d+\.\d+\.\d+$/, 'Expected a stable npm latest version');
-    const next = pack.version.split('.').map(BigInt);
-    const previous = latest.split('.').map(BigInt);
-    const difference = next.findIndex((part, index) => part !== previous[index]);
-    assert.ok(difference >= 0 && next[difference] > previous[difference], 'Version must be newer than npm latest');
+  const existing = matches(metadata);
+  const ready = (value) => {
+    const latest = value['dist-tags']?.latest;
+    return Boolean(latest && (existing ? compareVersions(latest, pack.version) >= 0 : latest === pack.version));
+  };
+  if (existing && ready(metadata)) return;
+  if (!existing) {
+    const latest = metadata['dist-tags']?.latest;
+    if (latest) assert.ok(compareVersions(pack.version, latest) > 0, 'Version must be newer than npm latest');
+    await publish(pack.filename);
   }
-  publish(pack.filename);
-  // Allow registry propagation five minutes of waiting (60 waits of five seconds).
-  for (let attempt = 0; attempt < 61; attempt++) {
-    if (matches(await read())) return;
-    if (attempt < 60) await wait();
+  const deadline = now() + 300000;
+  for (let attempt = 0; attempt < 61 && now() < deadline; attempt++) {
+    const { metadata: current, delay } = await read(Math.min(15000, deadline - now()), true);
+    const matching = matches(current);
+    if (now() >= deadline) break;
+    if (matching && ready(current)) return;
+    if (attempt === 60) break;
+    const remaining = deadline - now();
+    if (delay >= remaining) break;
+    await wait(delay);
   }
-  throw new Error('Published version not visible in registry; rerun to verify, never change the existing tag');
+  throw new Error(
+    'Published version or latest channel not visible before verification deadline (including Retry-After); rerun to verify, never change the existing tag'
+  );
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

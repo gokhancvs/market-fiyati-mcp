@@ -54,6 +54,8 @@ jobs:
       - run: npm run check
         env:
           MARKET_FIYATI_PACK_DESTINATION: ${{ runner.temp }}/npm-release
+      - name: Verify independent consumer of the tested archive
+        run: npm run test:consumer -- "$RUNNER_TEMP/npm-release/pack.json"
       - name: Publish and verify npm archive
         run: node scripts/publish-npm.mjs "$RUNNER_TEMP/npm-release/pack.json"
       - name: Publish verified release

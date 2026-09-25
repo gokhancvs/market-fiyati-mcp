@@ -10,6 +10,7 @@ import type { RequestMetrics } from './request-metrics.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { RequestCancellation } from './cancellation.js';
 import { withCancellation } from './cancellation-transport.js';
+import { outputSchema, outputSchemas } from './output-schemas.js';
 
 const tools: { name: string; operation: Operation; description: string }[] = [
   {
@@ -102,12 +103,6 @@ const tools: { name: string; operation: Operation; description: string }[] = [
       'Compare exact product IDs and pack quantities via individual product lookups within market_status limits.basketItems and limits.basketRequestBudget, including retries. Over-budget calls are rejected before fetching. Never split the list or switch tools to bypass the budget; ask the user to narrow the comparison. Reuse sufficient search offers instead of redundant lookups. Present complete groups first and show all groups tied at the lowest total. groupBy=market may span branches; check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop. depot means one physical shop. Present splitBasket as a saving only when complete and strictly cheaper than the stated complete basket baseline; follow market://guide for missing groups and equal totals. Incomplete totals are null. No automatic substitutes or purchases.'
   }
 ];
-const outputSchema = z.strictObject({
-  data: z.unknown(),
-  meta: z.record(z.string(), z.unknown()),
-  warnings: z.array(z.string()),
-  error: z.record(z.string(), z.unknown()).optional()
-});
 function result(envelope: Envelope): CallToolResult {
   assertOutputBudget(envelope);
   return {
@@ -179,7 +174,7 @@ export function createServer(service: MarketService): McpServer {
     }
   }
   const server = new CancellationServer(
-    { name: 'market-fiyati-mcp', version: '1.0.4' },
+    { name: 'market-fiyati-mcp', version: '1.0.5' },
     {
       instructions:
         'Read market://guide and market_status before calling data tools. Use API filters and sorting with explicit location/depot context. Reuse supplied context and returned offers to minimize calls; the server caches no results or user context. Track meta.requestMetrics against the agreed call budget, including application errors. Use meta.depotCoverage, meta.offerAssessments and meta.warningCodes to explain evidence limits; unreturned depots have unknown availability. Live access is operator-controlled.'
@@ -191,7 +186,8 @@ export function createServer(service: MarketService): McpServer {
       {
         description: tool.description,
         inputSchema: schemas[tool.operation],
-        outputSchema,
+        outputSchema:
+          tool.operation in outputSchemas ? outputSchemas[tool.operation as keyof typeof outputSchemas] : outputSchema,
         annotations: {
           readOnlyHint: true,
           destructiveHint: false,
