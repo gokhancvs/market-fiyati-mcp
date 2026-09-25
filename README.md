@@ -22,7 +22,7 @@ stdio sunucu ayarlarına uyarlayın:
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.5"],
+      "args": ["-y", "market-fiyati-mcp@1.0.6"],
       "env": { "MARKET_FIYATI_MODE": "offline" }
     }
   }
@@ -50,7 +50,8 @@ Sunucu HTTP portu açmaz; stdio üzerinden JSON-RPC kullanır.
 `MARKET_FIYATI_MODE` değerini `live` yapın ve MCP sunucusunu yeniden başlatın.
 
 1. `market_status` çağırın: `mode=live` ve `liveRequestsEnabled=true` olmalı. Bu çağrı henüz API erişimini sınamaz.
-2. AI'a test konumunun enlem/boylamını, yarıçapını ve o konuma ait gerçek şube kimliklerini verin.
+2. Aşağıdaki env konumunu tanımlayın veya AI'a test konumunun enlem/boylamını ve yarıçapını bir kez verin.
+   `market_status.data.locationDefaults.configured=true` ise AI env konumunu tekrar sormadan kullanabilir.
    Şubeler bilinmiyorsa `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ayarıyla sunucuyu yeniden başlatıp
    `market_find_nearby_depots` ile bir kez keşif yapın; dönen şubeleri kullanın.
 3. “Bu konum ve şubelerde `süt` için `market_search_products` ile tek arama yap; `pages=0`, `size=5`.
@@ -62,6 +63,30 @@ Boş sonuç fiyat doğrulaması değildir. Hata alırsanız tekrar denemeden ön
 [Kopyalanabilir canlı yapılandırma, şube keşfi ve hata çözümleri →](docs/live-testing.md)
 Yalnızca npm paketini kullanmak için kaynak kodu klonlamanız veya `npm run check` çalıştırmanız gerekmez.
 
+### Konumu bir kez env içinde ayarlama — 1.0.6
+
+İstemcinizde mevcut `env` alanını aşağıdaki gibi düzenleyin. **0/0 yalnız örnektir:** kendi enlem/boylamınızla,
+`2` değerini de istediğiniz km yarıçapıyla değiştirin. Noktalı ondalık kullanın; değerler JSON string'idir.
+
+```json
+{
+  "MARKET_FIYATI_MODE": "offline",
+  "MARKET_FIYATI_LATITUDE": "0",
+  "MARKET_FIYATI_LONGITUDE": "0",
+  "MARKET_FIYATI_DISTANCE": "2"
+}
+```
+
+Üç env değeri **birlikte** verilir; eksik/geçersiz ayar sunucunun başlamasını durdurur. Env tanımlamak
+istemiyorsanız üçünü de kaldırın ve her konumlu çağrıda enlem, boylam, yarıçap sağlayın. Otomatik 1 km
+varsayımı yoktur. Çağrıda verilen tam koordinat çifti ve yarıçap env değerlerinin önüne geçer; tek
+koordinat kabul edilmez. Bir çağrı sonraki çağrının ayarını değiştirmez. Değişen env için yeniden başlatın.
+
+Şubeler konuma göre ayrıca keşfedilir; MCP şube listesini saklamaz. Aynı MCP sürecine bağlı çağrılar
+aynı env konumunu kullanır; farklı kullanıcı konumları için ayrı sunucu süreçleri veya açık çağrı
+değerleri kullanın. Gerçek koordinatları proje dosyalarına değil, özel istemci yapılandırmanıza yazın.
+Bu özellik 1.0.5'te yoktur; 1.0.6 henüz npm'de yoksa bu kaynak sürümünü yerelden çalıştırın.
+
 ## 4. Ne yapmak istiyorsunuz?
 
 | Amaç                            | Tool veya rehber                |
@@ -72,8 +97,9 @@ Yalnızca npm paketini kullanmak için kaynak kodu klonlamanız veya `npm run ch
 | Fiyat geçmişini incelemek       | `market_get_price_history`      |
 | Çağrı akışını öğrenmek          | `market://guide`                |
 
-Konum, yarıçap ve şubeler her ürün çağrısında açıkça verilir. MCP bu context'i hatırlamaz; sonuç cache'i
-tutmaz ve aramayı gizlice genişletmez. Live erişimi açıp açmamak operatörün kararıdır.
+Konum ve yarıçap çağrıdan veya yapılandırılmış env değerlerinden alınır; şubeler her ürün çağrısında
+açıkça verilir. MCP kullanıcı override'larını hatırlamaz, sonuç cache'i tutmaz ve aramayı gizlice
+genişletmez. Live erişimi açıp açmamak operatörün kararıdır.
 
 İlk ürün aramasında konum, yarıçap ve boş olmayan `depots` listesi gerekir. Konuma uygun bilinen
 şube kimliklerini kullanın. Şubeler bilinmiyorsa `market_find_nearby_depots` deneysel erişim gerektirir;

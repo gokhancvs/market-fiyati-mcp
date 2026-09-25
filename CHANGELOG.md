@@ -2,7 +2,19 @@
 
 En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yayımlanmamış** bölümündedir.
 
-## Yayımlanmamış — 1.0.5
+## Yayımlanmamış — 1.0.6
+
+Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.6.md) bakın.
+
+- Enlem, boylam ve km yarıçapı MCP env alanında bir kez ayarlanabilir. Üç değişken birlikte doğrulanır;
+  çağrıdaki tam koordinat çifti ve yarıçap ayarlı değerleri yalnız o çağrı için geçersiz kılar.
+- `market_status`, koordinatları göstermeden `locationDefaults.configured` bilgisini verir.
+  Tool şemaları ve AI rehberi ayarlı alanların çağrıda atlanmasını destekler; şubeler açıkça sağlanır.
+- **Geçiş:** Örtük 1 km yarıçapı kaldırıldı. Konum gerektiren sorgularda enlem, boylam ve distance
+  env veya çağrıdan tamamlanmalıdır. Ters geocode yalnız koordinat kullanmayı sürdürür.
+- Kurulum, canlı test ve sürüm belgeleri 1.0.6 için güncellendi. Canlı API için yeni doğrulama yoktur.
+
+## 1.0.5 — 2026-09-25
 
 Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
 
@@ -16,7 +28,7 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
   null değerler ve upstream ek alanlar korunur.
 - Özel güvenlik bildirim politikası ve güvenlik güncellemelerine yönelik Dependabot yapılandırması eklendi.
 
-Bu değişiklikler henüz npm'de veya MCP Registry'de yayımlanmadı. Canlı API davranışı için yeni doğrulama yoktur.
+npm ve GitHub Release yayımlandı; MCP Registry yayını ayrı bir aşamadır. Canlı API davranışı için yeni doğrulama yoktur.
 
 ## 1.0.4 — 2026-09-24
 

@@ -23,6 +23,12 @@ Yayın testleri ayrıca şunları sahte registry yanıtlarıyla sınar: tag ile 
 workflow adımlarının sırası, daha önce kullanılmış sürümlerin tekrar gönderilmemesi ve registry integrity
 kontrolü. Yeni yayın için latest eşleşmesi, daha yeni latest ile tarihsel doğrulama, geçici post-publish hataları, Retry-After ve HTTP sürelerini içeren toplam deadline da ağ isteği göndermeden sınanır. Bu testler gerçek GitHub OIDC yetkilendirmesini veya gerçek bir npm yayınını kanıtlamaz.
 
+Konum testleri env üçlüsünün birlikte doğrulanmasını, sınırları, eksik yarıçapın reddini ve çağrı
+değerlerinin önceliğini kapsar. SDK üzerinden tüm konum araçlarının gönderdiği payload'lar sentetik
+transport ile sınanır; kısmi koordinat çifti HTTP öncesinde reddedilir. Keşif/status çıktısı ayarlı
+koordinatları içermez; çağrılar konumu hatırlamaz ve ayrı sunucuların ayarları birbirine geçmez.
+Env desteği offline ve deneysel erişim kilitlerini değiştirmez.
+
 ### Bağımsız npm tüketici kontrolü
 
 `npm run test:consumer` ayrı bir kurulum kontrolüdür; normal `npm run check` içine ağ erişimi eklemez.

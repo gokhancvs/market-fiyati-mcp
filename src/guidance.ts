@@ -4,8 +4,21 @@ export const GUIDE = `# Market Fiyatı MCP usage
 
 1. Read market_status. Offline blocks all remote requests. Only the operator can
    configure live mode; startup, discovery and resource reads never make requests.
-2. The caller supplies context on every call; the MCP has no result cache or
-   remembered user location, depot selection or shopping preferences. Reuse known
+2. Location must be supplied by call arguments or operator-configured environment:
+   MARKET_FIYATI_LATITUDE, MARKET_FIYATI_LONGITUDE and MARKET_FIYATI_DISTANCE (km).
+   The env trio is all-or-none. Read market_status.data.locationDefaults.configured:
+   when true, omit coordinates/radius to use that configuration; do not ask for
+   them again unless the user wants another location. Otherwise obtain latitude,
+   longitude and distance before a location-dependent query; there is no implicit
+   radius. An explicit coordinate pair overrides env coordinates for one call;
+   a single coordinate is invalid. Explicit distance overrides env distance.
+   reverseGeocode uses only coordinates. Configuration stays fixed until restart.
+   The MCP has no result cache, remembered user overrides, depot selection or
+   shopping preferences. The caller supplies selected depots on every product call.
+   When the user supplies a place/address instead, market_geocode_address can
+   resolve it with operator-enabled experimental access; ask the user to choose
+   ambiguous matches, then use the returned coordinates and an explicit radius.
+   Reuse known
    user-selected coordinates and matching depot IDs from the conversation. When
    depots are missing, call market_find_nearby_depots once for that location/radius.
    Manual branch selection is optional: use returned branches unless the user

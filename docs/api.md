@@ -46,14 +46,24 @@ Prompt'lar: `compare_shopping_list`, `find_best_product_price`, `analyze_price_h
 
 ## Context
 
-Her ürün çağrısı şu alanları alır: `latitude`, `longitude`, `distance` (**km** cinsinden) ve boş olmayan bir
-`depots` listesi. Şube kimliği, zincir anahtarı ile şube ID'sinden oluşan opak bir string'dir.
+Her ürün çağrısı `latitude`, `longitude`, `distance` (**km** cinsinden) ve boş olmayan bir `depots`
+listesiyle çözümlenir. Konum alanları çağrıdan veya operatörün env üçlüsünden sağlanır; şube listesi
+her çağrıda zorunludur. Şube kimliği, zincir anahtarı ile şube ID'sinden oluşan opak bir string'dir.
+
+`MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE`, `MARKET_FIYATI_DISTANCE` ya birlikte tanımlanır
+ya hiç tanımlanmaz. Env ayarı varken tool keşfinde konum alanları isteğe bağlı görünür; gerçek değerler
+şemaya yazılmaz. `market_status.data.locationDefaults.configured` yalnız var/yok bilgisini verir.
+Tam çağrı koordinat çifti env çiftini; çağrı yarıçapı env yarıçapını geçersiz kılar. Kısmi koordinat
+çifti env ile birleştirilmez. Env yoksa üç alan da çağrıda zorunludur; **1 km varsayılanı kaldırılmıştır**.
+`market_reverse_geocode` yarıçap kullanmadığından yalnız koordinat çiftini alır; wire sözleşmesi değişmez.
+Kategori/adres arama gibi konumsuz araçlara env alanları eklenmez. Env ayarı offline/deneysel kilitleri açmaz.
 
 1. Kullanıcının verdiği konumu, yarıçapı ve bu konuma ait şubeleri kullanın. Bunlar değişmediyse AI önceki
    şube listesini yeniden kullanabilir.
 2. Şubeler bilinmiyorsa yakındaki şubeleri bulan tool'u bir kez çağırın. Şubeleri elle seçmek isteğe bağlıdır.
-3. Context'i her çağrıya ekleyin. Sunucu konumu hatırlamaz, tahmin etmez ve arama kapsamını kendiliğinden
-   genişletmez.
+3. Şubeleri her çağrıya ekleyin; env konumu kullanılıyorsa koordinatları tekrar göndermek gerekmez.
+   Konum değiştiğinde eski şubelerin uygunluğunu doğrulayın veya yeniden keşfedin. Sunucu çağrıdaki
+   konumu hatırlamaz, tahmin etmez ve kapsamı kendiliğinden genişletmez.
 
 | Yerel sınır            | Değer                                            |
 | ---------------------- | ------------------------------------------------ |

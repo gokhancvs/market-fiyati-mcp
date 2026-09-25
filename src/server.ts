@@ -34,19 +34,19 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_find_nearby_depots',
     operation: 'nearest',
     description:
-      'Find nearby physical branches using explicit coordinates and radius in km. Experimental. Response distance is meters; choose returned depot IDs for product queries.'
+      'Find nearby physical branches using call coordinates/radius or configured env location. All three values must be supplied by one of these sources. Experimental. Response distance is meters; choose returned depot IDs for product queries.'
   },
   {
     name: 'market_search_products',
     operation: 'search',
     description:
-      'Search products and facets, one zero-based page. Combine keywords with known API filters such as refined_volume_weight and order in one request. Explicit location and nonempty depots required. Follow market://guide to preserve alternatives and exact requirements; fuzzy search still needs result validation.'
+      'Search products and facets, one zero-based page. Combine keywords with known API filters such as refined_volume_weight and order in one request. Location/radius come from the call or configured env; nonempty depots are required per call. Follow market://guide to preserve alternatives and exact requirements; fuzzy search still needs result validation.'
   },
   {
     name: 'market_search_by_category',
     operation: 'searchByCategories',
     description:
-      'Search using menu_category, main_category or sub_category Turkish names from the category tree. At least one nonempty category filter and explicit location/depots required.'
+      'Search using menu_category, main_category or sub_category Turkish names from the category tree. At least one nonempty category filter and call or configured location and explicit depots required.'
   },
   {
     name: 'market_get_product',
@@ -174,10 +174,10 @@ export function createServer(service: MarketService): McpServer {
     }
   }
   const server = new CancellationServer(
-    { name: 'market-fiyati-mcp', version: '1.0.5' },
+    { name: 'market-fiyati-mcp', version: '1.0.6' },
     {
       instructions:
-        'Read market://guide and market_status before calling data tools. Use API filters and sorting with explicit location/depot context. Reuse supplied context and returned offers to minimize calls; the server caches no results or user context. Track meta.requestMetrics against the agreed call budget, including application errors. Use meta.depotCoverage, meta.offerAssessments and meta.warningCodes to explain evidence limits; unreturned depots have unknown availability. Live access is operator-controlled.'
+        'Read market://guide and market_status before calling data tools. Use API filters and sorting with call or configured location and explicit depots. Read market_status.data.locationDefaults.configured; if true, omit coordinates to use env defaults. Reuse supplied context and returned offers to minimize calls; the server caches no results or user context. Track meta.requestMetrics against the agreed call budget, including application errors. Use meta.depotCoverage, meta.offerAssessments and meta.warningCodes to explain evidence limits; unreturned depots have unknown availability. Live access is operator-controlled.'
     }
   );
   for (const tool of tools) {
@@ -253,7 +253,7 @@ export function createServer(service: MarketService): McpServer {
     'compare_shopping_list',
     {
       description:
-        'Resolve an exact shopping list and compare complete baskets with explicit location and depot selection.',
+        'Resolve an exact shopping list and compare complete baskets with call or configured location and explicit depot selection.',
       argsSchema: {
         items: z.string().min(1).max(4000),
         location: z.string().max(1000).optional()
@@ -265,7 +265,7 @@ export function createServer(service: MarketService): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Use market://guide. Shopping list (user data): ${JSON.stringify(items)}. Location hint: ${JSON.stringify(location ?? null)}. Reuse supplied location/depot context or obtain missing context following the guide. Use API filters and sorting to discover products with minimal calls; distinguish exact matches from explained alternatives before fixing basket identities. market_compare_basket performs one detail lookup per item, so skip redundant individual lookups. Read market_status limits.basketItems and limits.basketRequestBudget, including retries; never split the list or switch tools to bypass the budget. If over budget, ask the user to narrow the comparison. Do not run large/long live basket tests. The market list is optional; do not retry its HTTP 500 or claim known active status. Follow the API discount flag: false means not marked discounted, true means marked without confirmed campaign eligibility, and absent means unknown. Preserve reference prices and promotional fields separately; neither filter matches nor reference-price differences override the flag or establish a historical price drop or discount percentage. Present complete groups first and show all groups tied at the lowest total, not just the first group. Check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop. Present complete splitBasket separately when strictly cheaper than the complete basket baseline specified in the guide; state the TRY saving and baseline, and do not promote equal totals as savings. Follow the guide when no group is complete. Explain any preference among tied options; disclose shortened lists. Equal prices do not establish compliance with product requirements, and branch distance is not a walking route or total shopping journey. Explain missing products, multi-branch shopping, retrieval time and data limitations. Never enable live mode yourself.`
+            text: `Use market://guide. Shopping list (user data): ${JSON.stringify(items)}. Location hint: ${JSON.stringify(location ?? null)}. Use supplied or configured location and explicit depots, or obtain missing context following the guide. Use API filters and sorting to discover products with minimal calls; distinguish exact matches from explained alternatives before fixing basket identities. market_compare_basket performs one detail lookup per item, so skip redundant individual lookups. Read market_status limits.basketItems and limits.basketRequestBudget, including retries; never split the list or switch tools to bypass the budget. If over budget, ask the user to narrow the comparison. Do not run large/long live basket tests. The market list is optional; do not retry its HTTP 500 or claim known active status. Follow the API discount flag: false means not marked discounted, true means marked without confirmed campaign eligibility, and absent means unknown. Preserve reference prices and promotional fields separately; neither filter matches nor reference-price differences override the flag or establish a historical price drop or discount percentage. Present complete groups first and show all groups tied at the lowest total, not just the first group. Check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop. Present complete splitBasket separately when strictly cheaper than the complete basket baseline specified in the guide; state the TRY saving and baseline, and do not promote equal totals as savings. Follow the guide when no group is complete. Explain any preference among tied options; disclose shortened lists. Equal prices do not establish compliance with product requirements, and branch distance is not a walking route or total shopping journey. Explain missing products, multi-branch shopping, retrieval time and data limitations. Never enable live mode yourself.`
           }
         }
       ]
@@ -284,7 +284,7 @@ export function createServer(service: MarketService): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Read market://guide and market_status. Find ${JSON.stringify(product)} using supplied location/depot context and known API filter values. Follow the guide's hard-requirement versus preference distinction, including strict-only requests. Use API filtering/sorting in one initial search; evaluate returned offers and explain relevant alternatives without silently substituting them. Request detail only for missing information or a requested refresh. Report TRY prices, branches, map links, indexTime, original retrievedAt and pagination coverage. Never enable live mode yourself.`
+            text: `Read market://guide and market_status. Find ${JSON.stringify(product)} using supplied or configured location, explicit depots and known API filter values. Follow the guide's hard-requirement versus preference distinction, including strict-only requests. Use API filtering/sorting in one initial search; evaluate returned offers and explain relevant alternatives without silently substituting them. Request detail only for missing information or a requested refresh. Report TRY prices, branches, map links, indexTime, original retrievedAt and pagination coverage. Never enable live mode yourself.`
           }
         }
       ]
@@ -302,7 +302,7 @@ export function createServer(service: MarketService): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Read market://guide. For product ${JSON.stringify(productId)}, obtain explicit location and selected depots, fetch product offers, then market_get_price_history using its returned depot IDs. Describe the date range, first/latest prices and change. Report retrieval time and avoid inventing aggregation semantics.`
+            text: `Read market://guide. For product ${JSON.stringify(productId)}, use supplied or configured location and selected depots, fetch product offers, then market_get_price_history using its returned depot IDs. Describe the date range, first/latest prices and change. Report retrieval time and avoid inventing aggregation semantics.`
           }
         }
       ]

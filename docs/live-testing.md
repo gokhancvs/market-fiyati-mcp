@@ -18,9 +18,12 @@ güncelleyin; aynı sunucuyu iki kez eklemeyin. Ayar dosyasının yeri ve üst y
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.5"],
+      "args": ["-y", "market-fiyati-mcp@1.0.6"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
+        "MARKET_FIYATI_LATITUDE": "0",
+        "MARKET_FIYATI_LONGITUDE": "0",
+        "MARKET_FIYATI_DISTANCE": "2",
         "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "false",
         "MARKET_FIYATI_RETRIES": "0"
       }
@@ -28,6 +31,12 @@ güncelleyin; aynı sunucuyu iki kez eklemeyin. Ayar dosyasının yeri ve üst y
   }
 }
 ```
+
+**Yukarıdaki `0,0` sentetik örnektir; canlı sorgudan önce kendi seçtiğiniz koordinatlarla değiştirin.**
+Env değerleri string, ondalık ayırıcı nokta, distance kilometredir. Üç konum değişkenini birlikte
+ayarlayın veya üçünü de kaldırıp her çağrıda sağlayın. Eksik env kurulumu sunucuyu başlatmaz.
+Bu destek 1.0.6 ile gelir; npm yayını henüz tamamlanmadıysa kaynak checkout üzerinden deneyin.
+Kesin koordinatları proje dışında, istemcinin özel yapılandırmasında tutun.
 
 İstemciden MCP sunucusunu yeniden başlatın; gerekiyorsa istemciyi kapatıp açın. Terminalde ortam
 değişkeni ayarlamak, zaten çalışan masaüstü istemcisinin sunucu ayarını değiştirmez.
@@ -41,20 +50,27 @@ AI'a şunu yazın:
 > `market://guide` resource'unu oku; henüz veri sorgusu yapma.
 
 **Beklenen:** `data.mode=live`, `data.liveRequestsEnabled=true`,
-`data.experimentalEndpointsEnabled=false`. Başlangıç, status ve resource okuma API isteği göndermez;
+`data.experimentalEndpointsEnabled=false`, yukarıdaki env kurulumu için
+`data.locationDefaults.configured=true`. Status koordinatları göstermez. Başlangıç, status ve resource okuma API isteği göndermez;
 bu adım tek başına gerçek fiyat erişiminin başarılı olduğunu kanıtlamaz.
 
 ## 3. Test konumunu ve şubeleri belirleyin
 
-AI'a enlem, boylam ve kilometre cinsinden yarıçap verin. Kendi seçtiğiniz konumu kullanın;
-örnek veya sentetik test koordinatlarını gerçek sorguya taşımayın. Bu bilgileri Git'e veya rapora eklemeyin.
+Env yapılandırıldıysa AI'a “Ayarlı konumu ve yarıçapı kullan” deyin; koordinatları yeniden yazmanız
+gerekmez. AI, konum alanlarını atlayarak env değerlerini kullanır. Env yoksa enlem, boylam ve km
+yarıçapını birlikte çağrıya ekleyin; örtük 1 km varsayımı yoktur. Başka konum için enlem ve boylamı
+birlikte verin; distance belirtilmezse ayarlı env yarıçapı kullanılır. Bu değişiklik yalnız o çağrı içindir.
+
+Yalnız adres biliyorsanız deneysel erişim açıkken `market_geocode_address` ile bir kez çözümleyin.
+Belirsiz adaylar arasından kullanıcı seçim yapar; yarıçapı kullanıcı sağlar. Koordinatları tahmin etmeyin.
+Örnek koordinatları gerçek sorguya taşımayın; kesin konumu Git'e veya rapora eklemeyin.
 
 - **Konuma ait şube kimlikleri biliniyorsa:** Bunları boş olmayan `depots` listesi olarak kullanın.
   Deneysel erişimi açmak gerekmez; market zinciri adı şube kimliği yerine geçmez.
 - **Şube kimlikleri bilinmiyorsa:** Yukarıdaki ayarda `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değerini
   `true` yapın ve sunucuyu yeniden başlatın. Status ile ayarı doğruladıktan sonra AI'a şunu yazın:
 
-> Verdiğim enlem, boylam ve yarıçapla `market_find_nearby_depots` tool'unu bir kez çağır.
+> Env’de ayarlı veya verdiğim enlem, boylam ve yarıçapla `market_find_nearby_depots` tool'unu bir kez çağır.
 > Dönen şubeleri ve kimliklerini göster; sonraki aramada bu şubeleri kullan. Sonuç boşsa dur.
 
 Şubeleri elle daraltmak isteğe bağlıdır. Kimlikleri uydurmayın; gerçek yanıttan alın.
@@ -64,13 +80,13 @@ AI'a enlem, boylam ve kilometre cinsinden yarıçap verin. Kendi seçtiğiniz ko
 
 Şubeler belirlendikten sonra AI'a şunu yazın:
 
-> Verdiğim konumu, yarıçapı ve belirlediğimiz şubeleri kullanarak `market_search_products` çağır.
+> Env’de ayarlı veya verdiğim konumu, yarıçapı ve belirlediğimiz şubeleri kullanarak `market_search_products` çağır.
 > `keywords="süt"`, `pages=0`, `size=5` olsun. Yalnızca bir arama yap; ek sayfa, ürün detayı veya
 > otomatik tekrar çağrısı yapma. Dönen ürün adlarını, gramajlarını, seçili şubelerdeki TRY fiyatlarını,
 > sorgu zamanını ve uyarıları göster. Eksik bilgiyi tahmin etme.
 
 Bu başlangıç akışı, retry kapalıyken bir arama HTTP denemesi; şube keşfi de gerekiyorsa toplam iki
-veri isteği denemesi içerir. Bunlar sağlayıcının kota garantisi değildir. Sonuçta bulunan offer'ları
+veri isteği denemesi içerir. Adres çözümleme de gerekiyorsa bir deneme daha eklenir. Bunlar sağlayıcının kota garantisi değildir. Sonuçta bulunan offer'ları
 kullanın; aynı fiyatları açıklamak için tekrar detay çağrısı yapmayın.
 
 **Geçme ölçütü:** Arama uygulama hatası vermeden tamamlanır ve seçili şubelerde dönen gerçek fiyatlar,
@@ -122,7 +138,7 @@ Bu adımlar yalnızca izin alındıktan sonra yapılır:
    (`groupBy=market`), sonra şube bazında (`groupBy=depot`) karşılaştırın.
    **Beklenen sonuç:** Eksik ürün varsa `total=null` olur; farklı şubeler tek bir mağazaymış gibi sunulmaz.
 
-Her ürün çağrısına konumu, yarıçapı ve şubeleri açıkça ekleyin. Retry ayarı açıksa iki ürünlük bir sepet
+Her ürün çağrısına şubeleri açıkça ekleyin; konum ve yarıçap env’den veya çağrıdan eksiksiz gelmelidir. Retry ayarı açıksa iki ürünlük bir sepet
 bile bütçeyi aşabilir.
 
 ### Gerekirse deneysel endpoint'ler
