@@ -191,6 +191,9 @@ Detay (karşılaştırmalar dâhil) ve sync endpoint'lerinde beklenmeyen veya te
 `meta.missingProductIds` içinde listeler. Bu iki endpoint'te `nextPage` her zaman `null`'dır. Eksik ürünün
 yerine otomatik olarak başka ürün konmaz ve erişilemeyen bir sayfa önerilmez.
 
+Ürün karşılaştırmasında `cheapestDepotIds`, en düşük fiyatlı offer'ların benzersiz şube ID'lerini
+offer sırasıyla verir. `offers` içindeki kaynak satırlar, tekrarlar ve ek alanlar tekilleştirilmez.
+
 **Product:** `id`, `title` ve `productDepotInfoList` zorunludur. İsteğe bağlı alanlar: `brand`, `imageUrl`,
 `refinedVolumeOrWeight`, `refinedQuantityUnit`, `categories`, `menu_category`, `main_category`,
 `sub_category`. Resim veya gramaj eksik olabilir; eksik alanlar ve ek alanlar olduğu gibi korunur.

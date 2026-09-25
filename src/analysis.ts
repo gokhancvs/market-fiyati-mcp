@@ -23,7 +23,7 @@ export function compareOffers(product: Product, visitOffer?: OfferVisitor, selec
     cheapestPrice: low === null ? null : money(low),
     highestPrice: high === null ? null : money(high),
     priceSpread: low === null || high === null ? null : money(high - low),
-    cheapestDepotIds: offers.filter((o) => cents(o.price) === low).map((o) => o.depotId),
+    cheapestDepotIds: [...new Set(offers.filter((o) => cents(o.price) === low).map((o) => o.depotId))],
     offers: offers.map((o) => ({
       ...o,
       savingIfCheapest: money(cents(o.price) - (low ?? 0))

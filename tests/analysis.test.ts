@@ -182,6 +182,19 @@ test('offer comparison preserves discount semantics and rounds money only', () =
   assert.equal(result.priceSpread, 2.55);
 });
 
+test('cheapest depot IDs are unique while tied source offers stay intact', () => {
+  const first = { ...offer('A', 'A-1', 10), promotionText: 'source-one' };
+  const second = { ...offer('A', 'A-1', 10), promotionText: 'source-two' };
+  const result = compareOffers(product('p', [first, second, offer('B', 'B-1', 10), offer('C', 'C-1', 11)]));
+  assert.deepEqual(result.cheapestDepotIds, ['A-1', 'B-1']);
+  assert.equal(result.offers.length, 4);
+  assert.deepEqual(
+    result.offers.slice(0, 2).map((o) => o.promotionText),
+    ['source-one', 'source-two']
+  );
+  assert.equal(result.cheapestPrice, 10);
+});
+
 test('positive sub-cent offers cannot create a free complete basket', () => {
   for (const price of [0.001, 1e-7, 0]) {
     const p = product('A', [offer('bim', 'bim-1', price)]);
