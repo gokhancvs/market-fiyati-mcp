@@ -1,6 +1,6 @@
 {
   "name": "market-fiyati-mcp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "license": "MIT",
   "author": "Gökhan Çavuş",
   "description": "Unofficial stdio MCP server for Market Fiyatı product search, depot prices and basket comparison in Türkiye",
@@ -55,6 +55,7 @@
     "docs/releases/v1.0.4.md",
     "docs/releases/v1.0.5.md",
     "docs/releases/v1.0.6.md",
+    "docs/releases/v1.0.7.md",
     "examples/mcp-config.json",
     "CHANGELOG.md",
     "SECURITY.md"

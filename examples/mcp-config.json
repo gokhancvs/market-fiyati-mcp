@@ -2,7 +2,7 @@
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.6"],
+      "args": ["-y", "market-fiyati-mcp@1.0.7"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",

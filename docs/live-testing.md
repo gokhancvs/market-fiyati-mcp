@@ -17,7 +17,7 @@ Arama alanı merkezden **4 km yarıçap** (8 km çap). Başka konum için koordi
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.6"],
+      "args": ["-y", "market-fiyati-mcp@1.0.7"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
@@ -37,7 +37,7 @@ veya üçünü kaldırın. **Env kullanmıyorsanız devam etmeden önce AI’a e
 bunları her konumlu çağrıya eklemesini isteyin. Otomatik 1 km yoktur.
 
 Ayarı özel istemci dosyasında tutun. Sunucuyu yeniden başlatın; terminalde env değiştirmek yeterli değildir.
-`npx` bulunamazsa mutlak yolunu kullanın. 1.0.6 henüz npm’de yoksa [kaynak sürümünü](../README.md#kaynak-koddan-geliştirme) çalıştırın.
+`npx` bulunamazsa mutlak yolunu kullanın. Paket henüz npm’de yoksa [kaynak sürümünü](../README.md#kaynak-koddan-geliştirme) çalıştırın.
 
 ## 2. Bağlantıyı kontrol edin
 

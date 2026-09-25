@@ -4,9 +4,15 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 1.0.7 — 2026-09-25
+
 - Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.
 - En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
 - Beklenmeyen hatalardaki kullanıcı mesajından mevcut olmayan yerel teşhis yönlendirmesi kaldırıldı.
+- 1.0.6 ile kaldırılan otomatik 1 km yarıçapın geçişi ve sürüm uyumluluğu belgelendi; konum sözleşmesi
+  bu sürümde değişmedi. Yeni tag için tarihli CHANGELOG bölümünü zorunlu kılan kontrol eklendi.
+
+[1.0.7 sürüm notları](docs/releases/v1.0.7.md).
 
 ## 1.0.6 — 2026-09-25
 

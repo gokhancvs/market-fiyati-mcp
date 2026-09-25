@@ -67,6 +67,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
       'docs/releases/v1.0.4.md',
       'docs/releases/v1.0.5.md',
       'docs/releases/v1.0.6.md',
+      'docs/releases/v1.0.7.md',
       'examples/mcp-config.json',
       'package.json',
       'SECURITY.md',

@@ -6,12 +6,12 @@
     "url": "https://github.com/gokhancvs/market-fiyati-mcp",
     "source": "github"
   },
-  "version": "1.0.6",
+  "version": "1.0.7",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "market-fiyati-mcp",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "transport": {
         "type": "stdio"
       },

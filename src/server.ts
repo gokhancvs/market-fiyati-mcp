@@ -174,7 +174,7 @@ export function createServer(service: MarketService): McpServer {
     }
   }
   const server = new CancellationServer(
-    { name: 'market-fiyati-mcp', version: '1.0.6' },
+    { name: 'market-fiyati-mcp', version: '1.0.7' },
     {
       instructions:
         'Read market://guide and market_status before calling data tools. Use API filters and sorting with call or configured location and explicit depots. Read market_status.data.locationDefaults.configured; if true, omit coordinates to use env defaults. Reuse supplied context and returned offers to minimize calls; the server caches no results or user context. Track meta.requestMetrics against the agreed call budget, including application errors. Use meta.depotCoverage, meta.offerAssessments and meta.warningCodes to explain evidence limits; unreturned depots have unknown availability. Live access is operator-controlled.'
