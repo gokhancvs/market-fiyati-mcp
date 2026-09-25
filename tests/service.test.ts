@@ -47,6 +47,19 @@ class FixtureTransport implements Transport {
     };
   }
 }
+test('unexpected service error hides private text without promising local diagnostics', async () => {
+  const transport: Transport = {
+    mode: 'live',
+    async request() {
+      throw new Error('private token');
+    }
+  };
+  await assert.rejects(new MarketService(transport, readConfig({})).execute('categories', {}), (error) => {
+    assert.equal((error as Error).message, 'Unexpected internal error.');
+    assert.ok(!JSON.stringify(error).includes('private token'));
+    return true;
+  });
+});
 test('basket stops on blank chain keys including zero and out-of-scope offers', async () => {
   for (const [price, depotId] of [
     [10, 'bim-test'],

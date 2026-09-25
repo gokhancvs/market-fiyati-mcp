@@ -17,6 +17,6 @@ export function publicError(error: unknown): Record<string, unknown> {
   // Never echo upstream HTML, headers, filesystem paths or arbitrary thrown messages.
   return {
     code: 'INTERNAL_ERROR',
-    message: 'Unexpected internal error. See local diagnostics.'
+    message: 'Unexpected internal error.'
   };
 }

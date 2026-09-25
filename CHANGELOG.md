@@ -6,6 +6,7 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 - Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.
 - En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
+- Beklenmeyen hatalardaki kullanıcı mesajından mevcut olmayan yerel teşhis yönlendirmesi kaldırıldı.
 
 ## Yayımlanmamış — 1.0.6
 

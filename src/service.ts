@@ -217,10 +217,7 @@ export class MarketService {
       assertOutputBudget(envelope);
       return envelope;
     } catch (error) {
-      const safe =
-        error instanceof AppError
-          ? error
-          : new AppError('INTERNAL_ERROR', 'Unexpected internal error. See local diagnostics.');
+      const safe = error instanceof AppError ? error : new AppError('INTERNAL_ERROR', 'Unexpected internal error.');
       throw new AppError(safe.code, safe.message, safe.details, snapshot());
     }
   }
