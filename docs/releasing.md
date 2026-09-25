@@ -34,12 +34,12 @@ bakın. Bu bağlantı kurulmadan tag gönderilirse npm adımı başarısız olur
 
 ## 2. Sürümü hazırlama
 
-Yayımlanmış veya kaldırılmış sürüm numaraları yeniden kullanılamaz. Aşağıdaki komutlar `1.0.4`
+Yayımlanmış veya kaldırılmış sürüm numaraları yeniden kullanılamaz. Aşağıdaki komutlar `1.0.5`
 sürümünün hazırlanmasını örnekler; sonraki yayınlarda yeni bir sürüm numarası seçin.
 
-1. `npm version 1.0.4 --no-git-tag-version` ile `package.json` ve lockfile'daki sürümü birlikte güncelleyin.
+1. `npm version 1.0.5 --no-git-tag-version` ile `package.json` ve lockfile'daki sürümü birlikte güncelleyin.
    `src/server.ts` içindeki MCP sunucu sürümünü de aynı değere getirin.
-2. README ve `examples/mcp-config.json` içindeki sabit `npx` sürümünü, `server.json` sürümlerini, CHANGELOG'u ve `docs/releases/v1.0.4.md` sürüm notunu hazırlayın.
+2. README ve `examples/mcp-config.json` içindeki sabit `npx` sürümünü, `server.json` sürümlerini, CHANGELOG'u ve `docs/releases/v1.0.5.md` sürüm notunu hazırlayın.
    Sürüm notu kurulumu, değişiklikleri ve doğrulama sınırlarını anlatmalıdır. Sentetik testleri live başarı
    gibi göstermeyin. Yeni sürüm notunun yolunu `package.json` files listesine ve paket testinin belge listesine ekleyin.
 3. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
@@ -52,9 +52,9 @@ Test edilmiş commit üzerinde şu komutları çalıştırın:
 
 ```sh
 git fetch origin main
-git tag -a v1.0.4 -m "Release v1.0.4"
-npm run release:check -- v1.0.4
-git push origin v1.0.4
+git tag -a v1.0.5 -m "Release v1.0.5"
+npm run release:check -- v1.0.5
+git push origin v1.0.5
 ```
 
 Ortamınızda RTK kuralı varsa komutların başına `rtk` ekleyin.
@@ -98,7 +98,7 @@ değerini geri çekemez. Yayınlar sırayla çalışır; GitHub kuyruğu en fazl
 ```sh
 npm pack
 npm run test:consumer
-npm publish /mutlak/yol/market-fiyati-mcp-1.0.4.tgz --dry-run --access public
+npm publish /mutlak/yol/market-fiyati-mcp-1.0.5.tgz --dry-run --access public
 ```
 
 `npm run test:consumer` derleme/paketleme yapar, yeni cache ile geçici dizine bağımsız kurar ve gerçek

@@ -19,7 +19,7 @@ stdio sunucu ayarlarına uyarlayın:
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.4"],
+      "args": ["-y", "market-fiyati-mcp@1.0.5"],
       "env": { "MARKET_FIYATI_MODE": "offline" }
     }
   }

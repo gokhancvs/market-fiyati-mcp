@@ -2,7 +2,9 @@
 
 En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yayımlanmamış** bölümündedir.
 
-## Yayımlanmamış
+## Yayımlanmamış — 1.0.5
+
+Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
 
 - npm kurulumu ve offline başlangıç README'de öne çıkarıldı; örnek sürüm pini paketle doğrulanır.
   Keşif anahtar kelimeleri ve sonraki yayın için MCP Registry metadata hazırlığı eklendi.
