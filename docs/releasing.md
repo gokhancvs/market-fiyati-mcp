@@ -15,17 +15,17 @@ paketi geriye dönük değiştirilmez.
 ## 1. Sürümü hazırlayın
 
 ```sh
-npm version 1.0.6 --no-git-tag-version
+npm version 1.0.7 --no-git-tag-version
 ```
 
-`1.0.6` örnektir; yayımlanmış/kaldırılmış sürümü tekrar kullanmayın.
+`1.0.7` örnektir; yayımlanmış/kaldırılmış sürümü tekrar kullanmayın.
 Patch düzeltme, minor geriye uyumlu özellik, major uyumsuz sözleşme içindir.
 
 | Eşitleyin           | Dosyalar                                                                                      |
 | ------------------- | --------------------------------------------------------------------------------------------- |
 | Paket ve sunucu     | `package.json`, `package-lock.json`, `src/server.ts`                                          |
 | Kurulum ve manifest | README, `examples/mcp-config.json`, `docs/live-testing.md`, `server.json` üst ve paket sürümü |
-| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.6.md`                               |
+| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.7.md`                               |
 | Paket içeriği       | Yeni sürüm notunu `package.json` files ve paket testinin belge listesine ekleyin.             |
 
 Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün tarihli CHANGELOG bölümünü
@@ -51,9 +51,9 @@ Doğrudan main push, force-push ve main silme kapalıdır. İlgisiz yerel deği�
 
 ```sh
 git fetch origin main
-git tag -a v1.0.6 -m "Release v1.0.6"
-npm run release:check -- v1.0.6
-git push origin v1.0.6
+git tag -a v1.0.7 -m "Release v1.0.7"
+npm run release:check -- v1.0.7
+git push origin v1.0.7
 ```
 
 RTK zorunluysa komutları onunla çalıştırın. Tag’i taşımayın; yayımlanan içeriği değiştirmeyin.
@@ -138,7 +138,7 @@ Market Fiyatı API’si offline kalır. npm kurulum/yayın/advisory istekleri bu
 ```sh
 npm pack
 npm run test:consumer
-npm publish /mutlak/yol/market-fiyati-mcp-1.0.6.tgz --dry-run --access public
+npm publish /mutlak/yol/market-fiyati-mcp-1.0.7.tgz --dry-run --access public
 ```
 
 Hazır arşiv: `npm run test:consumer -- /mutlak/yol/pack.json`.
