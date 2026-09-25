@@ -8,7 +8,7 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
 - Beklenmeyen hatalardaki kullanıcı mesajından mevcut olmayan yerel teşhis yönlendirmesi kaldırıldı.
 
-## Yayımlanmamış — 1.0.6
+## 1.0.6 — 2026-09-25
 
 - **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env’den okunabilir. Tam çağrı çifti ve
   distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.

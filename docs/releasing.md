@@ -25,8 +25,11 @@ Patch düzeltme, minor geriye uyumlu özellik, major uyumsuz sözleşme içindir
 | ------------------- | --------------------------------------------------------------------------------------------- |
 | Paket ve sunucu     | `package.json`, `package-lock.json`, `src/server.ts`                                          |
 | Kurulum ve manifest | README, `examples/mcp-config.json`, `docs/live-testing.md`, `server.json` üst ve paket sürümü |
-| Sürüm açıklaması    | CHANGELOG, `docs/releases/v1.0.6.md`                                                          |
+| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.6.md`                               |
 | Paket içeriği       | Yeni sürüm notunu `package.json` files ve paket testinin belge listesine ekleyin.             |
+
+Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün tarihli CHANGELOG bölümünü
+ister ve `Yayımlanmamış — X.Y.Z` başlığı kalırsa başarısız olur.
 
 ## 2. Kontrol edin ve PR ile merge edin
 
