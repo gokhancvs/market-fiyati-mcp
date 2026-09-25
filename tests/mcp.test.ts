@@ -240,7 +240,10 @@ test('small application errors retain safe details and unknown errors hide sourc
           retries: 0,
           durationMs: 3
         });
-      } else assert.ok(!JSON.stringify(result).includes('private raw body'));
+      } else {
+        assert.equal(error.message, 'Unexpected internal error.');
+        assert.ok(!JSON.stringify(result).includes('private raw body'));
+      }
       assert.deepEqual(JSON.parse((result.content[0] as { text: string }).text), result.structuredContent);
     } finally {
       await client.close();

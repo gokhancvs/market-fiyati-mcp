@@ -5,6 +5,13 @@ Yalnız istenen aşamaları tamamlayın; verilmiş onayı yeniden istemeyin.
 
 **Yeni kararlı tag’i push etmek npm ve GitHub yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
 
+Sözleşme diff'inde önceden geçerli bir çağrı için yeni zorunlu girdi varsa, sürüm hazırlığında
+uyumluluk etkisini ve geçiş yolunu açıkça inceleyin; uyumsuz değişiklik için major sürüm ve
+migration belgesi gerekir. Eski çağrı fixture'larını review kapısında çalıştırın: yeni patch
+sürümünde sessiz bir kırılmayı test/diff incelemesiyle yakalayın. `1.0.6` sürümünde otomatik
+1 km yarıçap kaldırıldı ve bu eski yarıçapsız çağrıları kırdı; yayımlanmış sürümün tag'i ve
+paketi geriye dönük değiştirilmez.
+
 ## 1. Sürümü hazırlayın
 
 ```sh
@@ -18,8 +25,11 @@ Patch düzeltme, minor geriye uyumlu özellik, major uyumsuz sözleşme içindir
 | ------------------- | --------------------------------------------------------------------------------------------- |
 | Paket ve sunucu     | `package.json`, `package-lock.json`, `src/server.ts`                                          |
 | Kurulum ve manifest | README, `examples/mcp-config.json`, `docs/live-testing.md`, `server.json` üst ve paket sürümü |
-| Sürüm açıklaması    | CHANGELOG, `docs/releases/v1.0.6.md`                                                          |
+| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.6.md`                               |
 | Paket içeriği       | Yeni sürüm notunu `package.json` files ve paket testinin belge listesine ekleyin.             |
+
+Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün tarihli CHANGELOG bölümünü
+ister ve `Yayımlanmamış — X.Y.Z` başlığı kalırsa başarısız olur.
 
 ## 2. Kontrol edin ve PR ile merge edin
 

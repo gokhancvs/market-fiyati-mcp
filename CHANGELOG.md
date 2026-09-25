@@ -2,7 +2,13 @@
 
 En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yayımlanmamış** bölümündedir.
 
-## Yayımlanmamış — 1.0.6
+## Yayımlanmamış
+
+- Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.
+- En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
+- Beklenmeyen hatalardaki kullanıcı mesajından mevcut olmayan yerel teşhis yönlendirmesi kaldırıldı.
+
+## 1.0.6 — 2026-09-25
 
 - **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env’den okunabilir. Tam çağrı çifti ve
   distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.

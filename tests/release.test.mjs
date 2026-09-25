@@ -38,6 +38,7 @@ function check({
   lock = '1.0.0',
   root = '1.0.0',
   notes = '# v1.0.0',
+  changelog = '# Değişiklik günlüğü\n\n## 1.0.0 — 2026-09-25\n',
   missingTag = false,
   advance = false,
   outsideMain = false,
@@ -66,6 +67,7 @@ function check({
     );
     mkdirSync(join(cwd, 'docs/releases'), { recursive: true });
     if (notes !== null) writeFileSync(join(cwd, 'docs/releases/v1.0.0.md'), notes);
+    writeFileSync(join(cwd, 'CHANGELOG.md'), changelog);
     git('init', '-q', '-b', 'main');
     git('add', '.');
     git('commit', '-qm', 'fixture');
@@ -90,6 +92,9 @@ test('release guard accepts only a matching version, notes and exact tagged comm
   assert.equal(valid.status, 0, valid.stderr);
   assert.match(valid.stdout, /v1\.0\.0/);
   assert.equal(check({ advanceMain: true }).status, 0, 'Tagged main ancestors remain releasable');
+  assert.equal(check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n' }).status !== 0, true);
+  assert.equal(check({ changelog: '# Günlük\n\n## 1.0.0 — 2026-09-25\n' }).status, 0);
+  assert.notEqual(check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n\n## 1.0.0 — 2026-09-25\n' }).status, 0);
 
   for (const [input, error] of [
     [{ tag: '../../secret' }, /stable version tag/],

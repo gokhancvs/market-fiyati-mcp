@@ -182,6 +182,19 @@ test('offer comparison preserves discount semantics and rounds money only', () =
   assert.equal(result.priceSpread, 2.55);
 });
 
+test('cheapest depot IDs are unique while tied source offers stay intact', () => {
+  const first = { ...offer('A', 'A-1', 10), promotionText: 'source-one' };
+  const second = { ...offer('A', 'A-1', 10), promotionText: 'source-two' };
+  const result = compareOffers(product('p', [first, second, offer('B', 'B-1', 10), offer('C', 'C-1', 11)]));
+  assert.deepEqual(result.cheapestDepotIds, ['A-1', 'B-1']);
+  assert.equal(result.offers.length, 4);
+  assert.deepEqual(
+    result.offers.slice(0, 2).map((o) => o.promotionText),
+    ['source-one', 'source-two']
+  );
+  assert.equal(result.cheapestPrice, 10);
+});
+
 test('positive sub-cent offers cannot create a free complete basket', () => {
   for (const price of [0.001, 1e-7, 0]) {
     const p = product('A', [offer('bim', 'bim-1', price)]);
@@ -336,6 +349,47 @@ test('category queries preserve hierarchy and use Turkish case folding', () => {
   assert.equal(flat[0]?.name, 'Ispanak');
   assert.equal(filterCategories(categories, { flat: false, query: 'ıspanak' })[0]?.name, 'Gıda');
   assert.equal(filterCategories(categories, { flat: false, parentId: 1 })[0]?.id, 2);
+});
+
+test('category lookup equates NFC and NFD without changing Turkish letters or source names', () => {
+  for (const sourceForm of ['NFC', 'NFD'] as const) {
+    const raw = 'ŞARKÜTERİ'.normalize(sourceForm);
+    const categories = [{ id: 2, parentId: 1, name: raw, children: [] }];
+    const tree = [{ id: 1, parentId: null, name: 'Gıda', children: categories }];
+    for (const queryForm of ['NFC', 'NFD'] as const) {
+      for (const flat of [true, false]) {
+        const found = filterCategories(categories, { flat, query: 'şarküteri'.normalize(queryForm) });
+        assert.equal(found.length, 1);
+        assert.equal(found[0]?.name, raw);
+      }
+      assert.deepEqual(
+        filterCategories(tree, { flat: true, parentId: 1, query: 'şarküteri'.normalize(queryForm) })[0]?.path,
+        [raw]
+      );
+      assert.equal(
+        filterCategories(tree, { flat: false, query: 'şarküteri'.normalize(queryForm) })[0]?.children[0]?.name,
+        raw
+      );
+    }
+  }
+  assert.equal(
+    filterCategories([{ id: 4, parentId: null, name: 'ŞARKÜTERİ', children: [] }], { flat: true, query: 'sarkuteri' })
+      .length,
+    0
+  );
+  assert.equal(
+    filterCategories([{ id: 2, parentId: null, name: 'Ispanak', children: [] }], { flat: true, query: 'ıspanak' })
+      .length,
+    1
+  );
+  assert.equal(
+    filterCategories([{ id: 3, parentId: null, name: 'İçecek', children: [] }], { flat: true, query: 'içecek' }).length,
+    1
+  );
+  assert.equal(
+    filterCategories([{ id: 3, parentId: null, name: 'İçecek', children: [] }], { flat: true, query: 'ıçecek' }).length,
+    0
+  );
 });
 
 test('basket work grows near-linearly for distinct depots and disjoint minimum-price ties', (t) => {

@@ -48,6 +48,7 @@ Kesin ID aramasında beklenmeyen/tekrarlı ürünler, zincir anahtarı, sayfalam
 sınanır. Endpoint allowlist’i `toString` / `__proto__` gibi miras alınan anahtarları reddeder.
 Seçilmemiş şubeler hesaba katılmaz; sıfır/kuruşa yuvarlanan teklifler ham alanları ve bağlantılarıyla korunur.
 Eşit fiyat sırası locale’den bağımsızdır; geçmişteki null gözlemler kaybolmaz.
+Kategori sorguları NFC/NFD eşdeğerliğini, Türkçe harf ayrımını ve ham ad/path korunmasını sınar.
 
 ### Kaynak ve hata sınırları
 
