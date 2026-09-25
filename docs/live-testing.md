@@ -1,10 +1,102 @@
-# Kullanıcıyla live test
+# Gerçek fiyatlarla canlı test
 
-**Önce offline kontrolleri çalıştırın.** Live çağrı yalnızca kullanıcı birlikte test etmeyi açıkça
-başlattığında ve [sağlayıcı izinleri](../README.md#amaç-ve-kullanım-izinleri) netleştiğinde yapılır.
+Bu rehber npm paketini bir MCP istemcisinde gerçek API yanıtlarıyla denemek içindir. Node.js 22+
+ve stdio MCP destekleyen bir istemci gerekir. Kaynak kodu klonlamak veya test paketini kurmak gerekmez.
+Offline mod bağlantıyı doğrular; ürün ve fiyat sorguları live modda çalışır.
+
+Live çağrı yalnızca kullanıcı testi açıkça başlattığında ve
+[sağlayıcı izinleri](../README.md#amaç-ve-kullanım-izinleri) netleştiğinde yapılır.
 Kullanıcının onay vermesi, API veya veri kullanım izni yerine geçmez. Emin değilseniz offline modda kalın.
 
-## 1. Hazırlık
+## 1. İstemciyi live modda bağlayın
+
+İstemcinizin MCP sunucu ayarına şu yapılandırmayı ekleyin. Mevcut `market-fiyati` kaydınız varsa onu
+güncelleyin; aynı sunucuyu iki kez eklemeyin. Ayar dosyasının yeri ve üst yapısı istemciye göre değişebilir.
+
+```json
+{
+  "mcpServers": {
+    "market-fiyati": {
+      "command": "npx",
+      "args": ["-y", "market-fiyati-mcp@1.0.5"],
+      "env": {
+        "MARKET_FIYATI_MODE": "live",
+        "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "false",
+        "MARKET_FIYATI_RETRIES": "0"
+      }
+    }
+  }
+}
+```
+
+İstemciden MCP sunucusunu yeniden başlatın; gerekiyorsa istemciyi kapatıp açın. Terminalde ortam
+değişkeni ayarlamak, zaten çalışan masaüstü istemcisinin sunucu ayarını değiştirmez.
+`npx` bulunamazsa istemcinin çalıştırabildiği mutlak `npx` yolunu kullanın.
+
+## 2. Bağlantıyı ve modu doğrulayın
+
+AI'a şunu yazın:
+
+> `market_status` çağır. Modu, live erişimini ve deneysel erişimin açık olup olmadığını göster.
+> `market://guide` resource'unu oku; henüz veri sorgusu yapma.
+
+**Beklenen:** `data.mode=live`, `data.liveRequestsEnabled=true`,
+`data.experimentalEndpointsEnabled=false`. Başlangıç, status ve resource okuma API isteği göndermez;
+bu adım tek başına gerçek fiyat erişiminin başarılı olduğunu kanıtlamaz.
+
+## 3. Test konumunu ve şubeleri belirleyin
+
+AI'a enlem, boylam ve kilometre cinsinden yarıçap verin. Kendi seçtiğiniz konumu kullanın;
+örnek veya sentetik test koordinatlarını gerçek sorguya taşımayın. Bu bilgileri Git'e veya rapora eklemeyin.
+
+- **Konuma ait şube kimlikleri biliniyorsa:** Bunları boş olmayan `depots` listesi olarak kullanın.
+  Deneysel erişimi açmak gerekmez; market zinciri adı şube kimliği yerine geçmez.
+- **Şube kimlikleri bilinmiyorsa:** Yukarıdaki ayarda `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değerini
+  `true` yapın ve sunucuyu yeniden başlatın. Status ile ayarı doğruladıktan sonra AI'a şunu yazın:
+
+> Verdiğim enlem, boylam ve yarıçapla `market_find_nearby_depots` tool'unu bir kez çağır.
+> Dönen şubeleri ve kimliklerini göster; sonraki aramada bu şubeleri kullan. Sonuç boşsa dur.
+
+Şubeleri elle daraltmak isteğe bağlıdır. Kimlikleri uydurmayın; gerçek yanıttan alın.
+`market_list_markets` ilk arama için gerekli değildir. Deneysel erişim izni, endpoint'in çalıştığına dair kanıt değildir.
+
+## 4. Tek ürün aramasıyla fiyat erişimini test edin
+
+Şubeler belirlendikten sonra AI'a şunu yazın:
+
+> Verdiğim konumu, yarıçapı ve belirlediğimiz şubeleri kullanarak `market_search_products` çağır.
+> `keywords="süt"`, `pages=0`, `size=5` olsun. Yalnızca bir arama yap; ek sayfa, ürün detayı veya
+> otomatik tekrar çağrısı yapma. Dönen ürün adlarını, gramajlarını, seçili şubelerdeki TRY fiyatlarını,
+> sorgu zamanını ve uyarıları göster. Eksik bilgiyi tahmin etme.
+
+Bu başlangıç akışı, retry kapalıyken bir arama HTTP denemesi; şube keşfi de gerekiyorsa toplam iki
+veri isteği denemesi içerir. Bunlar sağlayıcının kota garantisi değildir. Sonuçta bulunan offer'ları
+kullanın; aynı fiyatları açıklamak için tekrar detay çağrısı yapmayın.
+
+**Geçme ölçütü:** Arama uygulama hatası vermeden tamamlanır ve seçili şubelerde dönen gerçek fiyatlar,
+ürün/gramaj bilgisi ve uyarılar istemcide doğru gösterilir. Boş sonuç veya şube teklifi eksikliği
+“stok yok” anlamına gelmez ve fiyat erişiminin kabulü olarak kaydedilmez. İlk sayfa tüm ürünleri kapsamaz.
+
+## 5. Sonucu kontrol edin ve oturumu kapatın
+
+| Gözlenen durum                                 | Yapılacak işlem                                                                                                                    |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `NETWORK_DISABLED`                             | Sunucunun ortam ayarında `MARKET_FIYATI_MODE=live` olduğunu kontrol edin; yeniden başlatıp status okuyun.                          |
+| `EXPERIMENTAL_DISABLED`                        | Şube keşfi gerekiyorsa operatör deneysel erişimi açıp yeniden başlatsın; bilinen şubelerle normal arama için gerekmez.             |
+| Girdi doğrulama hatası                         | Enlem/boylamı, km yarıçapını ve boş olmayan gerçek `depots` listesini kontrol edin; hata metnindeki alanı düzeltin.                |
+| HTTP 429/403/5xx veya `TIMEOUT`                | Otomatik tekrar yapmayın. HTTP durumu ve varsa bekleme bilgisini gösterin; erişim veya servis sorununu çözmeden testi sürdürmeyin. |
+| Boş sonuç, eksik fiyat veya `INVALID_RESPONSE` | Başarı ya da stok sonucu uydurmayın. Güvenli hata özetini kaydedin; yanıt sözleşmesi hatasını ayrıca inceleyin.                    |
+
+Test sonunda yalnız istemci/sürüm, paket sürümü, tarih, denenen işlem ve güvenli sonuç özetini kaydedin.
+Kesin konumu, token'ları ve ham yanıtları proje dışında tutun. Kullanıcının tercihine göre
+`MARKET_FIYATI_MODE=offline` yapıp sunucuyu yeniden başlatın; status ile kapandığını doğrulayın.
+
+## Geliştiriciler için daha kapsamlı kabul
+
+Aşağıdaki adımlar kaynak kodu değiştiren ve endpoint kapsamını sınayan geliştiriciler içindir;
+yukarıdaki npm başlangıcı için ön koşul değildir.
+
+### Hazırlık
 
 1. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
 2. İstemcide `market_status` tool'uyla modun offline olduğunu doğrulayın.
@@ -13,7 +105,7 @@ Kullanıcının onay vermesi, API veya veri kullanım izni yerine geçmez. Emin 
 
 **Hazır sayılır:** Kontroller geçti, context biliniyor, live test ve sağlayıcı izinleri net.
 
-## 2. Küçük live kabul testi
+### Küçük live kabul testi
 
 Bu adımlar yalnızca izin alındıktan sonra yapılır:
 
@@ -33,7 +125,7 @@ Bu adımlar yalnızca izin alındıktan sonra yapılır:
 Her ürün çağrısına konumu, yarıçapı ve şubeleri açıkça ekleyin. Retry ayarı açıksa iki ürünlük bir sepet
 bile bütçeyi aşabilir.
 
-## 3. Gerekirse deneysel endpoint'ler
+### Gerekirse deneysel endpoint'ler
 
 Operatör `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ayarlar. Gereken endpoint'leri sırayla deneyin: market
 listesi, geocode ve ters geocode, yakındaki şubeler, toplu ürün yenileme ve alternatifler.
@@ -51,7 +143,7 @@ dönüştürmeyin; şemayı güncelleyin ve bunun için sentetik bir regresyon t
 - Küçük live örneklerden güvenli bir kota sonucu çıkarmayın; kapsamı ve bütçeyi ayrıca belirleyin. Eksik bir
   sepeti tamamlanmış gibi göstermeyin.
 
-## 4. Sonucu kaydetme
+## Kabul sonucunu kaydetme
 
 1. HTTP 429 yanıtını ve bekleme süresini kullanıcıya gösterin.
 2. Yalnızca denenen işlemi, endpoint'i, sürümü, tarihi ve gözlenen sonucu kaydedin. Kesin konumu, token'ları
