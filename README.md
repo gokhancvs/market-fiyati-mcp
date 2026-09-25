@@ -9,6 +9,9 @@ Unofficial stdio MCP server for Turkish grocery prices. Requires Node.js 22+.
 Offline by default: status and tool discovery work; remote price requests are blocked.
 Read the [usage permissions](#amaç-ve-kullanım-izinleri) before live use.
 
+**Gerçek fiyatlarla denemek için:** [Canlı test başlangıcını](#3-gerçek-fiyatlarla-canlı-test) izleyin.
+Offline bağlantı kontrolüdür; gerçek ürün ve fiyat sorguları için `live` modu gerekir.
+
 ## 1. npm ile kurulum (yaklaşık 1 dakika)
 
 Kaynak kodu klonlamadan, [örnek MCP yapılandırmasını](examples/mcp-config.json) istemcinizin
@@ -41,7 +44,25 @@ listesinin alınması ve resource okunması ağ isteği oluşturmaz. Bu modda ge
 
 Sunucu HTTP portu açmaz; stdio üzerinden JSON-RPC kullanır.
 
-## 3. Ne yapmak istiyorsunuz?
+## 3. Gerçek fiyatlarla canlı test
+
+[Kullanım izinlerini](#amaç-ve-kullanım-izinleri) netleştirdikten sonra, yukarıdaki istemci ayarında
+`MARKET_FIYATI_MODE` değerini `live` yapın ve MCP sunucusunu yeniden başlatın.
+
+1. `market_status` çağırın: `mode=live` ve `liveRequestsEnabled=true` olmalı. Bu çağrı henüz API erişimini sınamaz.
+2. AI'a test konumunun enlem/boylamını, yarıçapını ve o konuma ait gerçek şube kimliklerini verin.
+   Şubeler bilinmiyorsa `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ayarıyla sunucuyu yeniden başlatıp
+   `market_find_nearby_depots` ile bir kez keşif yapın; dönen şubeleri kullanın.
+3. “Bu konum ve şubelerde `süt` için `market_search_products` ile tek arama yap; `pages=0`, `size=5`.
+   Dönen ürünleri, gramajları, şube fiyatlarını ve uyarıları göster. Ek sayfa veya otomatik tekrar çağrısı yapma.” diye sorun.
+
+**Beklenen sonuç:** Gerçek API'den ürün/şube teklifleri gelir; fiyatlar TRY olarak gösterilir.
+Boş sonuç fiyat doğrulaması değildir. Hata alırsanız tekrar denemeden önce nedenini inceleyin.
+
+[Kopyalanabilir canlı yapılandırma, şube keşfi ve hata çözümleri →](docs/live-testing.md)
+Yalnızca npm paketini kullanmak için kaynak kodu klonlamanız veya `npm run check` çalıştırmanız gerekmez.
+
+## 4. Ne yapmak istiyorsunuz?
 
 | Amaç                            | Tool veya rehber                |
 | ------------------------------- | ------------------------------- |

@@ -55,6 +55,39 @@ Keep dependencies pinned and the lockfile consistent. Use package scripts for
 checks. Before reporting completion, run `npm run check`. Report local validation
 separately from live validation; synthetic responses do not prove remote behavior.
 
+## Completion checklist
+
+For every repository change, apply these gates before the final handoff. Record each
+applicable gate as done with evidence, blocked with a reason, or outside the requested
+scope. Continue through all already-authorized steps; do not request the same approval
+again. A request to implement does not by itself authorize merge or publication.
+
+1. **Scope and diff:** Review the final diff against the request. Update affected
+   contracts, usage docs and changelog. Inspect the staged file list before committing;
+   keep private reports and plans in the ignored archives described above.
+2. **Verification:** Run the checks above against the final changes and resolve
+   failures and review findings. For runtime, dependency or package-distribution changes,
+   also verify an independent consumer installation with `npm run test:consumer`.
+   Evidence must identify the checked revision or working-tree state; repeat affected
+   checks after further changes. Read-only answers do not require rerunning project tests.
+3. **Delivery:** When push is in scope, verify the remote branch points to the intended
+   commit and inspect its CI results. When merge is in scope, use a PR, wait for all
+   applicable checks, verify its merged state and commit, then fast-forward a clean
+   local main checkout. Preserve unrelated local changes. When version preparation,
+   tag publication or release is in scope, follow `docs/releasing.md` through the
+   requested stage; verify publication outcomes rather than stopping after tag push.
+4. **Cleanup:** Keep GitHub `delete_branch_on_merge` enabled. After a main merge,
+   verify the merged PR's remote head branch was deleted. If it remains, delete only
+   that fully merged branch after checking its current head for additional work;
+   preserve main and other active branches. Remove local branches/worktrees only when
+   clean, unused and integrated, after preserving ignored plans/reports outside the
+   worktree. Report retained worktrees and the reason; avoid forced cleanup.
+5. **Handoff:** State what changed, verification results, delivery state (local,
+   pushed, merged, npm published, registry published as applicable), and any remaining
+   action. Include relevant commit/PR/release links. Record detailed evidence under
+   `reports/` when needed. An unverified or blocked step remains explicit; never infer
+   live API or desktop-client acceptance from synthetic checks.
+
 ## Git conventions
 
 - Follow https://conventionalbranch.org/ (1.1.0) for branch names. Use lowercase

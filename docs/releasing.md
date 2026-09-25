@@ -7,6 +7,10 @@ Tek geliştirme branch'i `main`'dir. Tag biçimi `vX.Y.Z` şeklindedir. Patch s�
 sürümü geriye uyumlu yeni özellik, major sürümü uyumsuz bir sözleşme değişikliği içerir. Yayımlanmış bir tag
 veya npm sürümü sonradan değiştirilmez.
 
+Bu rehberdeki sürüm hazırlama, merge, tag gönderme ve katalog yayını aşamalarından kullanıcının
+istediği kapsamı tamamlayın. Verilmiş onayı yeniden istemeyin; yalnız kod değişikliği talebini
+kendiliğinden yayın yetkisi olarak yorumlamayın.
+
 ## 1. npm bağlantısını bir kez kurma
 
 npm paketinin **Settings → Trusted publishing → GitHub Actions** bölümüne şu değerleri girin:
@@ -81,6 +85,19 @@ durdurur.
    HTTP süreleri dahil toplam doğrulama sınırı beş dakika, ek üst sınır 61 okumadır. Normal bekleme beş
    saniye; daha uzun Retry-After varsa erken istek gönderilmez. Süreye sığmıyorsa açık hata verilir.
 5. Sürüm notlarıyla bir GitHub Release oluşturulur ve test edilmiş `.tgz` dosyası eklenir.
+
+## Yayın sonrası kapanış
+
+- Workflow sonucunu izleyin; npm sürümü, `latest` ve integrity doğrulaması ile GitHub Release ve
+  arşiv oluşmadan yayını tamamlanmış saymayın. Hata varsa başarısız aşamayı ve sonraki işlemi kaydedin.
+- `package.json` keywords, yayımlanan npm keywords ve GitHub Topics aynı değer kümesini taşımalıdır;
+  sıralama önemli değildir. Eksik ve fazladan etiketleri eşitleyin.
+- GitHub Release açıklamasını gerçek yayın durumuyla eşitleyin; hazırlık ifadelerini güncelleyin ve
+  belge bağlantılarını yayımlanan tag'e sabitleyin. Yayımlanan tag veya npm içeriğini değiştirmeyin.
+- Merge sonrası kaynak branch'in GitHub tarafından silindiğini doğrulayın. Yerel branch/worktree
+  temizliğinde `AGENTS.md` kapanış kurallarını uygulayın ve özel arşivleri koruyun.
+- npm ve MCP Registry yayın durumlarını ayrı bildirin. Katalog yayını kapsamdaysa aşağıdaki rehberi
+  izleyip yayımlanan ad/sürümü registry'den doğrulayın; manifest doğrulamasını yayın kanıtı saymayın.
 
 **Başarılı sayılır:** GitHub Actions'taki "Publish release" çalışması yeşildir, npm'deki sürüm ve integrity
 ve yeni yayın için `latest` doğrudur, GitHub Release ve arşiv görünür. GitHub Packages'a yayın yapılmaz; depodaki Packages bölümünün boş
