@@ -512,7 +512,8 @@ test('experimental access does not claim that the endpoint has never been valida
   };
   const result = await new MarketService(transport, readConfig({})).execute('nearest', {
     latitude: 0,
-    longitude: 0
+    longitude: 0,
+    distance: 1
   });
   assert.ok(result.warnings.some((w) => w.includes('operator enabled access does not certify live validation')));
   assert.ok(!result.warnings.some((w) => w.includes('has not yet been validated')));
@@ -802,7 +803,8 @@ test('nearby branch map links use the branch coordinates in each provider order'
   const transport = new FixtureTransport([branch]);
   const result = await new MarketService(transport, readConfig({})).execute('nearest', {
     latitude: 40,
-    longitude: 28
+    longitude: 28,
+    distance: 1
   });
   assert.deepEqual(result.data, [{ ...branch, maps: mapLinks }]);
   assert.equal(transport.calls.length, 1);
@@ -862,7 +864,7 @@ test('map links never fall back to user coordinates for missing or invalid branc
       }
     ]),
     readConfig({})
-  ).execute('nearest', { latitude: 41, longitude: 29 });
+  ).execute('nearest', { latitude: 41, longitude: 29, distance: 1 });
   assert.equal(
     new URL((result.data as { maps: { google: string } }[])[0]!.maps.google).searchParams.get('query'),
     '0,0'
@@ -926,7 +928,8 @@ test('invalid coordinate types fail the response contract rather than being coer
   await assert.rejects(
     new MarketService(new FixtureTransport(data), readConfig({})).execute('nearest', {
       latitude: 41,
-      longitude: 29
+      longitude: 29,
+      distance: 1
     }),
     { code: 'INVALID_RESPONSE' }
   );

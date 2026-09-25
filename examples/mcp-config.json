@@ -2,9 +2,12 @@
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.5"],
+      "args": ["-y", "market-fiyati-mcp@1.0.6"],
       "env": {
-        "MARKET_FIYATI_MODE": "offline"
+        "MARKET_FIYATI_MODE": "live",
+        "MARKET_FIYATI_LATITUDE": "41.025591",
+        "MARKET_FIYATI_LONGITUDE": "28.974075",
+        "MARKET_FIYATI_DISTANCE": "4"
       }
     }
   }

@@ -2,6 +2,7 @@ import { InputBudget, RESOURCE_LIMITS, assertOutputBudget } from './resource-lim
 import {
   BASKET_REQUEST_BUDGET,
   MAX_PAGE_INDEX,
+  locationShape,
   endpoints,
   schemas,
   validateResponse,
@@ -13,6 +14,7 @@ import {
   type SearchResponse
 } from './contracts.js';
 import { type Config } from './config.js';
+import type { ZodObject } from 'zod';
 import { AppError } from './errors.js';
 import { MAX_PENDING_REQUESTS, type Payload, type SourceMeta, type Transport } from './transport.js';
 import { compareBasket, compareOffers, filterCategories, summarizeHistory } from './analysis.js';
@@ -72,12 +74,22 @@ export class MarketService {
     public readonly transport: Transport,
     private readonly config: Config
   ) {}
+  inputSchema(operation: Operation): ZodObject {
+    const schema: ZodObject = schemas[operation];
+    if (!this.config.defaultLocation || !('latitude' in schema.shape)) return schema;
+    return schema.safeExtend({
+      latitude: locationShape.latitude.optional(),
+      longitude: locationShape.longitude.optional(),
+      ...('distance' in schema.shape ? { distance: locationShape.distance.optional() } : {})
+    });
+  }
   status() {
     return {
       mode: this.transport.mode,
       liveRequestsEnabled: this.transport.mode === 'live',
       experimentalEndpointsEnabled: this.config.enableExperimental,
       currency: 'TRY',
+      locationDefaults: { configured: !!this.config.defaultLocation },
       limits: {
         pageSize: 100,
         basketItems: Math.floor(BASKET_REQUEST_BUDGET / (this.config.retries + 1)),
@@ -218,6 +230,18 @@ export class MarketService {
     signal: AbortSignal | undefined,
     counts: HttpAttemptCounts
   ): Promise<Envelope> {
+    const defaults = this.config.defaultLocation;
+    const shape = schemas[operation].shape;
+    if (defaults && 'latitude' in shape && args && typeof args === 'object' && !Array.isArray(args)) {
+      const supplied = args as Record<string, unknown>;
+      args = {
+        ...supplied,
+        ...(supplied.latitude === undefined && supplied.longitude === undefined
+          ? { latitude: defaults.latitude, longitude: defaults.longitude }
+          : {}),
+        ...('distance' in shape && supplied.distance === undefined ? { distance: defaults.distance } : {})
+      };
+    }
     const parsed = schemas[operation].safeParse(args);
     if (!parsed.success)
       throw new AppError('INVALID_ARGUMENT', 'Invalid tool arguments.', {

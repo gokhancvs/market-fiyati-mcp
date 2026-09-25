@@ -1051,6 +1051,7 @@ for (const ending of ['EOF', 'SIGTERM', 'SIGINT'] as const)
             arguments: {
               latitude: 0,
               longitude: 0,
+              distance: 1,
               depots: ['bim-test'],
               items: [
                 { id: 'A', quantity: 1 },

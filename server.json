@@ -6,12 +6,12 @@
     "url": "https://github.com/gokhancvs/market-fiyati-mcp",
     "source": "github"
   },
-  "version": "1.0.5",
+  "version": "1.0.6",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "market-fiyati-mcp",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "transport": {
         "type": "stdio"
       },
@@ -22,6 +22,27 @@
           "format": "string",
           "default": "offline",
           "choices": ["offline", "live"],
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "MARKET_FIYATI_LATITUDE",
+          "description": "Default latitude (-90..90). Optional as a group with LONGITUDE and DISTANCE; calls may override the coordinate pair.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "MARKET_FIYATI_LONGITUDE",
+          "description": "Default longitude (-180..180). Set together with MARKET_FIYATI_LATITUDE and MARKET_FIYATI_DISTANCE.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "MARKET_FIYATI_DISTANCE",
+          "description": "Default radius in km (>0..50). Set together with latitude and longitude; no implicit radius.",
+          "format": "string",
           "isRequired": false,
           "isSecret": false
         }

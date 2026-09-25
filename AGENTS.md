@@ -32,9 +32,12 @@ blocks real networking with `tests/no-network.mjs`. Keep this guard enabled.
 ## Runtime contract
 
 - Production has only offline (network blocked) and live HTTP transports.
-- Keep product context explicit per call; no shared default location or depots.
+- Resolve location from explicit call values or the operator's complete env trio
+  (MARKET_FIYATI_LATITUDE/LONGITUDE/DISTANCE). A full coordinate pair overrides env;
+  partial pairs fail. Radius must come from call or env; there is no implicit radius.
+  Keep depot selection explicit per call; never reuse depots automatically for a new location.
 - Keep the MCP stateless for user context and results: no result cache, remembered
-  preferences or hidden search expansion. The calling AI supplies context.
+  preferences or hidden search expansion. Fixed operator env config is not learned user context.
 - When changing search behavior or prompts, read `src/guidance.ts` as the workflow
   source of truth: API filters/sorting, bounded calls, exact requirements and
   explained alternatives. Prefer supplied API facet values over invented taxonomy.

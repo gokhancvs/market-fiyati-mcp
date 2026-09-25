@@ -29,8 +29,8 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 
 ### Durum ve çalışma kuralları
 
-- **Context her çağrıyla birlikte gelir.** Kullanıcı oturumu, konum veya tercih hafızası, sonuç cache'i ya da
-  dosyaya yazılan veri yoktur.
+- **Konum:** Çağrı veya doğrulanmış env üçlüsü kullanılır; tam çağrı çifti ve yarıçap önceliklidir.
+  Her çağrı yeni nesneyle çözümlenir. Şubeler çağrıya aittir; kullanıcı/tercih/override hafızası ve sonuç cache’i yoktur.
 - **Transport durumu geçicidir.** FIFO kuyruğunda 1 aktif ve en fazla 32 bekleyen iş bulunur. İptal edilen
   bekleyen iş ve dinleyicisi hemen kaldırılır. Retry-After bilgisi en fazla iki sunucu (API ve harita origin'i) için tutulur.
 - **Kapanış tüm işleri durdurur.** SDK transport katmanı gelen istek kimliklerini yanıt verilene kadar izler.
@@ -67,6 +67,16 @@ Bu ayarlar tool girdisi değildir. Ortam değişkenlerini `config.ts` doğrular.
 | `MARKET_FIYATI_MIN_INTERVAL_MS`     | `1000`     | Aynı süreç içinde art arda gönderilen istekler arasındaki en kısa süre            |
 | `MARKET_FIYATI_MAX_RESPONSE_BYTES`  | `5242880`  | Tek HTTP yanıtı ve çağrı başına toplam kaynak JSON boyutu için sınır              |
 | `MARKET_FIYATI_RETRIES`             | `0`        | Açılırsa 429/502/503/504 yanıtlarında ek deneme yapılır; sepet bütçesine dâhildir |
+| `MARKET_FIYATI_LATITUDE`            | Yok        | Env konum üçlüsünün enlemi, -90..90                                               |
+| `MARKET_FIYATI_LONGITUDE`           | Yok        | Env konum üçlüsünün boylamı, -180..180                                            |
+| `MARKET_FIYATI_DISTANCE`            | Yok        | Env konum üçlüsünün km yarıçapı, >0..50; sessiz varsayılan yok                    |
+
+**Konum ayarı:** Üç env alanını birlikte verin; eksik/boş/geçersiz ayar `CONFIG_ERROR` üretir.
+Hiçbiri yoksa konum çağrıdan gelir. Env değişince yeniden başlatın.
+
+**Gizlilik:** Aynı süreç env konumunu paylaşır; farklı kullanıcılar ayrı süreç veya açık çağrı değeri kullanır.
+Status yalnız `locationDefaults.configured` gösterir. Koordinatlar şema/config hatalarına yazılmaz;
+konumlu HTTP istekleri bunları API’ye gönderir.
 
 URL, header veya cookie değiştirmek için bir ayar yoktur. Yönlendirmeler (redirect) izlenmez.
 Retry, kuyruk ve çıktı sınırları için: [Kaynak kullanım sınırları](api.md#kaynak-kullanım-sınırları).

@@ -109,7 +109,7 @@ const uniqueIds = z
 export const locationShape = {
   latitude: z.number().min(-90).max(90).describe('Explicit user-selected latitude.'),
   longitude: z.number().min(-180).max(180).describe('Explicit longitude.'),
-  distance: z.number().positive().max(50).default(1).describe('Search radius in km. 50 is a local safety limit.')
+  distance: z.number().positive().max(50).describe('Required search radius in km. 50 is a local safety limit.')
 };
 const contextShape = {
   ...locationShape,

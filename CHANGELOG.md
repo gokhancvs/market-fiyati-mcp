@@ -2,7 +2,19 @@
 
 En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yayımlanmamış** bölümündedir.
 
-## Yayımlanmamış — 1.0.5
+## Yayımlanmamış — 1.0.6
+
+- **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env’den okunabilir. Tam çağrı çifti ve
+  distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.
+- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı. Üç değer env veya çağrıdan tamamlanmalıdır;
+  ters geocode yalnız koordinat kullanır.
+- **Status:** `locationDefaults.configured` ayarın varlığını gösterir; koordinatları göstermez.
+- Rehberler kısaltıldı; kullanıcı kurulumu `live` modunda Galata Kulesi ve 4 km yarıçap kullanır. Env metni ile sayısal
+  tool/API girdisi ayrımı açıklandı. Canlı API için yeni doğrulama yoktur.
+
+[1.0.6 geçiş adımları](docs/releases/v1.0.6.md).
+
+## 1.0.5 — 2026-09-25
 
 Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
 
@@ -16,7 +28,7 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
   null değerler ve upstream ek alanlar korunur.
 - Özel güvenlik bildirim politikası ve güvenlik güncellemelerine yönelik Dependabot yapılandırması eklendi.
 
-Bu değişiklikler henüz npm'de veya MCP Registry'de yayımlanmadı. Canlı API davranışı için yeni doğrulama yoktur.
+npm ve GitHub Release yayımlandı; MCP Registry yayını ayrı bir aşamadır. Canlı API davranışı için yeni doğrulama yoktur.
 
 ## 1.0.4 — 2026-09-24
 

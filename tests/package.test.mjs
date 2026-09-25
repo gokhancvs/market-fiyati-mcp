@@ -66,6 +66,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
       'docs/releases/v1.0.2.md',
       'docs/releases/v1.0.4.md',
       'docs/releases/v1.0.5.md',
+      'docs/releases/v1.0.6.md',
       'examples/mcp-config.json',
       'package.json',
       'SECURITY.md',
@@ -86,7 +87,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     const example = JSON.parse(readFileSync(join(cwd, 'examples/mcp-config.json'), 'utf8'));
     assert.equal(example.mcpServers['market-fiyati'].command, 'npx');
     assert.deepEqual(example.mcpServers['market-fiyati'].args, ['-y', `${manifest.name}@${manifest.version}`]);
-    assert.equal(example.mcpServers['market-fiyati'].env.MARKET_FIYATI_MODE, 'offline');
+    assert.equal(example.mcpServers['market-fiyati'].env.MARKET_FIYATI_MODE, 'live');
     const registry = JSON.parse(readFileSync(join(root, 'server.json'), 'utf8'));
     assert.equal(registry.name, manifest.mcpName);
     assert.equal(registry.version, manifest.version);
