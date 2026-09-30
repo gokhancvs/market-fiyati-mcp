@@ -4,6 +4,20 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 1.0.8 — 2026-09-30
+
+- **Varsayılan mod artık `live`:** Mod belirtilmeden çalışan kurulumlar veri sorgularında HTTP kullanır.
+  Geliştirme ve testte ağsız kalmak için `MARKET_FIYATI_MODE=offline` açıkça verilmelidir.
+- **Eski ayarların geçişi:** İstemci veya Registry kurulumunun kaydettiği açık `offline` korunur.
+  Normal kullanım için ayarı `live` yapın veya bu değişikliği içeren sürüme yükselttikten sonra kaldırın;
+  sunucuyu yeniden başlatın. Yayımlanmış 1.0.7 bu değişikliği içermez.
+- CLI, Registry metadata, MCP rehberi ve kurulum belgeleri normal kullanımla geliştirme kabulünü ayırır.
+  Deneysel erişim varsayılanı değişmez; şube keşfi gerektiren kurulumlarda ayrıca açılır.
+- Varsayılan live akışı fake fetch ile; bağımsız tüketici kurulumu varsayılan live başlangıcı ve açık
+  offline engellemesiyle, gerçek ağ engeli altında sınanır. Yeni canlı API doğrulaması yoktur.
+
+[1.0.8 sürüm notları](docs/releases/v1.0.8.md).
+
 ## 1.0.7 — 2026-09-25
 
 - Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.

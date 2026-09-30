@@ -68,6 +68,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
       'docs/releases/v1.0.5.md',
       'docs/releases/v1.0.6.md',
       'docs/releases/v1.0.7.md',
+      'docs/releases/v1.0.8.md',
       'examples/mcp-config.json',
       'package.json',
       'SECURITY.md',
@@ -94,6 +95,10 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     assert.equal(registry.version, manifest.version);
     assert.equal(registry.packages[0].identifier, manifest.name);
     assert.equal(registry.packages[0].version, manifest.version);
+    const mode = registry.packages[0].environmentVariables.find((variable) => variable.name === 'MARKET_FIYATI_MODE');
+    assert.equal(mode.default, 'live');
+    assert.equal(mode.isRequired, false);
+    assert.deepEqual(mode.choices, ['offline', 'live']);
     assert.notEqual(manifest.private, true, 'Package must permit publication');
     const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
     assert.equal(lock.version, manifest.version);
@@ -103,6 +108,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     const entry = join(cwd, manifest.bin['market-fiyati-mcp']);
     const help = execFileSync(process.execPath, ['--import', guard, entry, '--help'], { cwd, encoding: 'utf8' });
     assert.match(help, /Market Fiyati MCP \(stdio\)/);
+    assert.match(help, /default live/);
     await client.connect(
       new StdioClientTransport({
         command: process.execPath,

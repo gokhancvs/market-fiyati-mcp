@@ -26,7 +26,7 @@ export class OfflineTransport implements Transport {
   async request(_endpoint: EndpointId, _payload?: Payload, _signal?: AbortSignal): Promise<TransportResult> {
     throw new AppError(
       'NETWORK_DISABLED',
-      'Live requests are disabled. Enable live only when the user starts live testing.'
+      'MARKET_FIYATI_MODE=offline blocks remote requests. For normal use, set it to live or remove it, then restart the server.'
     );
   }
 }
@@ -98,7 +98,7 @@ export class LiveTransport implements Transport {
     private readonly config: Config,
     private readonly fetcher: typeof fetch = globalThis.fetch
   ) {
-    if (config.mode !== 'live') throw new AppError('CONFIG_ERROR', 'LiveTransport requires explicit live mode.');
+    if (config.mode !== 'live') throw new AppError('CONFIG_ERROR', 'LiveTransport requires live mode.');
   }
   async request(
     endpoint: EndpointId,
@@ -113,7 +113,7 @@ export class LiveTransport implements Transport {
     if (e.experimental && !this.config.enableExperimental)
       throw new AppError(
         'EXPERIMENTAL_DISABLED',
-        'Enable experimental endpoints explicitly before live testing this endpoint.',
+        'Enable experimental endpoints explicitly before using this endpoint.',
         { endpoint }
       );
     const run = async () => {

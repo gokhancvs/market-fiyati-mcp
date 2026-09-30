@@ -3,17 +3,21 @@
 **Başlayın:** Aşağıdaki yapılandırmayı MCP istemcinize ekleyin. Yaklaşık 2 dakika.
 
 Türkiye’de ürün, şube fiyatı ve sepet karşılaştırması için resmî olmayan MCP sunucusu.
-**Node.js 22+ gerekir.** Aşağıdaki kurulum gerçek fiyat sorguları için `live` modunu kullanır.
-Başlamadan [kullanım izinlerini](#amaç-ve-kullanım-izinleri) kontrol edin.
+**Node.js 22+ gerekir.** Normal kullanım gerçek fiyat sorguları için `live` modudur;
+`offline` geliştirme ve test içindir. Aşağıdaki örnek, önceki sürümlerde de çalışması için modu açıkça seçer.
 
 ## 1. İstemciye ekleyin
+
+**Şube ID’lerini bilmiyorsanız:** Yakın şube keşfi için ilk kurulumda aşağıdaki `env` alanına
+`"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` ekleyin. Bu ayar deneysel endpoint’leri açar;
+varsayılanı `false` olarak kalır. Gerçek şube ID’leriniz varsa gerekli değildir.
 
 ```json
 {
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.7"],
+      "args": ["-y", "market-fiyati-mcp@1.0.8"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
@@ -51,12 +55,17 @@ Sunucuyu yeniden başlatıp AI’a şunu yazın:
 **Beklenen:** `data.mode=live`, `data.liveRequestsEnabled=true`, `data.locationDefaults.configured=true`.
 Status yalnız ayarları kontrol eder; gerçek fiyat için sonraki adımdaki aramayı yapın.
 
-## 3. Gerçek fiyatlarla canlı test
+## 3. Fiyat sorgulayın
 
-[Canlı test rehberini açın](docs/live-testing.md). Yaklaşık 5 dakika; istemci ve sağlayıcı erişimi hazırsa.
+AI’a istediğiniz ürünü ve marketleri söyleyin. Konum ayarı hazırsa tekrar vermeniz gerekmez.
+Şubeler bilinmiyorsa yukarıda açtığınız deneysel erişimle `market_find_nearby_depots` bir kez çağrılır;
+ürün aramasında dönen şube ID’leri kullanılır. [Adım adım sorgulama](docs/live-testing.md).
+Offline test veya ayrıca “canlı testi başlat” onayı gerekmez. Açık offline ve deneysel ayarları operatör yönetir.
 
-Rehber: **izinleri kontrol et → live ayarla → şubeleri bul → tek ürün ara.**
-AI live veya deneysel erişimi kendiliğinden açmaz.
+**Eski kurulumda `NETWORK_DISABLED` alıyorsanız:** İstemcideki `MARKET_FIYATI_MODE=offline`
+ayarını `live` yapıp sunucuyu yeniden başlatın. 1.0.8’den itibaren mod belirtilmediğinde `live`
+seçilir; 1.0.7 ve öncesinde değişkeni kaldırmak yeterli değildir. Offline kalması gereken geliştirme
+ortamlarında ayarı açıkça `offline` tutun.
 
 ## Konum nasıl çalışır?
 
@@ -98,22 +107,23 @@ Depoyu klonlayıp çalıştırın:
 
 ```sh
 npm ci --ignore-scripts
-npm run check
+MARKET_FIYATI_MODE=offline npm run check
 ```
 
 `check` derlemeyi de yapar. İstemcide `command: "node"`, `args` içinde `dist/src/index.js` dosyasının
-mutlak yolunu kullanın. Gerçek fiyat sorguları için yukarıdaki `live` env ayarını ekleyin;
-geliştirme testleri ağ engelli kalır. Gerekirse `node` yolunu da mutlak yazın.
+mutlak yolunu kullanın. Geliştirirken istemci env ayarını açıkça `MARKET_FIYATI_MODE=offline` yapın;
+testlerin ağ engeli de korunur. Gerekirse `node` yolunu da mutlak yazın.
 RTK kullanıyorsanız komutları onunla çalıştırın.
 
-Sunucu stdio JSON-RPC kullanır; HTTP portu açmaz. `npm start` MCP mesajlarını bekler.
+Sunucu stdio JSON-RPC kullanır; HTTP portu açmaz. Geliştirmede `MARKET_FIYATI_MODE=offline npm start`
+MCP mesajlarını bekler. Mod ayarı olmadan başlangıç `live` seçer; yalnız başlatmak HTTP isteği göndermez.
 stdout yalnız MCP trafiğidir. npm kurulumu ağ kullanabilir; uygulama testleri API’ye bağlanmaz.
 
 ## Ayrıntı gerektiğinde
 
 | İhtiyaç                         | Belge                                                                            |
 | ------------------------------- | -------------------------------------------------------------------------------- |
-| Gerçek fiyatlarla test          | [Canlı test](docs/live-testing.md)                                               |
+| Gerçek fiyatları sorgula        | [Sorgulama rehberi](docs/live-testing.md)                                        |
 | Tool, filtre ve yanıt kuralları | [API](docs/api.md)                                                               |
 | Ayarlar ve kod yapısı           | [Mimari](docs/architecture.md)                                                   |
 | Testler ve sınırları            | [Doğrulama](docs/verification.md) · [Sentetik kabul](docs/offline-acceptance.md) |
@@ -125,10 +135,9 @@ Bu proje, ticari kazanç veya başka bir çıkar gözetilmeden geliştirilmiş b
 Market Fiyatı'nın, TÜBİTAK'ın veya market zincirlerinin resmî ürünü değildir. Herhangi bir onay,
 sponsorluk veya ortaklık iddiası yoktur.
 
-Live kullanıma geçmeden önce [Market Fiyatı kullanım koşullarını](https://marketfiyati.org.tr/kullanim-kosullari)
-okuyun ve gerekli yazılı izinleri sağlayıcıyla netleştirin. O zamana kadar `offline` modunu kullanın.
-Ticari amaç gütmemek, veri saklamamak ya da endpoint'e teknik olarak erişebilmek kullanım izni anlamına
-gelmez. Bu depo, üçüncü taraf API'lere erişim izni vermez.
+[Market Fiyatı kullanım koşullarını](https://marketfiyati.org.tr/kullanim-kosullari) değerlendirmek ve
+kullanımına uygun izinleri sağlamak operatörün sorumluluğundadır. Bu depo üçüncü taraf servislerine
+erişim izni vermez; `live` ayarı yalnız teknik erişimi belirler.
 
 Güvenlik açığı bildirmek için [özel bildirim yönergesini](SECURITY.md) kullanın.
 

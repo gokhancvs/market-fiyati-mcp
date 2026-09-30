@@ -14,11 +14,12 @@ const payload = {
   distance: 1,
   depots: ['bim-test']
 };
-test('configuration supports explicit live access and defaults offline', () => {
-  assert.equal(readConfig({}).mode, 'offline');
-  assert.throws(() => readConfig({ MARKET_FIYATI_MODE: 'liv' }), {
-    code: 'CONFIG_ERROR'
-  });
+test('configuration defaults live and preserves explicit offline and invalid-mode checks', () => {
+  assert.equal(readConfig({}).mode, 'live');
+  assert.equal(readConfig({}).enableExperimental, false);
+  assert.equal(readConfig({ MARKET_FIYATI_MODE: 'offline' }).mode, 'offline');
+  for (const mode of ['', ' ', 'liv'])
+    assert.throws(() => readConfig({ MARKET_FIYATI_MODE: mode }), { code: 'CONFIG_ERROR' });
   assert.equal(readConfig({ MARKET_FIYATI_MODE: 'live' }).mode, 'live');
   assert.throws(() => readConfig({ MARKET_FIYATI_TIMEOUT_MS: 'no' }), {
     code: 'CONFIG_ERROR'
@@ -308,8 +309,10 @@ test('inherited endpoint keys are rejected before fetching or counting attempts'
   assert.deepEqual(counts, { httpAttempts: 0, retries: 0 });
 });
 
-test('transport factory creates offline without network and live metadata describes only the request', async () => {
-  const offline = await createTransport(readConfig({}));
+test('transport factory defaults live and explicit offline blocks requests', async () => {
+  assert.ok((await createTransport(readConfig({}))) instanceof LiveTransport);
+  const offline = await createTransport(readConfig({ MARKET_FIYATI_MODE: 'offline' }));
+  assert.ok(offline instanceof OfflineTransport);
   await assert.rejects(offline.request('categories'), {
     code: 'NETWORK_DISABLED'
   });

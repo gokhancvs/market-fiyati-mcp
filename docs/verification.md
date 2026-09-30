@@ -19,7 +19,8 @@ Yaklaşık 1–2 dakika. **Başarılı:** Biçim, lint, tip kontrolü, derleme v
 | Gerçek fiyatlarla dene          | Kullanıcı başlattığında [canlı test](live-testing.md) |
 
 Tüketici testi ayrı cache ve geçici dizinde yalnız üretim bağımlılıklarını kurar; gerçek npm
-binary’sini sınar. Kurulum npm’e bağlanabilir, MCP süreci offline kalır.
+binary’sini sınar. Kurulum npm’e bağlanabilir; MCP süreçleri varsayılan live ve açık offline ayarıyla,
+ikisinde de gerçek ağ engeli altında çalıştırılır.
 
 ## Neyi doğruluyoruz?
 
@@ -70,7 +71,10 @@ sağlayıcılarını kapsadığı iddia edilmez.
 
 Paket arşivi açık dosya listesine göre sınanır; checkout bağımlılıklarıyla CLI ve offline MCP açılır.
 Bağımsız tüketici testi boşluk içeren dizin, ayrı cache ve `--omit=dev --ignore-scripts` kullanır;
-initialize, tool/resource/prompt keşfi, sürüm, status ve sıfır HTTP denemeli `NETWORK_DISABLED` doğrulanır.
+Mod belirtilmeden live başlangıç, initialize, tool/resource/prompt keşfi, sürüm ve status doğrulanır;
+açık offline süreçte ayrıca sıfır HTTP denemeli `NETWORK_DISABLED` sınanır. İki süreçte de ağ guard’ı
+yüklüdür. Fake fetch kullanan MCP testi, varsayılan live akışında tek veri çağrısının bir HTTP denemesi
+yaptığını ve deneysel erişimin ayrı kaldığını doğrular; canlı API başarısı iddia edilmez.
 Yayın işi aynı arşivi kurar. Registry testleri yeni/tarihsel latest, geçici hatalar, Retry-After,
 gövde okuma ve toplam deadline’ı sınar; yeniden publish yapılmaz.
 

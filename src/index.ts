@@ -10,7 +10,7 @@ import { bindShutdown } from './lifecycle.js';
 async function main(): Promise<void> {
   if (process.argv.includes('--help')) {
     process.stdout.write(
-      'Market Fiyati MCP (stdio)\nConfigure MARKET_FIYATI_MODE=offline|live (default offline).\nSee README.md.\n'
+      'Market Fiyati MCP (stdio)\nConfigure MARKET_FIYATI_MODE=offline|live (default live).\nUse offline for development and tests.\nSee README.md.\n'
     );
     return;
   }

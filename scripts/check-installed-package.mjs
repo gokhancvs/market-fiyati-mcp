@@ -20,38 +20,47 @@ for (const path of [modules, packageRoot, ...Object.keys(manifest.dependencies).
     'Runtime dependencies must belong to the consumer install'
   );
 }
-const client = new Client({ name: 'installed-package-test', version: '1' });
 const guard = fileURLToPath(new URL('../tests/no-network.mjs', import.meta.url));
-const transport = new StdioClientTransport({
-  command: join(modules, '.bin', `market-fiyati-mcp${process.platform === 'win32' ? '.cmd' : ''}`),
-  args: [],
-  cwd,
-  env: {
-    MARKET_FIYATI_MODE: 'offline',
-    MARKET_FIYATI_ENABLE_EXPERIMENTAL: 'false',
-    NODE_OPTIONS: `--import=${pathToFileURL(guard).href}`
-  },
-  stderr: 'pipe'
-});
-let stderr = '';
-transport.stderr.on('data', (chunk) => {
-  stderr += chunk;
-});
-try {
-  await client.connect(transport);
-  assert.equal(client.getServerVersion().version, manifest.version);
-  assert.equal((await client.listTools()).tools.length, 15);
-  assert.equal((await client.listResources()).resources.length, 3);
-  assert.equal((await client.listPrompts()).prompts.length, 3);
-  const status = await client.callTool({ name: 'market_status', arguments: {} });
-  assert.notEqual(status.isError, true);
-  assert.equal(status.structuredContent.data.mode, 'offline');
-  const blocked = await client.callTool({ name: 'market_get_categories', arguments: {} });
-  assert.equal(blocked.isError, true);
-  assert.equal(blocked.structuredContent.error.code, 'NETWORK_DISABLED');
-  assert.equal(blocked.structuredContent.meta.requestMetrics.httpAttempts, 0);
-} finally {
-  await client.close();
+for (const mode of [undefined, 'offline']) {
+  const client = new Client({ name: 'installed-package-test', version: '1' });
+  const transport = new StdioClientTransport({
+    command: join(modules, '.bin', `market-fiyati-mcp${process.platform === 'win32' ? '.cmd' : ''}`),
+    args: [],
+    cwd,
+    env: {
+      ...(mode === undefined ? {} : { MARKET_FIYATI_MODE: mode }),
+      MARKET_FIYATI_ENABLE_EXPERIMENTAL: 'false',
+      NODE_OPTIONS: `--import=${pathToFileURL(guard).href}`
+    },
+    stderr: 'pipe'
+  });
+  let stderr = '';
+  transport.stderr.on('data', (chunk) => {
+    stderr += chunk;
+  });
+  try {
+    await client.connect(transport);
+    assert.equal(client.getServerVersion().version, manifest.version);
+    assert.equal((await client.listTools()).tools.length, 15);
+    assert.equal((await client.listResources()).resources.length, 3);
+    assert.equal((await client.listPrompts()).prompts.length, 3);
+    const status = await client.callTool({ name: 'market_status', arguments: {} });
+    assert.notEqual(status.isError, true);
+    assert.equal(status.structuredContent.data.mode, mode ?? 'live');
+    assert.equal(status.structuredContent.data.liveRequestsEnabled, mode === undefined);
+    assert.equal(status.structuredContent.data.experimentalEndpointsEnabled, false);
+    assert.equal(status.structuredContent.data.locationDefaults.configured, false);
+    if (mode === 'offline') {
+      const blocked = await client.callTool({ name: 'market_get_categories', arguments: {} });
+      assert.equal(blocked.isError, true);
+      assert.equal(blocked.structuredContent.error.code, 'NETWORK_DISABLED');
+      assert.equal(blocked.structuredContent.meta.requestMetrics.httpAttempts, 0);
+    }
+  } finally {
+    await client.close();
+  }
+  assert.equal(stderr, '', 'Installed server must not emit unexpected diagnostics');
 }
-assert.equal(stderr, '', 'Installed server must not emit unexpected diagnostics');
-console.log(`Independent npm binary verified offline: ${manifest.name}@${manifest.version}`);
+console.log(
+  `Independent npm binary verified: default live and explicit offline, network blocked: ${manifest.name}@${manifest.version}`
+);

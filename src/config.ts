@@ -12,7 +12,7 @@ export type Config = {
   defaultLocation?: Readonly<{ latitude: number; longitude: number; distance: number }>;
 };
 export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const mode = env.MARKET_FIYATI_MODE ?? 'offline';
+  const mode = env.MARKET_FIYATI_MODE ?? 'live';
   if (!['offline', 'live'].includes(mode))
     throw new AppError('CONFIG_ERROR', 'MARKET_FIYATI_MODE must be offline or live.');
   const experimental = env.MARKET_FIYATI_ENABLE_EXPERIMENTAL ?? 'false';

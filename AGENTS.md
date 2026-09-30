@@ -7,6 +7,8 @@ semantics, read `docs/api.md` and `docs/architecture.md`.
 
 ## Local development records
 
+Write all plans in English, using plain language and concise, actionable steps.
+
 Write implementation plans and design notes under root `plans/`; write review
 and test-session reports under root `reports/`. Both are local, Git-ignored
 archives and may be absent in a fresh clone. Create them when needed. When
@@ -22,7 +24,8 @@ the project directory. Never force-add private archives to Git.
 ## Network rule
 
 The user requires **no live API requests until testing together with the user**.
-Keep `MARKET_FIYATI_MODE=offline`. A later explicit instruction to start live
+Keep `MARKET_FIYATI_MODE=offline` for development commands and client sessions;
+this does not define the installed package default. A later explicit instruction to start live
 testing supersedes this temporary restriction. Follow `docs/live-testing.md`
 at that point. Live and experimental settings are operator choices, not tool inputs.
 
