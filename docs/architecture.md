@@ -50,9 +50,10 @@ Filtreleme ve sıralamayı API yapar; adayların ne anlama geldiğini çağıran
 API'nin indirim işaretini değiştirmez. Market listesi endpoint'inin HTTP 500 hatası diğer endpoint'leri
 etkilemez.
 
-Sunucunun başlaması ve tool listesinin alınması ağ isteği gerektirmez. Varsayılan mod offline'dır. Live ve
-deneysel erişimi operatör açar; bu ayarların açık olması live doğrulamanın başarılı olduğu anlamına gelmez.
-Testler gerçek ağ erişimi gerektirmez.
+Sunucunun başlaması, keşif, resource/prompt okuma ve status ağ isteği göndermez. Varsayılan mod `live`'dır;
+HTTP yalnız veri sorgusuyla başlar. Geliştirme ve test için operatör açıkça `offline` seçer. Deneysel erişim
+ayrıca açılır; bu ayarların açık olması live doğrulamanın başarılı olduğu anlamına gelmez.
+Testlerde gerçek ağ engeli korunur.
 
 ## Yapılandırma
 
@@ -61,7 +62,7 @@ Bu ayarlar tool girdisi değildir. Ortam değişkenlerini `config.ts` doğrular.
 
 | Değişken                            | Varsayılan | Etkisi                                                                            |
 | ----------------------------------- | ---------- | --------------------------------------------------------------------------------- |
-| `MARKET_FIYATI_MODE`                | `offline`  | `offline` veya `live`                                                             |
+| `MARKET_FIYATI_MODE`                | `live`     | Normal sorgular için `live`; geliştirme/test için açık `offline`                  |
 | `MARKET_FIYATI_ENABLE_EXPERIMENTAL` | `false`    | Deneysel endpoint'lere erişim                                                     |
 | `MARKET_FIYATI_TIMEOUT_MS`          | `15000`    | Tek bir HTTP denemesi ve yanıt gövdesinin okunması için süre sınırı               |
 | `MARKET_FIYATI_MIN_INTERVAL_MS`     | `1000`     | Aynı süreç içinde art arda gönderilen istekler arasındaki en kısa süre            |

@@ -2,8 +2,10 @@ import { WARNING_CODES } from './observations.js';
 
 export const GUIDE = `# Market Fiyatı MCP usage
 
-1. Read market_status. Offline blocks all remote requests. Only the operator can
-   configure live mode; startup, discovery and resource reads never make requests.
+1. Read market_status. Live mode is the default. Use data tools for the user's request;
+   respect explicit offline and experimental settings. Offline is for development
+   and tests and blocks all remote requests. Only the operator changes these settings.
+   Startup, discovery, status and resource/prompt reads never make requests.
 2. Location must be supplied by call arguments or operator-configured environment:
    MARKET_FIYATI_LATITUDE, MARKET_FIYATI_LONGITUDE and MARKET_FIYATI_DISTANCE (km).
    The env trio is all-or-none. Read market_status.data.locationDefaults.configured:

@@ -553,6 +553,8 @@ test('MCP guide publishes measured counts, evidence limits and all stable warnin
       for (const code of Object.keys(WARNING_CODES)) assert.ok(guide.includes(code), code);
       assert.match(guide, /unknown.*not out of stock/i);
       assert.match(guide, /not.*global.*quota/i);
+      assert.match(guide, /live mode is the default/i);
+      assert.match(guide.replace(/\s+/g, ' '), /respect explicit offline and experimental settings/i);
     }
   );
 });
@@ -860,7 +862,7 @@ test('MCP basket completes when a pending lookup is released within the client d
 });
 
 test('MCP discovers strict tools, sources and prompts and reports offline errors', async () => {
-  const server = createServer(new MarketService(new OfflineTransport(), readConfig({})));
+  const server = createServer(new MarketService(new OfflineTransport(), readConfig({ MARKET_FIYATI_MODE: 'offline' })));
   const client = new Client({ name: 'offline-test', version: '1' });
   const [ct, st] = InMemoryTransport.createLinkedPair();
   try {
@@ -876,6 +878,7 @@ test('MCP discovers strict tools, sources and prompts and reports offline errors
       arguments: {}
     })) as CallToolResult;
     assert.equal((status.structuredContent?.data as { mode: string }).mode, 'offline');
+    assert.equal((status.structuredContent?.data as { liveRequestsEnabled: boolean }).liveRequestsEnabled, false);
     const runtime = await client.readResource({ uri: 'market://status' });
     const runtimeData = JSON.parse((runtime.contents[0] as { text: string }).text) as {
       api: {
@@ -903,6 +906,10 @@ test('MCP discovers strict tools, sources and prompts and reports offline errors
     })) as CallToolResult;
     assert.equal(blocked.isError, true);
     assert.match(JSON.stringify(blocked), /NETWORK_DISABLED/);
+    assert.equal(
+      (blocked.structuredContent?.meta as { requestMetrics: { httpAttempts: number } }).requestMetrics.httpAttempts,
+      0
+    );
     const invalid = (await client.callTool({
       name: 'market_search_products',
       arguments: { keywords: 'süt' }
@@ -926,8 +933,9 @@ test('MCP discovers strict tools, sources and prompts and reports offline errors
     await server.close();
   }
 });
-test('SDK tool call validates a synthetic HTTP response through the live adapter without networking', async () => {
-  const config = readConfig({ MARKET_FIYATI_MODE: 'live' });
+test('default-live MCP stays local until a data call and preserves experimental gating', async () => {
+  const config = readConfig({});
+  assert.equal(config.mode, 'live');
   let calls = 0;
   const transport = new LiveTransport(config, async (url, init) => {
     calls++;
@@ -951,6 +959,21 @@ test('SDK tool call validates a synthetic HTTP response through the live adapter
     await server.connect(st);
     await client.connect(ct);
     await client.listTools();
+    await client.listResources();
+    await client.listPrompts();
+    for (const uri of ['market://guide', 'market://status', 'market://endpoints']) await client.readResource({ uri });
+    await client.getPrompt({ name: 'compare_shopping_list', arguments: { items: 'süt' } });
+    const status = (await client.callTool({ name: 'market_status', arguments: {} })) as CallToolResult;
+    assert.equal((status.structuredContent?.data as { mode: string }).mode, 'live');
+    assert.equal((status.structuredContent?.data as { liveRequestsEnabled: boolean }).liveRequestsEnabled, true);
+    assert.equal(calls, 0);
+    const experimental = (await client.callTool({
+      name: 'market_find_nearby_depots',
+      arguments: { latitude: 41, longitude: 29, distance: 1 }
+    })) as CallToolResult;
+    assert.equal(experimental.isError, true);
+    assert.equal((experimental.structuredContent?.error as { code: string }).code, 'EXPERIMENTAL_DISABLED');
+    assert.equal(calls, 0);
     const result = (await client.callTool({
       name: 'market_get_categories',
       arguments: { query: 'süt' }
