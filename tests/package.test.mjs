@@ -58,17 +58,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
       'docs/api.md',
       'docs/architecture.md',
       'docs/verification.md',
-      'docs/offline-acceptance.md',
       'docs/live-testing.md',
-      'docs/releasing.md',
-      'docs/releases/v1.0.0.md',
-      'docs/releases/v1.0.1.md',
-      'docs/releases/v1.0.2.md',
-      'docs/releases/v1.0.4.md',
-      'docs/releases/v1.0.5.md',
-      'docs/releases/v1.0.6.md',
-      'docs/releases/v1.0.7.md',
-      'docs/releases/v1.0.8.md',
       'examples/mcp-config.json',
       'package.json',
       'SECURITY.md',
@@ -90,6 +80,7 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     assert.equal(example.mcpServers['market-fiyati'].command, 'npx');
     assert.deepEqual(example.mcpServers['market-fiyati'].args, ['-y', `${manifest.name}@${manifest.version}`]);
     assert.equal(example.mcpServers['market-fiyati'].env.MARKET_FIYATI_MODE, 'live');
+    assert.equal(example.mcpServers['market-fiyati'].env.MARKET_FIYATI_ENABLE_EXPERIMENTAL, 'true');
     const registry = JSON.parse(readFileSync(join(root, 'server.json'), 'utf8'));
     assert.equal(registry.name, manifest.mcpName);
     assert.equal(registry.version, manifest.version);
@@ -99,6 +90,12 @@ test('npm tarball excludes development files and runs the offline MCP outside th
     assert.equal(mode.default, 'live');
     assert.equal(mode.isRequired, false);
     assert.deepEqual(mode.choices, ['offline', 'live']);
+    const experimental = registry.packages[0].environmentVariables.find(
+      (variable) => variable.name === 'MARKET_FIYATI_ENABLE_EXPERIMENTAL'
+    );
+    assert.equal(experimental.default, 'false');
+    assert.equal(experimental.isRequired, false);
+    assert.deepEqual(experimental.choices, ['true', 'false']);
     assert.notEqual(manifest.private, true, 'Package must permit publication');
     const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
     assert.equal(lock.version, manifest.version);

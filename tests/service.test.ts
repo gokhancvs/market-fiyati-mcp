@@ -47,7 +47,9 @@ class FixtureTransport implements Transport {
     };
   }
 }
-test('unexpected service error hides private text without promising local diagnostics', async () => {
+test('unexpected service error hides private text from the tool result', async (t) => {
+  // The operator-only stderr line is covered in diagnostics.test.ts.
+  t.mock.method(process.stderr, 'write', () => true);
   const transport: Transport = {
     mode: 'live',
     async request() {

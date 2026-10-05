@@ -1,7 +1,7 @@
 import { getEventListeners } from 'node:events';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { OfflineTransport, LiveTransport, createTransport } from '../src/transport.js';
+import { OfflineTransport, LiveTransport, MAX_COOLDOWN_MS, createTransport } from '../src/transport.js';
 import { readConfig } from '../src/config.js';
 import type { EndpointId } from '../src/contracts.js';
 
@@ -69,8 +69,11 @@ test('experimental gate prevents fetch; map query is correctly encoded', async (
     assert.equal(u.searchParams.get('words'), 'İstanbul & süt');
     return Response.json([]);
   };
-  await assert.rejects(live(fetcher).request('geocode', { words: 'İstanbul & süt' }), {
-    code: 'EXPERIMENTAL_DISABLED'
+  await assert.rejects(live(fetcher).request('geocode', { words: 'İstanbul & süt' }), (error: Error) => {
+    assert.equal((error as Error & { code: string }).code, 'EXPERIMENTAL_DISABLED');
+    assert.match(error.message, /MARKET_FIYATI_ENABLE_EXPERIMENTAL=true/);
+    assert.match(error.message, /restart/);
+    return true;
   });
   assert.equal(calls, 0);
   await live(fetcher, { MARKET_FIYATI_ENABLE_EXPERIMENTAL: 'true' }).request('geocode', {
@@ -188,6 +191,30 @@ test('exhausted retry budget retains per-origin cooldown until its deadline', as
   now += 1500;
   await transport.request('categories');
   assert.equal(calls, 3);
+});
+
+test('very long Retry-After keeps the upstream value but caps the cooldown', async (t) => {
+  let now = Date.parse('2026-09-22T00:00:00Z');
+  t.mock.method(Date, 'now', () => now);
+  let calls = 0;
+  const transport = live(
+    async () =>
+      ++calls === 1
+        ? new Response('', { status: 429, headers: { 'retry-after': '86400' } })
+        : Response.json({ ok: true }),
+    { MARKET_FIYATI_RETRIES: '0' }
+  );
+  await assert.rejects(transport.request('categories'), (error) => {
+    assert.equal((error as { details: { retryAfterMs: number } }).details.retryAfterMs, 86_400_000);
+    return true;
+  });
+  await assert.rejects(transport.request('categories'), (error) => {
+    assert.equal((error as { details: { retryAfterMs: number } }).details.retryAfterMs, MAX_COOLDOWN_MS);
+    return true;
+  });
+  now += MAX_COOLDOWN_MS;
+  await transport.request('categories');
+  assert.equal(calls, 2);
 });
 
 test('invalid or elapsed Retry-After does not freeze future requests', async () => {

@@ -6,12 +6,12 @@
     "url": "https://github.com/gokhancvs/market-fiyati-mcp",
     "source": "github"
   },
-  "version": "1.0.8",
+  "version": "1.0.9",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "market-fiyati-mcp",
-      "version": "1.0.8",
+      "version": "1.0.9",
       "transport": {
         "type": "stdio"
       },
@@ -22,6 +22,15 @@
           "format": "string",
           "default": "live",
           "choices": ["offline", "live"],
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "MARKET_FIYATI_ENABLE_EXPERIMENTAL",
+          "description": "Enables experimental endpoints, including nearby branch discovery. Set true on first setup when branch IDs are unknown; restart after changing it.",
+          "format": "string",
+          "default": "false",
+          "choices": ["true", "false"],
           "isRequired": false,
           "isSecret": false
         },

@@ -498,12 +498,13 @@ işleme sınırları tool girdisiyle veya ortam değişkeniyle yükseltilemez.
 
 ### Hata çıktısı
 
-| Hata                      | Davranış                                                                                                        |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `RESOURCE_LIMIT_EXCEEDED` | Girdi, uyarı veya offer bütçesi aşıldı.                                                                         |
-| `OUTPUT_TOO_LARGE`        | Çıktı bütçesi aşıldı. Çok büyük veya geçersiz hata tanılamaları da bu sabit zarfa dönüştürülür.                 |
-| Kaynak sınırı hataları    | Ayrıntıda `resource` ve `limit` bulunur; `isError=true`, `data:null`, `warnings` ve `warningCodes` boştur.      |
-| `INVALID_RESPONSE`        | Yalnızca güvenilir endpoint bilgisini içerir. Upstream'deki path, anahtar veya değerler tanılamaya kopyalanmaz. |
+| Hata                      | Davranış                                                                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RESOURCE_LIMIT_EXCEEDED` | Girdi, uyarı veya offer bütçesi aşıldı.                                                                                                                          |
+| `OUTPUT_TOO_LARGE`        | Çıktı bütçesi aşıldı. Çok büyük veya geçersiz hata tanılamaları da bu sabit zarfa dönüştürülür.                                                                  |
+| Kaynak sınırı hataları    | Ayrıntıda `resource` ve `limit` bulunur; `isError=true`, `data:null`, `warnings` ve `warningCodes` boştur.                                                       |
+| `INVALID_RESPONSE`        | Yalnızca güvenilir endpoint bilgisini içerir. Upstream'deki path, anahtar veya değerler tanılamaya kopyalanmaz.                                                  |
+| `INTERNAL_ERROR`          | Tool yanıtı genel mesaj içerir. Hata ve stack yalnız stderr'e tek JSON satırı olarak yazılır (en çok 4.000 karakter); paylaşmadan önce özel verileri temizleyin. |
 
 Kısmi fiyatlar veya kırpılmış kaynak alanları başarılı sonuç gibi sunulmaz. Kabul edilmiş ek alanlar ve
 uyarılar korunur. Bütçe dolunca sepetteki bir sonraki sorgu başlamaz; önceki denemeler hata metadata'sında
@@ -524,6 +525,8 @@ taşıdığı ve escape karakterleri eklendiği için, küçük protokol alanlar
   sunucuya (origin) giden istekleri bekletir. Bekleme 5 saniyeden uzunsa erken deneme yapılmaz ve hata iletilir.
   Kuyruktaki bir çağrı bu süre dolmadan gönderilmez; kalan süre `retryAfterMs` olarak döner. API ve harita
   sunucularının beklemeleri birbirinden ayrıdır. Süre dolunca normal istekler yeniden gönderilebilir.
+  İlk hata upstream süresini olduğu gibi bildirir; yerel bekleme ise en fazla 60 saniye tutulur. Böylece çok
+  uzun bir `Retry-After`, origin'i MCP sunucusu yeniden başlatılana kadar kilitli bırakmaz.
 - Kuyrukta bekleyen bir istek iptal edilirse FIFO kaydı ve dinleyicisi hemen kaldırılır, kapasite boşalır ve
   sonradan fetch başlatılmaz. Aktif bir isteğin iptalinde de istekler arası süre ile retry ve sepet
   bütçeleri korunur.

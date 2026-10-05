@@ -20,3 +20,23 @@ export function publicError(error: unknown): Record<string, unknown> {
     message: 'Unexpected internal error.'
   };
 }
+
+export const MAX_DIAGNOSTIC_CHARS = 4000;
+// Operator diagnostics go to stderr only; tool results keep the generic INTERNAL_ERROR.
+export function reportInternalError(
+  error: unknown,
+  write: (line: string) => void = (line) => process.stderr.write(line)
+): void {
+  if (error instanceof AppError) return;
+  let detail: string;
+  try {
+    detail = error instanceof Error ? (error.stack ?? `${error.name}: ${error.message}`) : String(error);
+  } catch {
+    detail = 'Unprintable thrown value.';
+  }
+  try {
+    write(`${JSON.stringify({ code: 'INTERNAL_ERROR', detail: detail.slice(0, MAX_DIAGNOSTIC_CHARS) })}\n`);
+  } catch {
+    // A broken stderr must not replace the original failure.
+  }
+}

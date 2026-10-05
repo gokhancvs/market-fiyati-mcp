@@ -205,7 +205,9 @@ test('error budget covers large details, deep details and invalid metrics', asyn
   }
 });
 
-test('small application errors retain safe details and unknown errors hide source text', async () => {
+test('small application errors retain safe details and unknown errors hide source text', async (t) => {
+  // Operator diagnostics for the unknown error are covered in diagnostics.test.ts.
+  t.mock.method(process.stderr, 'write', () => true);
   for (const sourceError of [
     new AppError(
       'HTTP_ERROR',

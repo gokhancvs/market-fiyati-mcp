@@ -32,7 +32,7 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 - **Konum:** Çağrı veya doğrulanmış env üçlüsü kullanılır; tam çağrı çifti ve yarıçap önceliklidir.
   Her çağrı yeni nesneyle çözümlenir. Şubeler çağrıya aittir; kullanıcı/tercih/override hafızası ve sonuç cache’i yoktur.
 - **Transport durumu geçicidir.** FIFO kuyruğunda 1 aktif ve en fazla 32 bekleyen iş bulunur. İptal edilen
-  bekleyen iş ve dinleyicisi hemen kaldırılır. Retry-After bilgisi en fazla iki sunucu (API ve harita origin'i) için tutulur.
+  bekleyen iş ve dinleyicisi hemen kaldırılır. Retry-After bilgisi en fazla iki sunucu (API ve harita origin'i) için ve en fazla 60 saniye tutulur.
 - **Kapanış tüm işleri durdurur.** SDK transport katmanı gelen istek kimliklerini yanıt verilene kadar izler.
   Aktif bir tool çağrısının iptalini SDK'ye iletmeden kendisi işler; diğer bildirimleri olduğu gibi iletir. Transport kapanınca
   bu kayıtlar silinir.

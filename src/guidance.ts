@@ -30,7 +30,9 @@ export const GUIDE = `# Market Fiyatı MCP usage
    status and continue independent tools. Returned marketName/marketAdi values
    identify observed chains, not an exhaustive list or proof of active status.
    Keep the same context across related requests. Experimental endpoints require
-   operator enablement.
+   operator enablement. On EXPERIMENTAL_DISABLED, tell the user to set
+   MARKET_FIYATI_ENABLE_EXPERIMENTAL=true in the MCP client config and restart, or to
+   provide depot IDs.
 3. Prefer one API search with known filter values. For example, send keywords=
    "yoğurt", refined_volume_weight=["3 KG"] and order={name:"lowest_price",type:"asc"}
    together in market_search_products. The API filters package size and sorts prices.
