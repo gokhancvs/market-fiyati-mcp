@@ -4,6 +4,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 1.0.9 — 2026-10-05
+
 - **İlk kurulumda şube keşfi:** README ve örnek yapılandırma `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` içerir;
   kod varsayılanı `false` kalır. `server.json` bu ayarı listeler. `EXPERIMENTAL_DISABLED` hatası hangi ayarın
   açılacağını ve yeniden başlatmayı söyler. `live-testing.md` içindeki çelişkili örnek düzeltildi.
@@ -12,6 +14,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Beklenmeyen hata tanılaması:** `INTERNAL_ERROR` yanıtı genel kalır; hata ve stack stderr'e tek, sınırlı bir
   JSON satırı olarak yazılır.
 - **Paket içeriği:** `docs/releasing.md`, `docs/offline-acceptance.md` ve `docs/releases/` artık npm paketine girmez.
+
+[1.0.9 sürüm notları](docs/releases/v1.0.9.md).
 
 ## 1.0.8 — 2026-09-30
 
