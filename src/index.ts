@@ -4,7 +4,7 @@ import { readConfig } from './config.js';
 import { createTransport } from './transport.js';
 import { MarketService } from './service.js';
 import { createServer } from './server.js';
-import { publicError } from './errors.js';
+import { publicError, reportInternalError } from './errors.js';
 import { bindShutdown } from './lifecycle.js';
 
 async function main(): Promise<void> {
@@ -21,6 +21,7 @@ async function main(): Promise<void> {
   await server.connect(new StdioServerTransport());
 }
 main().catch((error) => {
+  reportInternalError(error);
   process.stderr.write(`${JSON.stringify(publicError(error))}\n`);
   process.exitCode = 1;
 });

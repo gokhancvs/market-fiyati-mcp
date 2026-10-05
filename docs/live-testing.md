@@ -12,8 +12,9 @@ Geliştirici kabul testleri bu rehberin sonundadır.
 Mevcut `market-fiyati` kaydını güncelleyin; ikinci kayıt eklemeyin.
 **Örnek konum: Galata Kulesi (`41.025591, 28.974075`).**
 Arama alanı merkezden **4 km yarıçap** (8 km çap). Başka konum için koordinatları değiştirin.
-**Şube ID’leri bilinmiyorsa** aşağıdaki `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değerini ilk kurulumda
-`true` yapın. Yakın şube keşfi deneysel erişim gerektirir; varsayılan `false` değişmez.
+Yakın şube keşfi deneysel erişim gerektirdiği için örnekte `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değeri `true`’dur.
+Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün araçlarını açar. Varsayılan `false`
+değişmez; şube ID’lerini zaten biliyorsanız değeri `false` yapabilirsiniz.
 
 ```json
 {
@@ -26,7 +27,7 @@ Arama alanı merkezden **4 km yarıçap** (8 km çap). Başka konum için koordi
         "MARKET_FIYATI_LATITUDE": "41.025591",
         "MARKET_FIYATI_LONGITUDE": "28.974075",
         "MARKET_FIYATI_DISTANCE": "4",
-        "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "false",
+        "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true",
         "MARKET_FIYATI_RETRIES": "0"
       }
     }
@@ -53,7 +54,7 @@ AI’a yazın:
 | `data.mode`                         | `live`                     |
 | `data.liveRequestsEnabled`          | `true`                     |
 | `data.locationDefaults.configured`  | Env kullanıyorsanız `true` |
-| `data.experimentalEndpointsEnabled` | Bu örnekte `false`         |
+| `data.experimentalEndpointsEnabled` | Bu örnekte `true`          |
 
 Status koordinatları göstermez ve API’ye istek göndermez. Başarılı bağlantı, fiyat erişimini kanıtlamaz.
 
@@ -87,7 +88,7 @@ Retry kapalıyken arama **1**, şube keşfiyle **2** HTTP denemesidir. Bu sayıl
 | Durum                                | Yapılacak işlem                                                                   |
 | ------------------------------------ | --------------------------------------------------------------------------------- |
 | `NETWORK_DISABLED`                   | İstemcideki açık `offline` ayarını `live` yapıp yeniden başlatın.                 |
-| `EXPERIMENTAL_DISABLED`              | Şube keşfi için operatör deneysel erişimi açmalıdır.                              |
+| `EXPERIMENTAL_DISABLED`              | `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` ekleyip sunucuyu yeniden başlatın.       |
 | `CONFIG_ERROR` / girdi hatası        | Üç konum alanını, sınırları ve ürün çağrısındaki `depots` listesini kontrol edin. |
 | 429/403/5xx / `TIMEOUT`              | Tekrar çağırmayın; durumu ve bekleme bilgisini inceleyin.                         |
 | Boş/eksik sonuç / `INVALID_RESPONSE` | Başarı veya stok sonucu çıkarmayın; güvenli hata özetini kaydedin.                |
@@ -126,7 +127,7 @@ Her ürün çağrısı `depots` alır; konum ve yarıçap env veya çağrıdan t
 Normal kullanımda mevcut teklif yeterliyse ek detay sorgusu gerekmez.
 
 **Live yük, uzun/büyük sepet, süre ve kota keşfi yapılmaz.** Listeyi bölmek veya sync’e geçmek bu sınırı kaldırmaz.
-Timeout/Stop davranışını [sentetik kabul kitiyle](offline-acceptance.md) sınayın.
+Timeout/Stop davranışını [sentetik kabul kitiyle](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/docs/offline-acceptance.md) sınayın.
 SDK başarısı masaüstü istemci kabulü değildir; küçük live örnek büyük yükü veya güvenli kotayı kanıtlamaz.
 Yalnız denenen endpoint, istemci/paket sürümü, tarih ve güvenli sonuç özetini kaydedin;
 koordinat, token ve ham yanıtları proje dışında tutun. 429 bekleme süresini kullanıcıya gösterin.

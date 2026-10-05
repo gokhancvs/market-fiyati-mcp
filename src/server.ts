@@ -4,7 +4,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { type Operation } from './contracts.js';
 import { MarketService, type Envelope } from './service.js';
-import { AppError, publicError } from './errors.js';
+import { AppError, publicError, reportInternalError } from './errors.js';
 import { GUIDE } from './guidance.js';
 import type { RequestMetrics } from './request-metrics.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
@@ -135,6 +135,7 @@ function safeMetrics(value: unknown): RequestMetrics | undefined {
   }
 }
 function errorResult(error: unknown): CallToolResult {
+  reportInternalError(error);
   const metrics = error instanceof AppError ? error.requestMetrics : undefined;
   const failed = {
     data: null,

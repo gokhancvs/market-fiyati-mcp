@@ -8,9 +8,10 @@ Türkiye’de ürün, şube fiyatı ve sepet karşılaştırması için resmî o
 
 ## 1. İstemciye ekleyin
 
-**Şube ID’lerini bilmiyorsanız:** Yakın şube keşfi için ilk kurulumda aşağıdaki `env` alanına
-`"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` ekleyin. Bu ayar deneysel endpoint’leri açar;
-varsayılanı `false` olarak kalır. Gerçek şube ID’leriniz varsa gerekli değildir.
+**Şube keşfi:** Ürün aramaları şube ID’si ister; yakındaki şubeleri bulan araç deneysel erişim gerektirir.
+Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün araçlarını açar.
+Bu yüzden örnek `"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` içerir. Ayarın varsayılanı `false` olarak kalır;
+şube ID’lerinizi zaten biliyorsanız bu satırı silebilirsiniz.
 
 ```json
 {
@@ -22,7 +23,8 @@ varsayılanı `false` olarak kalır. Gerçek şube ID’leriniz varsa gerekli de
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
         "MARKET_FIYATI_LONGITUDE": "28.974075",
-        "MARKET_FIYATI_DISTANCE": "4"
+        "MARKET_FIYATI_DISTANCE": "4",
+        "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"
       }
     }
   }

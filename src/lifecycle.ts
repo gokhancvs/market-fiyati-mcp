@@ -1,12 +1,13 @@
 import type { EventEmitter } from 'node:events';
 import type { Readable } from 'node:stream';
-import { publicError } from './errors.js';
+import { publicError, reportInternalError } from './errors.js';
 
 export function bindShutdown(
   server: { close(): Promise<void> },
   input: Readable,
   signals: EventEmitter,
   onError: (error: unknown) => void = (error) => {
+    reportInternalError(error);
     process.stderr.write(`${JSON.stringify(publicError(error))}\n`);
     process.exitCode = 1;
   }

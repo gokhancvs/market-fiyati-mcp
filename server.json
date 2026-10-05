@@ -26,6 +26,15 @@
           "isSecret": false
         },
         {
+          "name": "MARKET_FIYATI_ENABLE_EXPERIMENTAL",
+          "description": "Enables experimental endpoints, including nearby branch discovery. Set true on first setup when branch IDs are unknown; restart after changing it.",
+          "format": "string",
+          "default": "false",
+          "choices": ["true", "false"],
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
           "name": "MARKET_FIYATI_LATITUDE",
           "description": "Default latitude (-90..90). Optional as a group with LONGITUDE and DISTANCE; calls may override the coordinate pair.",
           "format": "string",

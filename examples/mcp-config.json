@@ -7,7 +7,8 @@
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
         "MARKET_FIYATI_LONGITUDE": "28.974075",
-        "MARKET_FIYATI_DISTANCE": "4"
+        "MARKET_FIYATI_DISTANCE": "4",
+        "MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"
       }
     }
   }

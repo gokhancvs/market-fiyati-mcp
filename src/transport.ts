@@ -87,6 +87,8 @@ async function limitedBody(response: Response, limit: number, signal: AbortSigna
 }
 
 export const MAX_PENDING_REQUESTS = 32;
+// Bounds an upstream Retry-After so one response cannot block an origin until restart.
+export const MAX_COOLDOWN_MS = 60_000;
 
 export class LiveTransport implements Transport {
   readonly mode = 'live' as const;
@@ -113,7 +115,7 @@ export class LiveTransport implements Transport {
     if (e.experimental && !this.config.enableExperimental)
       throw new AppError(
         'EXPERIMENTAL_DISABLED',
-        'Enable experimental endpoints explicitly before using this endpoint.',
+        'Experimental endpoints are disabled. The operator must set MARKET_FIYATI_ENABLE_EXPERIMENTAL=true in the MCP client config and restart the server.',
         { endpoint }
       );
     const run = async () => {
@@ -140,7 +142,7 @@ export class LiveTransport implements Transport {
           const retryAfter = Number(error.details.retryAfterMs ?? 0);
           if (retryable && retryAfter > 0)
             this.cooldowns.set(e.origin, {
-              until: Date.now() + retryAfter,
+              until: Date.now() + Math.min(retryAfter, MAX_COOLDOWN_MS),
               status
             });
           if (!retryable || attempt >= this.config.retries || retryAfter > 5000) throw error;

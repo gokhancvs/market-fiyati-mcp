@@ -11,12 +11,12 @@ Yaklaşık 1–2 dakika. **Başarılı:** Biçim, lint, tip kontrolü, derleme v
 
 ## Hangi kontrol gerekli?
 
-| Amaç                            | Komut / rehber                                        |
-| ------------------------------- | ----------------------------------------------------- |
-| Kod değişikliğini doğrula       | Yukarıdaki `npm run check`                            |
-| Bağımsız npm kurulumunu doğrula | `npm run test:consumer`                               |
-| İstemcide timeout/Stop dene     | [Sentetik kabul](offline-acceptance.md)               |
-| Gerçek fiyatlarla dene          | Kullanıcı başlattığında [canlı test](live-testing.md) |
+| Amaç                            | Komut / rehber                                                                                        |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Kod değişikliğini doğrula       | Yukarıdaki `npm run check`                                                                            |
+| Bağımsız npm kurulumunu doğrula | `npm run test:consumer`                                                                               |
+| İstemcide timeout/Stop dene     | [Sentetik kabul](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/docs/offline-acceptance.md) |
+| Gerçek fiyatlarla dene          | Kullanıcı başlattığında [canlı test](live-testing.md)                                                 |
 
 Tüketici testi ayrı cache ve geçici dizinde yalnız üretim bağımlılıklarını kurar; gerçek npm
 binary’sini sınar. Kurulum npm’e bağlanabilir; MCP süreçleri varsayılan live ve açık offline ayarıyla,

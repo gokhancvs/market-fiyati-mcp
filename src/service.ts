@@ -15,7 +15,7 @@ import {
 } from './contracts.js';
 import { type Config } from './config.js';
 import type { ZodObject } from 'zod';
-import { AppError } from './errors.js';
+import { AppError, reportInternalError } from './errors.js';
 import { MAX_PENDING_REQUESTS, type Payload, type SourceMeta, type Transport } from './transport.js';
 import { compareBasket, compareOffers, filterCategories, summarizeHistory } from './analysis.js';
 import { mapLinks } from './maps.js';
@@ -217,6 +217,7 @@ export class MarketService {
       assertOutputBudget(envelope);
       return envelope;
     } catch (error) {
+      reportInternalError(error);
       const safe = error instanceof AppError ? error : new AppError('INTERNAL_ERROR', 'Unexpected internal error.');
       throw new AppError(safe.code, safe.message, safe.details, snapshot());
     }
