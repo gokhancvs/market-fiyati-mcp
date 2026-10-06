@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
-import { setImmediate } from 'node:timers/promises';
+import { setImmediate, setTimeout as delay } from 'node:timers/promises';
 import { bindShutdown } from '../src/lifecycle.js';
 
 test('overlapping EOF and process signals close once and remove only owned listeners', async () => {
@@ -77,4 +77,37 @@ test('binding an already closed input starts shutdown', async () => {
   );
   await setImmediate();
   assert.equal(calls, 1);
+});
+
+test('a shutdown that does not settle is reported and ends the process once', async () => {
+  const input = new PassThrough(),
+    signals = new EventEmitter();
+  const reported: unknown[] = [];
+  let exits = 0;
+  bindShutdown({ close: () => new Promise<void>(() => {}) }, input, signals, (error) => reported.push(error), {
+    timeoutMs: 5,
+    onTimeout: () => {
+      exits++;
+    }
+  });
+  signals.emit('SIGTERM');
+  input.emit('end');
+  await delay(40);
+  assert.equal(exits, 1);
+  assert.equal(reported.length, 1);
+  assert.match((reported[0] as Error).message, /did not finish within 5 ms/);
+});
+
+test('a settled shutdown cancels the timeout', async () => {
+  const input = new PassThrough();
+  let exits = 0;
+  bindShutdown({ async close() {} }, input, new EventEmitter(), () => assert.fail('no error expected'), {
+    timeoutMs: 5,
+    onTimeout: () => {
+      exits++;
+    }
+  });
+  input.emit('end');
+  await delay(40);
+  assert.equal(exits, 0);
 });
