@@ -12,7 +12,7 @@
     "market-fiyati-mcp": "dist/src/index.js"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.json",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "lint": "eslint . --max-warnings 0",
