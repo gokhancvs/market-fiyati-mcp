@@ -255,6 +255,32 @@ test('small application errors retain safe details and unknown errors hide sourc
   }
 });
 
+test('output budget failure keeps the request metrics of the oversized envelope', async () => {
+  const metrics = { httpAttempts: 2, retries: 1, durationMs: 7 };
+  class LargeService extends MarketService {
+    override async execute(): Promise<never> {
+      const blob = 'x'.repeat(9 * 1024 * 1024);
+      return { data: { blob }, meta: { source: 'live', requestMetrics: metrics }, warnings: [] } as never;
+    }
+  }
+  const server = createServer(new LargeService(new OfflineTransport(), readConfig({})));
+  const client = new Client({ name: 'output-budget-test', version: '1' });
+  const [ct, st] = InMemoryTransport.createLinkedPair();
+  try {
+    await server.connect(st);
+    await client.connect(ct);
+    const result = (await client.callTool({ name: 'market_get_categories', arguments: {} })) as CallToolResult;
+    assert.equal(result.isError, true);
+    const error = result.structuredContent!.error as { code: string; resource: string };
+    assert.equal(error.code, 'OUTPUT_TOO_LARGE');
+    assert.equal(error.resource, 'jsonBytes');
+    assert.deepEqual((result.structuredContent!.meta as { requestMetrics: unknown }).requestMetrics, metrics);
+  } finally {
+    await client.close();
+    await server.close();
+  }
+});
+
 test('error fallback tolerates metrics with throwing accessors', async () => {
   const metrics = {
     get httpAttempts() {

@@ -23,13 +23,16 @@ class JsonBudget {
     private readonly maxBytes: number,
     private readonly maxValues: number,
     private readonly maxDepth: number,
-    private readonly code: string
+    private readonly code: string,
+    private readonly requestMetrics?: RequestMetrics
   ) {}
   private fail(resource: string, limit: number): never {
-    throw new AppError(this.code, 'Result exceeds a local resource limit; no partial data was returned.', {
-      resource,
-      limit
-    });
+    throw new AppError(
+      this.code,
+      'Result exceeds a local resource limit; no partial data was returned.',
+      { resource, limit },
+      this.requestMetrics
+    );
   }
   private add(bytes: number): void {
     this.bytes += bytes;
@@ -161,14 +164,15 @@ export class InputBudget {
   }
 }
 
-export function assertOutputBudget(value: unknown): void {
+export function assertOutputBudget(value: unknown, requestMetrics?: RequestMetrics): void {
   // Input has already bounded all source collections before derived arrays exist.
   // Check the final logical envelope before text and structuredContent duplicate it.
   new JsonBudget(
     RESOURCE_LIMITS.outputBytes,
     RESOURCE_LIMITS.outputValues,
     RESOURCE_LIMITS.outputDepth,
-    'OUTPUT_TOO_LARGE'
+    'OUTPUT_TOO_LARGE',
+    requestMetrics
   ).visit(value);
 }
 

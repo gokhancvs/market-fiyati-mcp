@@ -113,9 +113,10 @@ const tools: { name: string; operation: Operation; description: string }[] = [
   }
 ];
 function result(envelope: Envelope): CallToolResult {
-  assertOutputBudget(envelope);
+  const metrics = safeMetrics(envelope.meta?.requestMetrics);
+  assertOutputBudget(envelope, metrics);
   const text = JSON.stringify(envelope);
-  assertMessageBudget(text, safeMetrics(envelope.meta?.requestMetrics));
+  assertMessageBudget(text, metrics);
   return {
     content: [{ type: 'text', text }],
     structuredContent: envelope

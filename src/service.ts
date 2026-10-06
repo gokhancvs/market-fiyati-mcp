@@ -1,4 +1,4 @@
-import { InputBudget, RESOURCE_LIMITS, assertOutputBudget } from './resource-limits.js';
+import { InputBudget, RESOURCE_LIMITS } from './resource-limits.js';
 import {
   BASKET_REQUEST_BUDGET,
   INPUT_LIMITS,
@@ -223,12 +223,10 @@ export class MarketService {
         counts,
         budget: new InputBudget(this.config.maxResponseBytes)
       });
-      const envelope = {
+      return {
         ...result,
         meta: { ...result.meta, requestMetrics: snapshot() }
       };
-      assertOutputBudget(envelope);
-      return envelope;
     } catch (error) {
       reportInternalError(error);
       const safe = error instanceof AppError ? error : new AppError('INTERNAL_ERROR', 'Unexpected internal error.');
