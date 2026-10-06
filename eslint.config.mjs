@@ -7,11 +7,12 @@ import tseslint from 'typescript-eslint';
 const unusedVars = ['error', { argsIgnorePattern: '^_' }];
 
 export default defineConfig(
-  { ignores: ['dist/', 'coverage/'] },
+  // plans/ and reports/ are local, Git-ignored archives, as in .prettierignore.
+  { ignores: ['dist/', 'coverage/', 'plans/', 'reports/'] },
   {
     files: ['**/*.{js,mjs,ts}'],
     extends: [js.configs.recommended],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: globals.node },
+    languageOptions: { sourceType: 'module', globals: globals.node },
     rules: { 'no-unused-vars': unusedVars }
   },
   {
