@@ -1,5 +1,6 @@
 import { AppError } from './errors.js';
 import type { EndpointId } from './contracts.js';
+import type { RequestMetrics } from './request-metrics.js';
 
 export const RESOURCE_LIMITS = {
   inputValues: 500_000,
@@ -9,6 +10,8 @@ export const RESOURCE_LIMITS = {
   warningEntries: 128,
   warningBytes: 64 * 1024,
   outputBytes: 8 * 1024 * 1024,
+  // Below the MCP SDK's 10 MiB default stdio read buffer, leaving room for the next chunk.
+  messageBytes: 9 * 1024 * 1024,
   outputValues: 2_000_000,
   outputDepth: 80
 } as const;
@@ -171,4 +174,30 @@ export function assertOutputBudget(value: unknown): void {
     RESOURCE_LIMITS.outputDepth,
     'OUTPUT_TOO_LARGE'
   ).visit(value);
+}
+
+// JSON-RPC framing around the tool result: result/content/type keys, id, isError and the newline.
+const MESSAGE_FRAMING_BYTES = 256;
+
+/** Upper bound of the stdio line carrying a tool result whose text and structuredContent hold `text`. */
+export function toolMessageBytes(text: string): number {
+  // `text` is JSON.stringify output: no raw control characters or lone surrogates, so escaping it again
+  // only doubles quotes and backslashes. structuredContent serializes to the same bytes as `text`.
+  let escapes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code === 0x22 || code === 0x5c) escapes++;
+  }
+  return 2 * Buffer.byteLength(text) + escapes + 2 + MESSAGE_FRAMING_BYTES;
+}
+
+export function assertMessageBudget(text: string, requestMetrics?: RequestMetrics): void {
+  if (toolMessageBytes(text) > RESOURCE_LIMITS.messageBytes) {
+    throw new AppError(
+      'OUTPUT_TOO_LARGE',
+      'Result exceeds the MCP message size limit; no partial data was returned. Narrow the query.',
+      { resource: 'messageBytes', limit: RESOURCE_LIMITS.messageBytes },
+      requestMetrics
+    );
+  }
 }

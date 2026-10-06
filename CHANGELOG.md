@@ -4,6 +4,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **Büyük yanıtlar:** Tool sonucunun stdio mesajı (metin, `structuredContent`, escape ve protokol alanları)
+  9 MiB ile sınırlandı. Daha önce 8 MiB'lik zarf sınırının altında kalan bir yanıt mesajda 10 MiB'yi aşabiliyor
+  ve MCP SDK 1.30+ istemcilerinde bağlantıyı kapatıyordu. Artık `OUTPUT_TOO_LARGE` (`resource: messageBytes`)
+  döner ve istek ölçümleri korunur.
 - **MCP Registry:** Yeni sürüm tag'i artık `server.json`'ı resmî MCP Registry'ye de yayımlar. Yayın, npm
   yayınından sonra ayrı bir işte GitHub OIDC ile yapılır; `mcp-publisher` sabit sürüm ve SHA-256 ile
   doğrulanır. İlk kayıt bir sonraki sürümle oluşur.

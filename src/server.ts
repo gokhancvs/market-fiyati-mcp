@@ -1,4 +1,4 @@
-import { assertOutputBudget } from './resource-limits.js';
+import { assertMessageBudget, assertOutputBudget } from './resource-limits.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
@@ -105,8 +105,10 @@ const tools: { name: string; operation: Operation; description: string }[] = [
 ];
 function result(envelope: Envelope): CallToolResult {
   assertOutputBudget(envelope);
+  const text = JSON.stringify(envelope);
+  assertMessageBudget(text, safeMetrics(envelope.meta?.requestMetrics));
   return {
-    content: [{ type: 'text', text: JSON.stringify(envelope) }],
+    content: [{ type: 'text', text }],
     structuredContent: envelope
   };
 }
