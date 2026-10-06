@@ -186,11 +186,11 @@ alternatifleri baştan elemek için kullanılmaz. Ayrıntılı karar kuralları 
 
 ## Ürün ve offer'lar
 
-| İşlem      | Girdi                                                                                                      |
-| ---------- | ---------------------------------------------------------------------------------------------------------- |
-| Detay      | `{identity,identityType:"id",pages:0,size:1,...context}`. Kimlik bir string'dir; baştaki sıfırlar korunur. |
-| Benzer     | `{id,keywords,pages,size,...context}`. `keywords` olarak ürün başlığı verilir.                             |
-| Alternatif | Bunlara ek olarak `marketName` alır; `depots` yalnızca bu zincirin şube ID'lerinden oluşmalıdır.           |
+| İşlem      | Girdi                                                                                                                                                                                                    |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Detay      | `{identity,...context}`. Sunucu API'ye sabit `identityType:"id",pages:0,size:1` alanlarını ekler; girdide bu alanlar opsiyoneldir ve başka değer almaz. Kimlik bir string'dir; baştaki sıfırlar korunur. |
+| Benzer     | `{id,keywords,pages,size,...context}`. `keywords` olarak ürün başlığı verilir.                                                                                                                           |
+| Alternatif | Bunlara ek olarak `marketName` alır; `depots` yalnızca bu zincirin şube ID'lerinden oluşmalıdır.                                                                                                         |
 
 Benzer bir ürün, aynı ürün anlamına gelmez. Arama sonucundaki offer'lar yeterliyse ayrıca detay çağırmayın;
 bilgi eksikse veya fiyatın yenilenmesi gerekiyorsa çağırın. Ürün karşılaştırması detayı kendisi alır; sepet
@@ -324,6 +324,7 @@ kullanarak aşmak yasaktır. Kontrol her çağrı için ayrı yapılır; oturum,
   şubede toplanabiliyorsa o şube seçilir. Son eşitlik durumunda kimlikler locale'den bağımsız olarak UTF-16
   code unit sırasına göre dizilir.
 - Eksik ürün varsa `total=null` olur; `subtotal` yalnızca bulunan ürünlerin toplamıdır.
+  `lines` boşsa `subtotal=0`, o grupta hiçbir ürünün fiyatlanmadığını gösterir; bedava sepet anlamına gelmez.
   `requiresMultipleDepots`, birden fazla şubeye gitmek gerektiğini gösterir.
 - `splitBasket`: Zincirler arasında teorik olarak en düşük toplamı gösterir. Yol veya teslimat maliyetini
   içermez ve stok garantisi vermez.

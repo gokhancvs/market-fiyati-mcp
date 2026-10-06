@@ -18,6 +18,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   endpoint tablosundaki türden türetilir; limitler ve sunucu sürümü tek kaynaktan okunur. Yeni bir
   karakterizasyon testi tool çıktılarının, API'ye giden gövdelerin ve tool şemalarının değişmediğini denetler.
   Tool girdisi ve çıktısı değişmedi.
+- **Şema:** `market_get_product` girdisindeki sabit `identityType`, `pages` ve `size` alanları opsiyonel
+  kalır ancak artık default değer yayımlamaz; sunucu bu değerleri API'ye her zaman kendisi gönderir. Bu
+  alanları gönderen çağrılar çalışmaya devam eder. `docs/api.md`, boş satırlı sepet grubundaki
+  `subtotal=0` değerini açıklar.
 - **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
   sonlanır.
 

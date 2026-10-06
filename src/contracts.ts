@@ -215,9 +215,10 @@ export const schemas = {
   product: z.strictObject({
     ...contextShape,
     identity: id,
-    identityType: z.literal('id').default('id'),
-    pages: z.literal(0).default(0),
-    size: z.literal(1).default(1)
+    // Accepted for compatibility; the service always sends these fixed wire values.
+    identityType: z.literal('id').optional(),
+    pages: z.literal(0).optional(),
+    size: z.literal(1).optional()
   }),
   similar: z.strictObject({
     ...contextShape,
