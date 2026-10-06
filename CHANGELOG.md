@@ -4,6 +4,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 1.0.10 — 2026-10-06
+
 - **Güvenlik:** `@modelcontextprotocol/sdk` 1.32.1'e yükseltildi. SDK'nın `express` bağımlılığı üzerinden
   gelen `proxy-addr`, IP sahteciliği bildirimi
   [GHSA-jqcg-44mw-7w3h](https://github.com/advisories/GHSA-jqcg-44mw-7w3h) için 2.0.8'e güncellendi.
@@ -17,6 +19,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   "Konum ve şube bağlamı" oldu. 1.0.6 yarıçap geçişi, `discount` yorumu ve sentetik test sınırları tek
   bölümde toplandı. Sürüm notlarındaki linkler kendi tag'lerine sabitlendi. Yeni belge testi linkleri,
   anchor'ları ve sözlüğü denetler. Runtime davranışı değişmedi.
+
+[1.0.10 sürüm notları](docs/releases/v1.0.10.md).
 
 ## 1.0.9 — 2026-10-05
 
