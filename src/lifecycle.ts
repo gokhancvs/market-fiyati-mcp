@@ -1,6 +1,6 @@
 import type { EventEmitter } from 'node:events';
 import type { Readable } from 'node:stream';
-import { publicError, reportInternalError } from './errors.js';
+import { AppError, publicError, reportInternalError } from './errors.js';
 
 export const SHUTDOWN_TIMEOUT_MS = 5000;
 export type ShutdownTimeout = { timeoutMs?: number; onTimeout?: () => void };
@@ -28,7 +28,11 @@ export function bindShutdown(
     closing = true;
     // A transport that never finishes closing must not keep the process alive.
     const timer = setTimeout(() => {
-      onError(new Error(`Shutdown did not finish within ${timeoutMs} ms.`));
+      try {
+        onError(new AppError('SHUTDOWN_TIMEOUT', `Shutdown did not finish within ${timeoutMs} ms.`));
+      } catch {
+        // A broken reporter must not keep the process alive.
+      }
       onTimeout();
     }, timeoutMs);
     timer.unref();

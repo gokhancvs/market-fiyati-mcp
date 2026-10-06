@@ -4,6 +4,7 @@ import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { setImmediate, setTimeout as delay } from 'node:timers/promises';
 import { bindShutdown } from '../src/lifecycle.js';
+import type { AppError } from '../src/errors.js';
 
 test('overlapping EOF and process signals close once and remove only owned listeners', async () => {
   const input = new PassThrough(),
@@ -95,7 +96,38 @@ test('a shutdown that does not settle is reported and ends the process once', as
   await delay(40);
   assert.equal(exits, 1);
   assert.equal(reported.length, 1);
+  assert.equal((reported[0] as AppError).code, 'SHUTDOWN_TIMEOUT');
   assert.match((reported[0] as Error).message, /did not finish within 5 ms/);
+});
+
+test('a failing timeout reporter still ends the process', async () => {
+  const signals = new EventEmitter();
+  const uncaught: unknown[] = [];
+  const onUncaught = (error: unknown) => uncaught.push(error);
+  process.prependListener('uncaughtException', onUncaught);
+  let exits = 0;
+  try {
+    bindShutdown(
+      { close: () => new Promise<void>(() => {}) },
+      new PassThrough(),
+      signals,
+      () => {
+        throw new Error('broken reporter');
+      },
+      {
+        timeoutMs: 5,
+        onTimeout: () => {
+          exits++;
+        }
+      }
+    );
+    signals.emit('SIGTERM');
+    await delay(40);
+  } finally {
+    process.off('uncaughtException', onUncaught);
+  }
+  assert.equal(exits, 1);
+  assert.deepEqual(uncaught, []);
 });
 
 test('a settled shutdown cancels the timeout', async () => {

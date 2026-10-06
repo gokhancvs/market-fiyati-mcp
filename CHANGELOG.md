@@ -18,7 +18,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   endpoint tablosundaki türden türetilir; limitler ve sunucu sürümü tek kaynaktan okunur. Yeni bir
   karakterizasyon testi tool çıktılarının, API'ye giden gövdelerin ve tool şemalarının değişmediğini denetler.
   Tool girdisi ve çıktısı değişmedi.
-- **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse hata stderr'e yazılır ve süreç 1 koduyla sonlanır.
+- **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
+  sonlanır.
 
 ## 1.0.11 — 2026-10-06
 
