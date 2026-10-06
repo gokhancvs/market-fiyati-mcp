@@ -68,3 +68,53 @@ jobs:
               --title "$RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md" \
               "$RUNNER_TEMP/npm-release/"*.tgz
           fi
+  registry:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+      REGISTRY_URL: https://registry.modelcontextprotocol.io
+      MCP_PUBLISHER_VERSION: v1.8.1
+      MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install verified mcp-publisher
+        run: |
+          archive="$RUNNER_TEMP/mcp-publisher.tar.gz"
+          curl -fsSL --max-time 60 -o "$archive" \
+            "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz"
+          echo "$MCP_PUBLISHER_SHA256  $archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" mcp-publisher
+      - name: Publish server metadata to MCP Registry
+        run: |
+          version=$(jq -r .version server.json)
+          test "v$version" = "$RELEASE_TAG" || { echo "server.json version $version does not match $RELEASE_TAG" >&2; exit 1; }
+          entry="$REGISTRY_URL/v0/servers/$(jq -r '.name | @uri' server.json)/versions/$version"
+          status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$entry")
+          case "$status" in
+            200) echo "MCP Registry already lists $version; nothing to publish."; exit 0 ;;
+            404) ;;
+            *) echo "MCP Registry lookup returned HTTP $status; rerun this job." >&2; exit 1 ;;
+          esac
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc
+          "$RUNNER_TEMP/mcp-publisher" publish
+      - name: Verify MCP Registry entry
+        run: |
+          version=$(jq -r .version server.json)
+          entry="$REGISTRY_URL/v0/servers/$(jq -r '.name | @uri' server.json)/versions/$version"
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 20 "$entry" | jq -e --arg v "$version" \
+              '.server.version == $v and .server.packages[0].version == $v' > /dev/null; then
+              echo "MCP Registry lists $version."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "MCP Registry does not list $version yet; rerun this job to verify." >&2
+          exit 1

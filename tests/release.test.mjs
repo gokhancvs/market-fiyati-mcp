@@ -32,6 +32,29 @@ test('release workflow gates tag publication on main, offline checks and OIDC', 
   assert.doesNotMatch(command, /--draft/);
 });
 
+test('MCP Registry publication runs after npm with OIDC and a verified publisher binary', () => {
+  const parsed = yaml.load(readFileSync(workflow, 'utf8'));
+  const registry = parsed.jobs.registry;
+  assert.equal(registry.needs, 'publish');
+  assert.deepEqual(registry.permissions, { contents: 'read', 'id-token': 'write' });
+  assert.match(registry.env.MCP_PUBLISHER_VERSION, /^v\d+\.\d+\.\d+$/);
+  assert.match(registry.env.MCP_PUBLISHER_SHA256, /^[0-9a-f]{64}$/);
+  const run = registry.steps.map((step) => step.run ?? '').join('\n');
+  assert.match(run, /releases\/download\/\$MCP_PUBLISHER_VERSION\//);
+  assert.match(run, /sha256sum -c/);
+  assert.ok(run.indexOf('sha256sum -c') < run.indexOf('tar -xzf'), 'verify before extracting');
+  assert.doesNotMatch(run, /releases\/latest/);
+  assert.match(run, /mcp-publisher" login github-oidc/);
+  assert.match(run, /mcp-publisher" publish/);
+  assert.match(run, /\/versions\/\$version/, 'skip and verify by exact registry version');
+  assert.match(run, /404\) ;;/, 'publish only when the version is absent');
+  const curls = run.split('\n').filter((line) => /\bcurl /.test(line));
+  assert.ok(curls.length >= 3 && curls.every((line) => /--max-time \d+/.test(line)), 'bound every HTTP call');
+  assert.ok(!JSON.stringify(registry).includes('secrets.'), 'OIDC needs no stored secret');
+  const checkout = registry.steps.find((step) => step.uses?.startsWith('actions/checkout@'));
+  assert.equal(checkout.with['persist-credentials'], false);
+});
+
 function check({
   tag = 'v1.0.0',
   version = '1.0.0',
