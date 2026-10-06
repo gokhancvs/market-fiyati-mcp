@@ -1,6 +1,5 @@
-import { AppError } from './errors.js';
-import type { EndpointId } from './contracts.js';
-import type { RequestMetrics } from './request-metrics.js';
+import { AppError, type RequestMetrics } from './errors.js';
+import { isProductEndpoint, type EndpointId } from './contracts.js';
 
 export const RESOURCE_LIMITS = {
   inputValues: 500_000,
@@ -24,13 +23,16 @@ class JsonBudget {
     private readonly maxBytes: number,
     private readonly maxValues: number,
     private readonly maxDepth: number,
-    private readonly code: string
+    private readonly code: string,
+    private readonly requestMetrics?: RequestMetrics
   ) {}
   private fail(resource: string, limit: number): never {
-    throw new AppError(this.code, 'Result exceeds a local resource limit; no partial data was returned.', {
-      resource,
-      limit
-    });
+    throw new AppError(
+      this.code,
+      'Result exceeds a local resource limit; no partial data was returned.',
+      { resource, limit },
+      this.requestMetrics
+    );
   }
   private add(bytes: number): void {
     this.bytes += bytes;
@@ -133,10 +135,7 @@ export class InputBudget {
       const response = data as Record<string, unknown>;
       this.countWarnings(response.warnings);
       if (Array.isArray(response.content)) {
-        if (
-          endpoint &&
-          ['search', 'searchByCategories', 'product', 'similar', 'alternative', 'sync'].includes(endpoint)
-        ) {
+        if (endpoint && isProductEndpoint(endpoint)) {
           this.products += response.content.length;
           if (this.products > RESOURCE_LIMITS.productRecords)
             throw new AppError('RESOURCE_LIMIT_EXCEEDED', 'Too many source products; no partial data was returned.', {
@@ -165,14 +164,15 @@ export class InputBudget {
   }
 }
 
-export function assertOutputBudget(value: unknown): void {
+export function assertOutputBudget(value: unknown, requestMetrics?: RequestMetrics): void {
   // Input has already bounded all source collections before derived arrays exist.
   // Check the final logical envelope before text and structuredContent duplicate it.
   new JsonBudget(
     RESOURCE_LIMITS.outputBytes,
     RESOURCE_LIMITS.outputValues,
     RESOURCE_LIMITS.outputDepth,
-    'OUTPUT_TOO_LARGE'
+    'OUTPUT_TOO_LARGE',
+    requestMetrics
   ).visit(value);
 }
 

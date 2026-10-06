@@ -1,4 +1,4 @@
-import type { Offer, Product, SearchResponse } from './contracts.js';
+import { INPUT_LIMITS, type Offer, type Product, type SearchResponse } from './contracts.js';
 
 /** Trusted codes describe MCP decisions, never instructions from upstream text. */
 export const WARNING_CODES = {
@@ -8,8 +8,7 @@ export const WARNING_CODES = {
   OUT_OF_SCOPE_OFFERS: 'Returned offers include depots outside the requested selection; raw offers are retained.',
   DISCOUNT_FILTER_UNVERIFIED: 'The API discount filter does not certify a discount or campaign.',
   PARTIAL_RESULTS: 'Only part of the matching product results was returned in this page; no extra pages were fetched.',
-  PAGINATION_LIMIT_REACHED:
-    'The local maximum page index 10000 was reached; further matches may exist. No extra page was fetched.',
+  PAGINATION_LIMIT_REACHED: `The local maximum page index ${INPUT_LIMITS.maxPageIndex} was reached; further matches may exist. No extra page was fetched.`,
   SEARCH_MAY_BE_FUZZY: 'Text search may be fuzzy; verify product requirements.',
   UPSTREAM_FUZZY_RESULT: 'Upstream searchResultType is 2 or 3.',
   EXPERIMENTAL_ENDPOINT: 'Operator-enabled experimental access does not certify live validation.',

@@ -544,6 +544,7 @@ kapsamını (`size`, şube sayısı) daraltın.
 
 İstemcinin iptal (cancellation) göndermesi veya stdio bağlantısının kapanması, aktif ve bekleyen tüm işleri
 iptal eder. Bu davranışın test sınırları: [Doğrulama](verification.md#neyi-kanıtlamıyoruz).
+Sunucunun kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla sonlanır.
 
 ### Diğer hata kodları
 
@@ -562,3 +563,4 @@ Adından anlaşılmayan kodlar:
 | `INVALID_JSON`         | Upstream gövdesi geçerli JSON değil.                                                                |
 | `INVALID_ENDPOINT`     | İstek allowlist dışındaki bir endpoint'i hedefledi ve gönderilmedi. İç koruma hatasıdır.            |
 | `CONFIG_ERROR`         | Ortam değişkenlerinden biri geçersiz. Sunucu başlamaz; istemci ayarını düzeltip yeniden başlatın.   |
+| `SHUTDOWN_TIMEOUT`     | Kapanış 5 saniyede bitmedi. Yalnız stderr'e yazılır; süreç 1 koduyla sonlanır.                      |
