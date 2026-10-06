@@ -13,9 +13,9 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "format": "prettier . --write && npm run lint -- --fix --fix-type layout",
+    "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "lint": "eslint --ext .ts,.mjs src tests scripts --quiet",
+    "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "release:check": "node scripts/check-release.mjs",
     "start": "node dist/src/index.js",
@@ -30,16 +30,15 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/node": "22.19.19",
-    "@typescript-eslint/eslint-plugin": "8.70.1",
-    "@typescript-eslint/parser": "8.70.1",
-    "eslint": "8.57.1",
-    "eslint-config-airbnb-base": "15.0.0",
+    "eslint": "10.12.0",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-import": "2.32.0",
+    "globals": "17.13.0",
     "js-yaml": "4.3.2",
     "prettier": "3.9.5",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1"
   },
   "files": [
     "dist/src/**/*.js",
