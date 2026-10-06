@@ -1,9 +1,9 @@
 # Sürüm çıkarma
 
-**Önce kapsamı belirleyin:** Hazırlık, merge, tag veya MCP Registry yayını?
+**Önce kapsamı belirleyin:** Hazırlık, merge veya tag?
 Yalnız gereken aşamaları tamamlayın.
 
-**Yeni kararlı tag'i push etmek npm ve GitHub yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
+**Yeni kararlı tag'i push etmek npm, GitHub Release ve MCP Registry yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
 
 Sözleşme diff'i önceden geçerli bir çağrıya yeni zorunlu girdi ekliyorsa, sürüm hazırlığında uyumluluk
 etkisini ve geçiş yolunu inceleyin. Uyumsuz değişiklik major sürüm ve geçiş belgesi gerektirir. Eski çağrı
@@ -66,7 +66,7 @@ Main ilerlese de paketlenen tag commit'idir. Ek “Publish” düğmesine gerek 
 | npm               | Sürüm, SHA-512 integrity ve yeni yayın için `latest` doğru       |
 | GitHub Release    | Sürüm açıklaması ve test edilen `.tgz` görünür                   |
 | Anahtar kelimeler | `package.json` keywords, npm keywords ve GitHub Topics aynı küme |
-| MCP Registry      | Yalnız ayrıca yayımlandıysa ad/sürüm registry'den doğrulanmış    |
+| MCP Registry      | `registry` işi yeşil; ad/sürüm Registry API'sinde görünür        |
 
 Release açıklamasındaki hazırlık ifadelerini güncelleyin; belge linklerini yayımlanan tag'e sabitleyin.
 **Tag push tek başına başarı değildir.** npm ve MCP Registry durumunu ayrı raporlayın.
@@ -115,6 +115,7 @@ Kurulum eksikse publish başarısız olur; kurduktan sonra aynı çalışmanın 
    npm binary'si ağ engeliyle sınanır.
 4. Test edilmiş arşiv OIDC ile npm'e public/latest gönderilir; sürüm, integrity ve latest doğrulanır.
 5. GitHub Release ve `.tgz` oluşturulur.
+6. Ayrı `registry` işi `server.json`'ı MCP Registry'ye gönderir ve kaydı doğrular.
 
 Yarıda kalırsa **Re-run failed jobs** kullanın. Doğrulama geçici bağlantı/429/502/503/504 hatalarını
 tekrarlar; **publish tekrarlanmaz**. Bozuk JSON veya integrity farkı hemen durdurur.
@@ -156,19 +157,25 @@ Yeni CI işleri ilk uzak çalışmada görüldükten sonra gerçek adlarını ma
 </details>
 
 <details>
-<summary>Ayrı aşama: MCP Registry yayını</summary>
+<summary>MCP Registry yayını</summary>
 
-`server.json` hazırlıktır; npm yayını otomatik katalog kaydı oluşturmaz.
-Paket `mcpName` ile manifest `name`, üst `version` ile `packages[].version` eşleşmelidir.
-1.0.4 yeni metadata'yı içermez; eski sürümü yeniden yayımlamayın.
+`registry` işi npm yayınından sonra çalışır ve yalnız `id-token: write` izni alır. Akış:
 
-1. Önce npm yayınını doğrulayın.
-2. [Resmî Registry rehberini](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/quickstart.mdx)
-   izleyip manifesti belirtilen JSON şemasıyla doğrulayın.
-3. Yetkilendirilmiş katalog yayını için GitHub girişi ve `mcp-publisher publish` çalıştırın.
-4. Registry'de ad/sürümü doğrulayın.
+1. `mcp-publisher` sabit sürümle indirilir; SHA-256 doğrulanmadan açılmaz.
+2. `server.json` sürümü tag ile eşleşmelidir. Sürüm Registry'de zaten varsa yayın atlanır.
+3. `mcp-publisher login github-oidc` ile giriş yapılır; saklanan token veya secret yoktur.
+   Ad alanı `io.github.gokhancvs/*`'tır. Bu ad alanı, hesabın `id-token: write` izni olan her
+   workflow'una açıktır; başka repo'larda bu izni gereksiz vermeyin.
+4. `mcp-publisher publish` çalışır; ardından kayıt Registry API'sinden sürümüyle doğrulanır.
 
-Publisher destekliyorsa `mcp-publisher validate` kullanın. 1.8.1 yardımında görünmesine rağmen komut
-çalışmayabilir; JSON Schema kontrolü yalnız yerel yapıyı kanıtlar, sahiplik veya yayın kabulünü değil.
+Paket `mcpName` ile manifest `name`, üst `version` ile `packages[].version` eşleşmelidir; paket testi
+bunu denetler. Registry işi hata verirse npm ve GitHub Release etkilenmez; yalnız bu işi yeniden çalıştırın.
+`mcp-publisher` sürümünü güncellerken resmî sürümün `registry_<sürüm>_checksums.txt` dosyasındaki
+`mcp-publisher_linux_amd64.tar.gz` değerini `MCP_PUBLISHER_SHA256` olarak yazın. "invalid audience" hatası
+publisher sürümünün eskidiğini gösterir; çözüm bu iki değeri güncellemektir.
+Registry önizleme aşamasındadır; [resmî rehber](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/github-actions.mdx)
+değişirse workflow'u buna göre güncelleyin. 1.0.10 ve öncesi bu iş olmadan yayımlandı ve Registry'de
+listelenmez. İş, ilk gerçek tag çalışmasına kadar uzak ortamda denenmemiştir; ilk yayında sonucunu ayrıca
+doğrulayın.
 
 </details>

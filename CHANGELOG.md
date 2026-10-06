@@ -4,6 +4,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **MCP Registry:** Yeni sürüm tag'i artık `server.json`'ı resmî MCP Registry'ye de yayımlar. Yayın, npm
+  yayınından sonra ayrı bir işte GitHub OIDC ile yapılır; `mcp-publisher` sabit sürüm ve SHA-256 ile
+  doğrulanır. İlk kayıt bir sonraki sürümle oluşur.
+
 ## 1.0.10 — 2026-10-06
 
 - **Güvenlik:** `@modelcontextprotocol/sdk` 1.32.1'e yükseltildi. SDK'nın `express` bağımlılığı üzerinden
