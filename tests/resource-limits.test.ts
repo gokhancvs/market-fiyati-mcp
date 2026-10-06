@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { InputBudget, assertOutputBudget, RESOURCE_LIMITS } from '../src/resource-limits.js';
+import { STDIO_DEFAULT_MAX_BUFFER_SIZE } from '@modelcontextprotocol/sdk/shared/stdio.js';
+import {
+  InputBudget,
+  assertMessageBudget,
+  assertOutputBudget,
+  RESOURCE_LIMITS,
+  toolMessageBytes
+} from '../src/resource-limits.js';
 
 test('input byte accounting matches JSON escaping and UTF-8 exactly at its boundary', () => {
   for (const value of [
@@ -71,4 +78,53 @@ test('source budgeting rejects nonfinite decoded JSON before visiting later fiel
       code: 'RESOURCE_LIMIT_EXCEEDED'
     });
   }
+});
+
+test('tool result message size covers the JSON-RPC line an SDK stdio client must buffer', () => {
+  assert.ok(RESOURCE_LIMITS.messageBytes < STDIO_DEFAULT_MAX_BUFFER_SIZE, 'stay below the SDK stdio read buffer');
+  for (const envelope of [
+    { data: null, meta: {}, warnings: [] },
+    {
+      data: { text: 'Türkçe 😀 "quoted" \\ back\nline \u0000 \ud800 \u2028\u2029' },
+      meta: { n: [1, 2] },
+      warnings: ['"']
+    }
+  ]) {
+    const text = JSON.stringify(envelope);
+    for (const isError of [undefined, true]) {
+      const line = `${JSON.stringify({
+        result: { content: [{ type: 'text', text }], structuredContent: envelope, ...(isError ? { isError } : {}) },
+        jsonrpc: '2.0',
+        // Allowance covers numeric ids and string ids up to ~150 characters; longer ids fit the 1 MiB margin.
+        id: 'r'.repeat(100)
+      })}\n`;
+      const actual = Buffer.byteLength(line);
+      assert.ok(toolMessageBytes(text) >= actual, 'never underestimate');
+      assert.ok(toolMessageBytes(text) - actual <= 256, 'only a small fixed protocol allowance');
+    }
+  }
+});
+
+test('message budget rejects escaped duplication beyond the limit and keeps request metrics', () => {
+  const metrics = { httpAttempts: 1, retries: 0, durationMs: 5 };
+  // JSON.stringify(plain) adds two quotes, which are escaped again in the text field.
+  const atLimit = 'x'.repeat((RESOURCE_LIMITS.messageBytes - 264) / 2);
+  assert.equal(toolMessageBytes(JSON.stringify(atLimit)), RESOURCE_LIMITS.messageBytes);
+  assertMessageBudget(JSON.stringify(atLimit), metrics);
+  assert.throws(() => assertMessageBudget(JSON.stringify(`${atLimit}x`), metrics), { code: 'OUTPUT_TOO_LARGE' });
+  const quoted = '"'.repeat(Math.ceil(RESOURCE_LIMITS.messageBytes / 6));
+  assert.ok(
+    Buffer.byteLength(JSON.stringify(quoted)) < RESOURCE_LIMITS.outputBytes,
+    'envelope budget alone would pass'
+  );
+  assert.throws(
+    () => assertMessageBudget(JSON.stringify(quoted), metrics),
+    (error: unknown) => {
+      const failure = error as { code: string; details: Record<string, unknown>; requestMetrics: unknown };
+      assert.equal(failure.code, 'OUTPUT_TOO_LARGE');
+      assert.deepEqual(failure.details, { resource: 'messageBytes', limit: RESOURCE_LIMITS.messageBytes });
+      assert.deepEqual(failure.requestMetrics, metrics);
+      return true;
+    }
+  );
 });

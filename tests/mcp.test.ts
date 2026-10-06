@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { STDIO_DEFAULT_MAX_BUFFER_SIZE } from '@modelcontextprotocol/sdk/shared/stdio.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { createServer } from '../src/server.js';
 import { MarketService } from '../src/service.js';
@@ -1228,4 +1229,42 @@ test('tools/call without arguments validates as an empty object', async () => {
     }
   );
   assert.equal(fetches, 0);
+});
+
+test('tool results stay within the SDK stdio message limit even below the envelope budget', async () => {
+  const metrics = { httpAttempts: 1, retries: 0, durationMs: 3 };
+  for (const [blob, fits] of [
+    ['x'.repeat(4 * 1024 * 1024), true],
+    ['"'.repeat(2 * 1024 * 1024), false]
+  ] as const) {
+    class LargeService extends MarketService {
+      override async execute(): Promise<never> {
+        return { data: { blob }, meta: { source: 'live', requestMetrics: metrics }, warnings: [] } as never;
+      }
+    }
+    const server = createServer(new LargeService(new OfflineTransport(), readConfig({})));
+    const client = new Client({ name: 'message-budget-test', version: '1' });
+    const [ct, st] = InMemoryTransport.createLinkedPair();
+    try {
+      await server.connect(st);
+      await client.connect(ct);
+      const result = (await client.callTool({ name: 'market_get_categories', arguments: {} })) as CallToolResult;
+      const line = Buffer.byteLength(`${JSON.stringify({ result, jsonrpc: '2.0', id: 1 })}\n`);
+      assert.ok(line < STDIO_DEFAULT_MAX_BUFFER_SIZE, `message of ${line} bytes must fit the SDK stdio buffer`);
+      if (fits) {
+        assert.equal(result.isError, undefined);
+        assert.equal((result.structuredContent!.data as { blob: string }).blob.length, blob.length);
+      } else {
+        assert.equal(result.isError, true);
+        const error = result.structuredContent!.error as { code: string; resource: string; limit: number };
+        assert.equal(error.code, 'OUTPUT_TOO_LARGE');
+        assert.equal(error.resource, 'messageBytes');
+        assert.equal(error.limit, 9 * 1024 * 1024);
+        assert.deepEqual((result.structuredContent!.meta as { requestMetrics: unknown }).requestMetrics, metrics);
+      }
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  }
 });

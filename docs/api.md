@@ -496,6 +496,7 @@ işleme sınırları tool girdisiyle veya ortam değişkeniyle yükseltilemez.
 | 10.000 offer                                         | Çağrıdaki kaynak yanıtlarında `content[].productDepotInfoList` uzunluklarının toplamı. Kapsam dışı ve sıfır fiyatlı offer'lar da sayılır.                                                                                          |
 | 128 upstream uyarı girdisi, 65.536 byte string uyarı | Yanıt ve ürün düzeyindeki `warnings` alanlarının çağrı başına toplamı. Dizideki her öğe bir girdi, dizi olmayan bir `warnings` değeri ise tek girdi sayılır. String byte hesabına JSON tırnakları ve escape karakterleri dâhildir. |
 | 8 MiB çıktı zarfı                                    | Kompakt JSON UTF-8 olarak ölçülür. Kontrol, metin çıktısı üretilmeden ve `structuredContent` çoğaltılmadan önce yapılır. Ayrıca 2.000.000 değer ve 80 derinlik sınırı vardır.                                                      |
+| 9 MiB MCP mesajı                                     | Metin çıktısı, `structuredContent`, escape karakterleri ve protokol alanlarıyla birlikte stdio satırının boyutu. Aşılırsa `OUTPUT_TOO_LARGE` (`resource: messageBytes`) döner.                                                     |
 
 ### Hata çıktısı
 
@@ -514,11 +515,12 @@ kalır. Hata zarfı da çıktı bütçesine tabidir; geçerli ve sonlu sayaçlar
 Bu kontroller; uyarı önekleri, şema kopyaları, harita linkleri ve değerlendirmeler üretilmeden önce yapılır.
 JSON boyutu, tüm string'i veya anahtar-değer dizisini oluşturmadan artımlı olarak hesaplanır.
 
-**8 MiB zarf sınırı, JSON-RPC mesaj sınırı değildir.** Mesaj hem metin çıktısını hem de `structuredContent`'i
-taşıdığı ve escape karakterleri eklendiği için, küçük protokol alanlarıyla birlikte yaklaşık üç katına
-çıkabilir. MCP SDK 1.30 ve sonrasını kullanan stdio istemcileri varsayılan olarak 10 MiB'den büyük bir mesajı
-okumaz. Varsayılan sınırlar altında bile çok büyük bir yanıt bu istemcilerde bağlantıyı kapatır; sorgu
-kapsamını (`size`, şube sayısı) küçük tutun.
+**Mesaj sınırı zarf sınırından sıkıdır.** Mesaj zarfı hem metin hem `structuredContent` olarak taşır ve metin
+bir kez daha escape edilir; bu yüzden zarfın kabaca iki katından büyüktür. Pratikte zarfın etkin tavanı
+yaklaşık 4,5 MiB'dir; tırnak ve ters bölü ağırlıklı içerikte daha da düşer. MCP SDK 1.30 ve sonrasını kullanan
+stdio istemcileri varsayılan olarak 10 MiB'den büyük bir mesajda bağlantıyı kapatır. 9 MiB sınırı bu tampona
+pay bırakır; sınırı aşan yanıt yerine bağlantıyı koruyan sınırlı bir hata döner. Hata alırsanız sorgu
+kapsamını (`size`, şube sayısı) daraltın.
 
 ### Retry, kuyruk ve iptal
 
