@@ -20,4 +20,4 @@ body:
     id: alternatives
     attributes:
       label: Denenen alternatifler
-      description: Varsa mevcut araçlarla denediğiniz yaklaşımı anlatın.
+      description: Varsa mevcut tool'larla denediğiniz yaklaşımı anlatın.

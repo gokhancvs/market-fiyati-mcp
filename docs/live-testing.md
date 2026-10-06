@@ -1,9 +1,8 @@
 # Gerçek fiyatlarla sorgulama
 
-**Başlayın:** İstemci ayarını aşağıdaki örnekle güncelleyin. Yaklaşık 5 dakika; erişim hazırsa.
+**Başlayın:** İstemci ayarını aşağıdaki örnekle güncelleyin.
 
 Node.js 22+ ve stdio MCP istemcisi gerekir. Kaynak kod veya test kurulumu gerekmez.
-Normal fiyat sorgusu için offline kabul testi veya ayrıca canlı test onayı gerekmez.
 [Kullanım koşulları ve bağımsızlık açıklaması](../README.md#amaç-ve-kullanım-izinleri) operatöre yöneliktir.
 Geliştirici kabul testleri bu rehberin sonundadır.
 
@@ -12,9 +11,9 @@ Geliştirici kabul testleri bu rehberin sonundadır.
 Mevcut `market-fiyati` kaydını güncelleyin; ikinci kayıt eklemeyin.
 **Örnek konum: Galata Kulesi (`41.025591, 28.974075`).**
 Arama alanı merkezden **4 km yarıçap** (8 km çap). Başka konum için koordinatları değiştirin.
-Yakın şube keşfi deneysel erişim gerektirdiği için örnekte `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değeri `true`’dur.
-Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün araçlarını açar. Varsayılan `false`
-değişmez; şube ID’lerini zaten biliyorsanız değeri `false` yapabilirsiniz.
+Yakın şube keşfi deneysel erişim gerektirdiği için örnekte `MARKET_FIYATI_ENABLE_EXPERIMENTAL` değeri `true`'dur.
+Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün tool'larını açar. Varsayılan `false`
+değişmez; şube ID'lerini zaten biliyorsanız değeri `false` yapabilirsiniz.
 
 ```json
 {
@@ -35,17 +34,17 @@ değişmez; şube ID’lerini zaten biliyorsanız değeri `false` yapabilirsiniz
 }
 ```
 
-Env değerleri metin olarak aktarılır; sunucu koordinatları `double` sayıya çevirir.
+Env değerleri metin olarak aktarılır; sunucu bunları sayıya çevirir.
 Tool/API girdisinde sayılar tırnaksızdır; ondalık ayırıcı noktadır. Üç konum env alanını birlikte verin
-veya üçünü kaldırın. **Env kullanmıyorsanız devam etmeden önce AI’a enlem, boylam ve km yarıçapını verin;**
+veya üçünü kaldırın. **Env kullanmıyorsanız devam etmeden önce AI'ya enlem, boylam ve km yarıçapını verin;**
 bunları her konumlu çağrıya eklemesini isteyin. Otomatik 1 km yoktur.
 
 Ayarı özel istemci dosyasında tutun. Sunucuyu yeniden başlatın; terminalde env değiştirmek yeterli değildir.
-`npx` bulunamazsa mutlak yolunu kullanın. Paket henüz npm’de yoksa [kaynak sürümünü](../README.md#kaynak-koddan-geliştirme) çalıştırın.
+`npx` bulunamazsa mutlak yolunu kullanın. Paket kurulamıyorsa [kaynak koddan çalıştırın](../README.md#kaynak-koddan-geliştirme).
 
 ## 2. Bağlantıyı kontrol edin
 
-AI’a yazın:
+AI'ya yazın:
 
 > `market_status` çağır ve `market://guide` oku. Henüz veri sorgulama.
 
@@ -56,23 +55,23 @@ AI’a yazın:
 | `data.locationDefaults.configured`  | Env kullanıyorsanız `true` |
 | `data.experimentalEndpointsEnabled` | Bu örnekte `true`          |
 
-Status koordinatları göstermez ve API’ye istek göndermez. Başarılı bağlantı, fiyat erişimini kanıtlamaz.
+Status koordinatları göstermez ve API'ye istek göndermez. Başarılı bağlantı, fiyat erişimini kanıtlamaz.
 
 ## 3. Şubeleri belirleyin
 
-**Gerçek şube ID’leri varsa:** Bunları boş olmayan `depots` listesinde kullanın. Zincir adı yeterli değildir.
+**Gerçek şube ID'leri varsa:** Bunları boş olmayan `depots` listesinde kullanın. Zincir adı yeterli değildir.
 
-**Şubeler bilinmiyorsa:** Env’de `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` yapın, yeniden başlatın.
-İlk kurulumda açtıysanız yeniden değiştirmeniz gerekmez. Status ile doğrulayıp AI’a yazın:
+**Şubeler bilinmiyorsa:** Env'de `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` yapın, yeniden başlatın.
+İlk kurulumda açtıysanız yeniden değiştirmeniz gerekmez. Status ile doğrulayıp AI'ya yazın:
 
 > Ayarlı veya verdiğim konum ve yarıçapla `market_find_nearby_depots` bir kez çağır. Dönen şubeleri göster;
-> aramada bu ID’leri kullan. Sonuç boşsa dur.
+> aramada bu ID'leri kullan. Sonuç boşsa dur.
 
 Şubeleri elle daraltmak isteğe bağlıdır. `market_list_markets` gerekmez; ID uydurmayın.
 
 ## 4. Tek ürün arayın
 
-AI’a yazın:
+AI'ya yazın:
 
 > Ayarlı veya verdiğim konum, yarıçap ve belirlediğimiz şubelerle `market_search_products` çağır.
 > `keywords="süt"`, `pages=0`, `size=5`. Ürün, gramaj, şube, TRY fiyatı, sorgu zamanı ve uyarıları göster.
@@ -101,34 +100,34 @@ Retry kapalıyken arama **1**, şube keşfiyle **2** HTTP denemesidir. Bu sayıl
 - Yalnız adres varsa deneysel `market_geocode_address` bir kez çağrılabilir. Belirsiz adayı kullanıcı seçer;
   yarıçapı da kullanıcı sağlar. Bu işlem bütçeye bir HTTP denemesi ekler.
 
-[Tam konum sözleşmesi](api.md#context).
+[Tam konum sözleşmesi](api.md#konum-ve-şube-bağlamı).
 
 </details>
 
 <details>
 <summary>Geliştirici kabulü: daha fazla endpoint denemek</summary>
 
-Bu bölüm paket kullanıcısının kurulum adımı değildir. Geliştirmede offline kalın; canlı kabulü
-yalnız kullanıcıyla birlikte başlatın. Önce aşağıdaki offline kontrolleri tamamlayın, sonra bu
-oturum için operatörün seçtiği live ayarıyla küçük sorguları yürütün.
+Bu bölüm paket kullanıcısının kurulum adımı değildir. Geliştirme sırasında `offline` modda kalın;
+live kabul testini operatör başlatır. Önce aşağıdaki offline kontrolleri tamamlayın, sonra operatörün
+seçtiği live ayarıyla küçük sorgular yapın.
 
 1. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın; `market://guide` ve `market://endpoints` okuyun.
 2. İzinli küçük live testte bilinen API filtreleriyle tür, gramaj ve sıralamayı birleştirin. Filtreler
    bilinmiyorsa kategori/facet keşfi yapın; sayfa kapsamını kontrol edin.
-3. Ürün ID’si ve gramajı doğrulandıktan sonra gereken endpoint’leri ayrı sınayın: detay, benzer ürün,
+3. Ürün ID'si ve gramajı doğrulandıktan sonra gereken endpoint'leri ayrı sınayın: detay, benzer ürün,
    fiyat geçmişi; kategori/fiyat/gramaj/indirim filtreleri.
 4. `limits.basketItems` izin veriyorsa iki ürünlük sepeti zincir ve şube bazında karşılaştırın.
    Eksik üründe `total=null` beklenir. Retry bütçeye dâhildir; iki ürün bile sınırı aşabilir.
-5. Gereken deneysel endpoint’leri operatör açtıktan sonra sırayla sınayın: market listesi, geocode/ters
+5. Gereken deneysel endpoint'leri operatör açtıktan sonra sırayla sınayın: market listesi, geocode/ters
    geocode, yakın şubeler, sync ve alternatifler. Yanıtı [API sözleşmesiyle](api.md) karşılaştırın;
    farklı biçimi tahminle dönüştürmeyin, sözleşme düzeltmesine sentetik regresyon testi ekleyin.
 
 Her ürün çağrısı `depots` alır; konum ve yarıçap env veya çağrıdan tamamlanır.
-Normal kullanımda mevcut teklif yeterliyse ek detay sorgusu gerekmez.
+Normal kullanımda mevcut offer yeterliyse ek detay sorgusu gerekmez.
 
-**Live yük, uzun/büyük sepet, süre ve kota keşfi yapılmaz.** Listeyi bölmek veya sync’e geçmek bu sınırı kaldırmaz.
-Timeout/Stop davranışını [sentetik kabul kitiyle](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/docs/offline-acceptance.md) sınayın.
-SDK başarısı masaüstü istemci kabulü değildir; küçük live örnek büyük yükü veya güvenli kotayı kanıtlamaz.
+**Live yük, uzun/büyük sepet, süre ve kota keşfi yapılmaz.** Listeyi bölmek veya sync'e geçmek bu sınırı kaldırmaz.
+Timeout/Stop davranışını [sentetik kabul testleriyle](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/docs/offline-acceptance.md)
+sınayın. Testlerin kanıtlamadıkları: [Doğrulama](verification.md#neyi-kanıtlamıyoruz).
 Yalnız denenen endpoint, istemci/paket sürümü, tarih ve güvenli sonuç özetini kaydedin;
 koordinat, token ve ham yanıtları proje dışında tutun. 429 bekleme süresini kullanıcıya gösterin.
 Kabul oturumundan sonra geliştirme ayarını yeniden `offline` yapıp sunucuyu yeniden başlatın.

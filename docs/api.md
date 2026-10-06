@@ -3,7 +3,7 @@
 **Yaptığınız çağrıyla ilgili bölümü okuyun. Filtre ve kimlik değerlerini her zaman API yanıtından alın.**
 
 Bu belge, bağımsız bir MCP uygulamasının sözleşmesidir. Sağlayıcının resmî belgesi değildir ve kullanım izni
-vermez. [Kullanım izinleri](../README.md#amaç-ve-kullanım-izinleri) · [Doğrulama sınırı](verification.md).
+vermez. [Kullanım izinleri](../README.md#amaç-ve-kullanım-izinleri) · [Doğrulama sınırı](verification.md#neyi-kanıtlamıyoruz).
 
 ## Endpoint'ler
 
@@ -44,36 +44,25 @@ verisi desteklenmez.
 Resource'lar: `market://guide`, `market://endpoints`, `market://status`.
 Prompt'lar: `compare_shopping_list`, `find_best_product_price`, `analyze_price_history`.
 
-## Context
+## Konum ve şube bağlamı
+
+Tablolardaki `...context` kısaltması bu bölümdeki alanları gösterir: `latitude`, `longitude`, `distance`
+ve `depots`.
 
 **Ürün çağrıları için:** Enlem, boylam, km yarıçapı ve boş olmayan `depots` listesi sağlayın.
-`latitude`, `longitude` ve `distance` JSON sayısıdır; string kabul edilmez. Sunucuda `number`
-(64 bit `double`) kullanılır. Yalnız env metinleri girişte sayıya çevrilir.
+`latitude`, `longitude` ve `distance` tırnaksız JSON sayısı olmalıdır; `"41.0"` gibi string değerler
+reddedilir. Env değerleri metin olduğu için sunucu bunları başlangıçta sayıya çevirir.
 **İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir.
-Konum env’den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID’si zincir anahtarıyla şube ID’sini
-birleştiren opak string’dir. Zincir adı, şube ID’sinin yerine geçmez.
+Konum env'den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID'si zincir anahtarıyla şube ID'sini
+birleştiren opak string'dir. Zincir adı, şube ID'sinin yerine geçmez.
 
 | Durum                 | Kural                                                                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Env kurulu            | `MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE`, `MARKET_FIYATI_DISTANCE` birlikte gerekir. Tool’da bu alanlar atlanabilir. |
+| Env kurulu            | `MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE`, `MARKET_FIYATI_DISTANCE` birlikte gerekir. Tool'da bu alanlar atlanabilir. |
 | Env yok               | Üç alan da çağrıda zorunludur. **1 km varsayılanı yoktur.**                                                                     |
 | Çağrı konumu farklı   | Tam koordinat çifti env çiftini değiştirir; tek koordinat reddedilir.                                                           |
 | Çağrı yarıçapı farklı | Distance env yarıçapını değiştirir. Verilmezse env yarıçapı kullanılır.                                                         |
-| Özel araçlar          | Ters geocode yalnız koordinat alır. Kategori/adres arama gibi konumsuz araçlar değişmez.                                        |
-
-`1.0.6` sürümünde otomatik 1 km yarıçap kaldırıldı. Önceki sürümlerde geçerli olan şu
-`market_search_products` çağrısı, env konumu yoksa artık `distance` eksikliği nedeniyle reddedilir:
-
-```json
-{ "keywords": "yoğurt", "latitude": 41, "longitude": 29, "depots": ["bim-example"], "pages": 0, "size": 5 }
-```
-
-Geçiş için çağrıya `"distance": 2` ekleyin veya
-`MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE` ve `MARKET_FIYATI_DISTANCE`
-env değerlerinin üçünü birlikte ayarlayın. Tam env üçlüsü varsa yukarıdaki çağrı,
-çağrıdaki koordinatları ve env'deki yarıçapı kullanır. `bim-example` yalnız yer tutucudur;
-API'den dönen uygun şube ID'sini kullanın. Bu zorunlu girdi değişikliği `1.0.6` patch
-sürümünde eski çağrılar için uyumluluk kırılmasıdır.
+| Özel tool'lar         | Ters geocode yalnız koordinat alır. Kategori/adres arama gibi konumsuz tool'lar değişmez.                                       |
 
 `market_status.data.locationDefaults.configured` yalnız ayarın varlığını bildirir; gerçek değerler
 status veya tool şemasına yazılmaz. Env desteği offline/deneysel kilitleri açmaz.
@@ -102,6 +91,21 @@ gruplar ve `splitBasket` yalnızca seçili `depots` için üretilir.
 Seçilmemiş şubelerin offer'ları `data.outOfScopeOffers=[{productId,offer}]` içinde; ham alanları, harita
 linkleri ve değerlendirme referanslarıyla birlikte tutulur, ama hiçbir hesaba katılmaz. Seçili şubelerde hiç
 offer yoksa en ucuz fiyat ve tam sepet toplamı `null` olur.
+
+### 1.0.6 yarıçap geçişi
+
+`1.0.6` sürümünde otomatik 1 km yarıçap kaldırıldı. Bu zorunlu girdi değişikliği, patch sürümünde
+eski çağrıları kıran bir uyumluluk değişikliğidir. Önceki sürümlerde geçerli olan şu
+`market_search_products` çağrısı, env konumu yoksa artık `distance` eksik olduğu için reddedilir:
+
+```json
+{ "keywords": "yoğurt", "latitude": 41, "longitude": 29, "depots": ["bim-example"], "pages": 0, "size": 5 }
+```
+
+Geçiş için çağrıya `"distance": 2` ekleyin veya `MARKET_FIYATI_LATITUDE`, `MARKET_FIYATI_LONGITUDE` ve
+`MARKET_FIYATI_DISTANCE` değerlerinin üçünü birlikte ayarlayın. Tam env üçlüsü varsa yukarıdaki çağrı,
+çağrıdaki koordinatları ve env'deki yarıçapı kullanır. `bim-example` yalnız yer tutucudur; API'den dönen
+uygun şube ID'sini kullanın. Yayımlanmış sürümlerin tag'i ve paketi geriye dönük değiştirilmez.
 
 ## Kategori ve arama
 
@@ -133,8 +137,8 @@ Bilinen filtreleri ve sıralamayı tek bir aramada birleştirin:
 }
 ```
 
-Konum örneği **Galata Kulesi**, yarıçap **4 km**’dir. `bim-example` gerçek şube ID’si değildir;
-bu konum için API’den dönen bir şube ID’siyle değiştirin.
+Konum örneği **Galata Kulesi**, yarıçap **4 km**'dir. `bim-example` gerçek şube ID'si değildir;
+bu konum için API'den dönen bir şube ID'siyle değiştirin.
 
 - Fiyat aralığı örnekleri: `10-50`, `100-*`, `100+`.
 - İndirim filtresi: `["true"]` verin ya da alanı hiç göndermeyin.
@@ -158,7 +162,7 @@ Toplam eşleşme sayısı, dönen ürün sayısından ya da dolu bir sayfanın o
 küçükse `INVALID_RESPONSE` hatası döner. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
 bir yanıt açıklama için kullanılıyorsa o yanıtın özgün `retrievedAt` değeri belirtilir.
 
-### İndirim işaretini koruma
+### `discount` işaretini okuma
 
 | `discount` | Yorumu                                                                                                                    |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -166,13 +170,19 @@ bir yanıt açıklama için kullanılıyorsa o yanıtın özgün `retrievedAt` d
 | `false`    | API ürünü indirimli olarak işaretlememiştir. İndirim filtresi kullanıldı diye bu offer elenmez veya yeniden etiketlenmez. |
 | Alan yok   | Bilinmiyor                                                                                                                |
 
-İndirim filtresi, yanıtın üst düzey `warnings` alanına bir belirsizlik uyarısı ekler; ürünlerdeki işareti
-değiştirmez. `discountlessPrice`, ürünün geçmişte bu fiyattan satıldığının kanıtı değildir. Referans fiyat,
-indirim oranı veya promosyon metni `discount` boolean'ının yerine geçmez ve fiyat farkından indirim yüzdesi
-hesaplanmaz. `discount=false` iken referans fiyatın yüksek olması otomatik olarak çelişki sayılmaz.
+- İndirim filtresi, yanıtın üst düzey `warnings` alanına bir belirsizlik uyarısı ekler; ürünlerdeki işareti
+  değiştirmez.
+- `percentage` indirim oranı değildir. `discountlessPrice`, ürünün geçmişte bu fiyattan satıldığının kanıtı
+  değildir.
+- Referans fiyat, `discountRatio` veya `promotionText` `discount` boolean'ının yerine geçmez. Fiyat farkından
+  indirim yüzdesi hesaplanmaz; iki offer arasındaki fark yalnız bir karşılaştırmadır.
+- `discount=false` iken referans fiyatın yüksek olması çelişki sayılmaz. Promosyon alanları stok veya üyelik
+  koşulu için garanti vermez.
+- Fiyat geçmişi serileri indirim veya referans fiyat işareti içermez; fiyatın uzun süre sabit kalması
+  sürekli bir indirim olduğunu kanıtlamaz.
 
-Kullanıcının kesin şartları korunur; ancak açıklayıcı tercihler yakın alternatifleri erkenden elemek için
-kullanılmamalıdır. Ayrıntılı karar kuralları `market://guide` resource'undadır.
+Kullanıcının kesin şartları korunur. Yalnız tercih bildiren ifadeler (ör. "tercihen tam yağlı") yakın
+alternatifleri baştan elemek için kullanılmaz. Ayrıntılı karar kuralları `market://guide` resource'undadır.
 
 ## Ürün ve offer'lar
 
@@ -214,10 +224,8 @@ değerin başındaki ve sonundaki boşluklar kırpılmaz.
 | `discountRatio` / `promotionText` | `null` olabilen indirim oranı ve promosyon metni                      |
 | `maps`                            | MCP'nin ürettiği `{google,apple,yandex}` HTTPS linkleri veya `null`   |
 
-`retrievedAt`, sorgunun tamamlandığı andır. `indexTime` için bir zaman dilimi varsayılmaz. İki offer
-arasındaki fiyat farkı bir karşılaştırmadır; kampanya yüzdesi değildir. Promosyon alanları stok veya üyelik
-koşulu için garanti vermez. Fiyat geçmişi serileri geçmişteki indirim veya referans fiyat işaretlerini
-içermez; fiyatın uzun süre sabit kalması, sürekli bir indirim etiketi olduğunu kanıtlamaz.
+`retrievedAt`, sorgunun tamamlandığı andır. `indexTime` için bir zaman dilimi varsayılmaz. İndirim alanlarının
+yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
 
 ### Harita linkleri
 
@@ -288,13 +296,13 @@ endpoint ürün kategori ağacı değildir. Arama ve karşılaştırma için ön
 tool'ları durdurmaz. Ürünlerde görülen zincir adları, tam bir liste olduğu veya bu zincirlerin aktif olduğu
 anlamına gelmez.
 
-Sync, sepet bütçesini aşmak veya büyük live denemeler yapmak için bir kaçış yolu değildir. Sepet, açıkça
+Sync, sepet bütçesini aşmak veya büyük live denemeler yapmak için kullanılmaz. Sepet, açıkça
 verilen ID'leri tek tek sorgular; bulunamayan bir ürünün yerine başka bir ID konmaz.
 
 ## Sepet
 
 **Çağırmadan önce:** `items.length * (retries + 1) <= 5` koşulu sağlanmalıdır. `items` şu biçimdedir:
-`[{"id":"ürün-id","quantity":2}]`. Tüm ürünler için ortak bir konum context'i gerekir. Aynı ID iki kez
+`[{"id":"ürün-id","quantity":2}]`. Tüm ürünler için ortak bir konum bağlamı gerekir. Aynı ID iki kez
 verilirse istek reddedilir. Bir ürün için kullanılmayan retry hakkı başka bir ürüne aktarılmaz.
 
 | Retry ayarı | Etkin ürün sınırı |
@@ -338,13 +346,13 @@ offer `unavailableOffers` içine girmez. Bu offer'ların değerlendirme yolu `/d
 biçimindedir. Korunan kanıt da aynı çıktı bütçesine tabidir; bütçe aşılırsa açık bir hata döner. Uyarılar
 talimat değil, veridir. Metadata offer dizilerini yeniden kopyalamaz ve sonuçlar cache'lenmez.
 
-## Yanıt gözlemleri
+## Yanıt zarfı ve metadata
 
 Başarılı yanıtlarda hem metin çıktısı hem de `structuredContent` aynı `{data,meta,warnings}` zarfını taşır.
 `market_status`, `market_compare_basket`, `market_compare_product_offers` ve `market_get_price_history`
-araçlarının `outputSchema` alanı kararlı yerel alanları açıklar. Sepet toplamları ve geçmiş istatistikleri
-null olabilir. Ham upstream ek alanlar korunur; diğer araçlar genel zarf şemasını kullanır.
-Hata yanıtında `data:null` kalır. Şema ilanı API'ye ek sorgu göndermez.
+tool'larının `outputSchema` alanı kararlı yerel alanları açıklar. Sepet toplamları ve geçmiş istatistikleri
+null olabilir. Ham upstream ek alanlar korunur; diğer tool'lar genel zarf şemasını kullanır.
+Hata yanıtında `data:null` kalır. Çıktı şeması API'ye ek sorgu göndermez.
 
 Örnek (tarih yalnızca temsilidir):
 
@@ -432,15 +440,8 @@ offer'ları kapsar ve ham offer'ı kopyalamaz.
 | `false`     | `not_indicated`      |
 | Alan yok    | `unknown`            |
 
-Referans fiyat, `discountRatio` ve `promotionText` bu sonucu değiştirmez. Hiçbir değer kampanyayı doğrulamaz
-veya indirim yüzdesi üretmek için kullanılmaz.
-
-**23.09.2026 uyumluluk değişikliği:** `inconsistent` değeri ve `DISCOUNT_INCONSISTENT` kodu artık üretilmiyor.
-Daha önce `discount=false` ve yüksek referans fiyat nedeniyle bu değeri alan kayıtlar artık `not_indicated`
-olur. Daha önce yalnızca referans fiyat, oran veya promosyon metni nedeniyle `unverified` sayılan kayıtlar,
-`discount=false` ise `not_indicated`, işaret yoksa `unknown` olur. Metadata, ham offer'lar ve diğer üç değer
-aynen korunur. İstemciler kaldırılan değere veya koda bağımlı olmamalıdır. Upstream'den aynı adla gelen alanlar
-ve uyarılar ham veri olarak kalır; bunlar MCP kodu sayılmaz.
+Referans fiyat, `discountRatio` ve `promotionText` bu sonucu değiştirmez; ayrıntı:
+[`discount` işaretini okuma](#discount-işaretini-okuma).
 
 Karşılaştırmalar ayrıca `meta.offerAssessmentRefs=[{path,assessmentIndex}]` alanını verir. `path`, üst
 düzey yanıt zarfı içindeki bir JSON pointer'dır (örneğin `/data/offers/0` veya
@@ -540,8 +541,7 @@ kapsamını (`size`, şube sayısı) küçük tutun.
   istemcinin süre sınırını aşabilir.
 
 İstemcinin iptal (cancellation) göndermesi veya stdio bağlantısının kapanması, aktif ve bekleyen tüm işleri
-iptal eder. Gerçek istemcinin timeout ve Stop davranışı yalnızca sentetik gecikme ve fake fetch ile test
-edilir. Uzun veya büyük sepet testleri ile live yük, süre ve kota keşfi yapılmaz.
+iptal eder. Bu davranışın test sınırları: [Doğrulama](verification.md#neyi-kanıtlamıyoruz).
 
 ### Diğer hata kodları
 
