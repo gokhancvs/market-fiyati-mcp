@@ -22,6 +22,11 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Ürün girdisi:** `market_get_product` girdisindeki sabit `identityType`, `pages` ve `size` alanları opsiyonel
   kalır ancak artık default değer yayımlamaz; sunucu bu değerleri API'ye her zaman kendisi gönderir. Bu
   alanları gönderen çağrılar çalışmaya devam eder.
+- **Geliştirme ortamı:** ESLint 8 ve airbnb-base yerine ESLint 10 flat config, `@eslint/js` ve
+  typescript-eslint kullanılır; `.mjs` betikleri ve testleri de gerçekten denetlenir, uyarılar `check`'i
+  başarısız kılar. Build düz `tsc` ile yapılır ve kullanılmayan `.d.ts` ile `.map` dosyalarını üretmez. Test
+  ağ engeli DNS sorgularını ve UDP soketlerini de engeller. Yayımlanan paket ve çalışma zamanı bağımlılıkları
+  değişmedi.
 - **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
   sonlanır.
 
