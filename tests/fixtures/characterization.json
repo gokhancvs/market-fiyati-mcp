@@ -3497,17 +3497,14 @@
               "pattern": "^[\\p{L}\\p{N}_-]+$"
             },
             "identityType": {
-              "default": "id",
               "type": "string",
               "const": "id"
             },
             "pages": {
-              "default": 0,
               "type": "number",
               "const": 0
             },
             "size": {
-              "default": 1,
               "type": "number",
               "const": 1
             }
@@ -5676,17 +5673,14 @@
               "pattern": "^[\\p{L}\\p{N}_-]+$"
             },
             "identityType": {
-              "default": "id",
               "type": "string",
               "const": "id"
             },
             "pages": {
-              "default": 0,
               "type": "number",
               "const": 0
             },
             "size": {
-              "default": 1,
               "type": "number",
               "const": 1
             }

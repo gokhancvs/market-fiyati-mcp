@@ -421,7 +421,8 @@ export class MarketService {
     searchByCategories: (input, call) => this.productQuery('searchByCategories', input, input, call, []),
     similar: (input, call) => this.productQuery('similar', input, input, call, []),
     alternative: (input, call) => this.productQuery('alternative', input, input, call, []),
-    product: (input, call) => this.productQuery('product', input, input, call, [input.identity]),
+    product: (input, call) =>
+      this.productQuery('product', input, { ...input, ...exactIdPayload(input.identity) }, call, [input.identity]),
     sync: (input, call) =>
       this.productQuery(
         'sync',

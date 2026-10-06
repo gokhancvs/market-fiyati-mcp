@@ -13,11 +13,15 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Şema:** `market_get_price_history` girdisindeki `uniqueId` alanının ürün `id` değeri olduğu açıklandı.
 - **Belgeler:** README'ye en üstte resmî olmama notu, istemcilere göre yapılandırma dosyası konumları,
   örnek istekler, 5 ürünlük sepet sınırı ve sorun giderme bölümü eklendi. `api.md` eksik hata kodlarını
-  açıklar; yeni bir test kodda üretilen her hata kodunun belgelendiğini denetler.
+  açıklar; yeni bir test kodda üretilen her hata kodunun belgelendiğini denetler. `api.md`, satırı olmayan
+  sepet grubundaki `subtotal=0` değerini açıklar.
 - **İç sadeleştirme:** Tool işlemleri tipli bir handler tablosundan geçer; ürün endpoint'lerinin listesi
   endpoint tablosundaki türden türetilir; limitler ve sunucu sürümü tek kaynaktan okunur. Yeni bir
   karakterizasyon testi tool çıktılarının, API'ye giden gövdelerin ve tool şemalarının değişmediğini denetler.
-  Tool girdisi ve çıktısı değişmedi.
+  Tool girdisi ve çıktısı bu sadeleştirmeyle değişmedi.
+- **Ürün girdisi:** `market_get_product` girdisindeki sabit `identityType`, `pages` ve `size` alanları opsiyonel
+  kalır ancak artık default değer yayımlamaz; sunucu bu değerleri API'ye her zaman kendisi gönderir. Bu
+  alanları gönderen çağrılar çalışmaya devam eder.
 - **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
   sonlanır.
 

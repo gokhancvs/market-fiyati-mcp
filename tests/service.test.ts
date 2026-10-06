@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { MarketService } from '../src/service.js';
 import { readConfig } from '../src/config.js';
 import { OfflineTransport, type Transport, type Payload } from '../src/transport.js';
-import type { EndpointId, Operation, SearchResponse } from '../src/contracts.js';
+import { z } from 'zod';
+import { schemas, type EndpointId, type Operation, type SearchResponse } from '../src/contracts.js';
 
 const context = {
   latitude: 41,
@@ -271,6 +272,26 @@ test('batch sync emits required identityType and size', async () => {
     pages: 0,
     size: 2
   });
+});
+
+test('product lookup always sends the fixed wire fields, which stay optional inputs without defaults', async () => {
+  const fixed = { identityType: 'id', pages: 0, size: 1 };
+  for (const args of [
+    { ...context, identity: 'A' },
+    { ...context, identity: 'A', ...fixed }
+  ]) {
+    const transport = new FixtureTransport();
+    await new MarketService(transport, readConfig({})).execute('product', args);
+    // Key order is part of the request body.
+    assert.equal(JSON.stringify(transport.calls[0]?.payload), JSON.stringify({ ...context, identity: 'A', ...fixed }));
+  }
+  const service = new MarketService(new FixtureTransport(), readConfig({}));
+  for (const wrong of [{ pages: 1 }, { size: 2 }, { identityType: 'barcode' }])
+    await assert.rejects(service.execute('product', { ...context, identity: 'A', ...wrong }), {
+      code: 'INVALID_ARGUMENT'
+    });
+  const properties = z.toJSONSchema(schemas.product, { io: 'input' }).properties as Record<string, object>;
+  for (const key of Object.keys(fixed)) assert.equal('default' in properties[key]!, false, key);
 });
 
 test('exact product and sync reject unexpected or duplicate identities', async () => {
