@@ -27,6 +27,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   başarısız kılar. Build düz `tsc` ile yapılır ve kullanılmayan `.d.ts` ile `.map` dosyalarını üretmez. Test
   ağ engeli DNS sorgularını ve UDP soketlerini de engeller. Yayımlanan paket ve çalışma zamanı bağımlılıkları
   değişmedi.
+- **CI:** Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testleri artık `main` için zorunlu kontroller
+  arasında; Windows kurulumu yayından önce PR'da doğrulanmış olur.
 - **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
   sonlanır.
 

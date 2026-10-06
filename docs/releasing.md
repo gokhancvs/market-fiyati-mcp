@@ -110,7 +110,8 @@ Kurulum eksikse publish başarısız olur; kurduktan sonra aynı çalışmanın 
 
 1. Tag/main ilişkisi, sürümler ve notlar doğrulanır.
 2. Tam platform matrisi tekrar çalıştırılmaz: `main` branch koruması, her commit'in PR'da Ubuntu Node 22/24,
-   macOS Node 24 kontrollerinden ve bağımlılık denetiminden geçmesini zorunlu kılar.
+   macOS Node 24 kontrollerinden, Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testlerinden ve
+   bağımlılık denetiminden geçmesini zorunlu kılar.
 3. Yayın işi tag commit'inde offline kontrolleri çalıştırır. Aynı arşiv ayrı cache/dizinde üretim bağımlılıklarıyla kurulur;
    npm binary'si ağ engeliyle sınanır.
 4. Test edilmiş arşiv OIDC ile npm'e public/latest gönderilir; sürüm, integrity ve latest doğrulanır.
