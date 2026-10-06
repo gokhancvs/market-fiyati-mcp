@@ -4,6 +4,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 1.0.11 — 2026-10-06
+
 - **Büyük yanıtlar:** Tool sonucunun stdio mesajı (metin, `structuredContent`, escape ve protokol alanları)
   9 MiB ile sınırlandı. Daha önce 8 MiB'lik zarf sınırının altında kalan bir yanıt mesajda 10 MiB'yi aşabiliyor
   ve MCP SDK 1.30+ istemcilerinde bağlantıyı kapatıyordu. Artık `OUTPUT_TOO_LARGE` (`resource: messageBytes`)
@@ -14,6 +16,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **CI:** Yayın workflow'u tam platform matrisini artık tekrar çalıştırmaz; `main` branch koruması bu
   kontrolleri her commit için zaten zorunlu kılar. Yayın işi tag commit'inde `check` ve bağımsız kurulum
   testini çalıştırmaya devam eder.
+
+[1.0.11 sürüm notları](docs/releases/v1.0.11.md).
 
 ## 1.0.10 — 2026-10-06
 
