@@ -47,7 +47,7 @@ class Warnings {
     this.codes.push(code);
     this.texts.push(text);
   }
-  /** Record codes whose text, if any, envelope() derives. */
+  /** Record codes whose text, if any, envelope() derives; use this, not warn(), for the codes it derives. */
   code(...codes: WarningCode[]): void {
     this.codes.push(...codes);
   }
@@ -59,7 +59,7 @@ class Warnings {
 const EXPERIMENTAL_WARNING =
   'Experimental endpoint; operator enabled access does not certify live validation. See release verification notes.';
 // The product endpoint takes one exact id; these wire fields are fixed.
-const productLookup = (identity: string) => ({ identity, identityType: 'id', pages: 0, size: 1 });
+const exactIdPayload = (identity: string) => ({ identity, identityType: 'id', pages: 0, size: 1 });
 const priceScopeWarning =
   'Prices apply to returned offers in the supplied location and depot selection; stock and promotion eligibility are not guaranteed.';
 
@@ -174,7 +174,7 @@ export class MarketService {
     return { data: validateResponse(endpoint, result.data), meta: result.meta };
   }
   /** Fetch a product response, check it against the request and add branch map links to every offer. */
-  private async getProducts(endpoint: ProductEndpoint, payload: Payload, call: Call, requestedIds: string[] = []) {
+  private async getProducts(endpoint: ProductEndpoint, payload: Payload, call: Call, requestedIds: string[]) {
     const { data: response, meta } = await this.get(endpoint, payload, call);
     if (endpoints[endpoint].kind === 'productPage') {
       const offset = Number(payload.pages) * Number(payload.size);
@@ -279,7 +279,7 @@ export class MarketService {
       );
       // Use bounded individual lookups without choosing substitute products.
       for (const item of items) {
-        const result = await this.getProducts('product', { ...context, ...productLookup(item.id) }, call, [item.id]);
+        const result = await this.getProducts('product', { ...context, ...exactIdPayload(item.id) }, call, [item.id]);
         const found = result.data.content.find((p) => p.id === item.id);
         if (found) products.push(found);
         sources.push(result.meta);
@@ -295,6 +295,7 @@ export class MarketService {
         times,
         items.map((item) => item.id)
       );
+      log.codes.unshift(...observations.warningCodes);
       const links = offerAssessmentLinks(products);
       const comparison = compareBasket(items, products, groupBy, links.visitOffer, new Set(context.depots));
       return this.envelope(
@@ -310,11 +311,11 @@ export class MarketService {
           ...observations,
           offerAssessmentRefs: links.references
         },
-        new Warnings(log.texts, [...observations.warningCodes, ...log.codes])
+        log
       );
     },
     compareProduct: async (input, call) => {
-      const result = await this.getProducts('product', { ...input, ...productLookup(input.identity) }, call, [
+      const result = await this.getProducts('product', { ...input, ...exactIdPayload(input.identity) }, call, [
         input.identity
       ]);
       const product = result.data.content.find((p) => p.id === input.identity);
@@ -416,10 +417,10 @@ export class MarketService {
         result.meta
       );
     },
-    search: (input, call) => this.productQuery('search', input, input, call),
-    searchByCategories: (input, call) => this.productQuery('searchByCategories', input, input, call),
-    similar: (input, call) => this.productQuery('similar', input, input, call),
-    alternative: (input, call) => this.productQuery('alternative', input, input, call),
+    search: (input, call) => this.productQuery('search', input, input, call, []),
+    searchByCategories: (input, call) => this.productQuery('searchByCategories', input, input, call, []),
+    similar: (input, call) => this.productQuery('similar', input, input, call, []),
+    alternative: (input, call) => this.productQuery('alternative', input, input, call, []),
     product: (input, call) => this.productQuery('product', input, input, call, [input.identity]),
     sync: (input, call) =>
       this.productQuery(
@@ -435,7 +436,7 @@ export class MarketService {
     input: { depots: string[]; offer_discount?: string[] | undefined },
     payload: Payload,
     call: Call,
-    requestedIds: string[] = []
+    requestedIds: string[]
   ): Promise<Envelope> {
     const result = await this.getProducts(operation, payload, call, requestedIds);
     const data = result.data;
