@@ -7,6 +7,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **MCP Registry:** Yeni sürüm tag'i artık `server.json`'ı resmî MCP Registry'ye de yayımlar. Yayın, npm
   yayınından sonra ayrı bir işte GitHub OIDC ile yapılır; `mcp-publisher` sabit sürüm ve SHA-256 ile
   doğrulanır. İlk kayıt bir sonraki sürümle oluşur.
+- **CI:** Yayın workflow'u tam platform matrisini artık tekrar çalıştırmaz; `main` branch koruması bu
+  kontrolleri her commit için zaten zorunlu kılar. Yayın işi tag commit'inde `check` ve bağımsız kurulum
+  testini çalıştırmaya devam eder.
 
 ## 1.0.10 — 2026-10-06
 

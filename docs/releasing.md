@@ -109,9 +109,9 @@ Kurulum eksikse publish başarısız olur; kurduktan sonra aynı çalışmanın 
 <summary>Otomatik akış ve başarısız yayını sürdürme</summary>
 
 1. Tag/main ilişkisi, sürümler ve notlar doğrulanır.
-2. Ubuntu Node 22/24, macOS Node 24 kontrolleri; üretim bağımlılık denetimi ve
-   Ubuntu Node 22 / Windows Node 24 bağımsız kurulum testi geçer.
-3. Yayın işi offline kontrolleri tekrarlar. Aynı arşiv ayrı cache/dizinde üretim bağımlılıklarıyla kurulur;
+2. Tam platform matrisi tekrar çalıştırılmaz: `main` branch koruması, her commit'in PR'da Ubuntu Node 22/24,
+   macOS Node 24 kontrollerinden ve bağımlılık denetiminden geçmesini zorunlu kılar.
+3. Yayın işi tag commit'inde offline kontrolleri çalıştırır. Aynı arşiv ayrı cache/dizinde üretim bağımlılıklarıyla kurulur;
    npm binary'si ağ engeliyle sınanır.
 4. Test edilmiş arşiv OIDC ile npm'e public/latest gönderilir; sürüm, integrity ve latest doğrulanır.
 5. GitHub Release ve `.tgz` oluşturulur.

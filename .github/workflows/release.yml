@@ -27,11 +27,8 @@ jobs:
       - run: npm run release:check -- "$RELEASE_TAG"
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-  verify:
-    needs: validate
-    uses: ./.github/workflows/check.yml
   publish:
-    needs: verify
+    needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
