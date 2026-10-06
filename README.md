@@ -84,11 +84,11 @@ AI'ya istediğiniz ürünü ve marketleri söyleyin. Konum ayarı hazırsa tekra
 
 > 3 kg yoğurdu fiyata göre sırala; tam eşleşmeleri ve alternatifleri ayrı göster.
 
-> Pınar 1 L yarım yağlı sütün fiyatını şubeler arasında karşılaştır ve harita linklerini ver.
+> 500 g beyaz peynirin fiyatını şubeler arasında karşılaştır ve harita linklerini ver.
 
 > 1 kg patates, 2 L süt ve 10'lu yumurtadan oluşan sepeti şube bazında karşılaştır.
 
-> Pınar 1 L yarım yağlı sütün fiyat geçmişini özetle.
+> 1 kg toz şekerin fiyat geçmişini özetle.
 
 Ürün adlarını ve paket boyutlarını açık yazın. "Sadece tam eşleşme" gibi kesin şartları belirtin;
 aksi hâlde AI benzer ürünleri ayrı başlıkta açıklayarak önerebilir.
