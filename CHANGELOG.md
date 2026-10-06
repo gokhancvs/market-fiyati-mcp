@@ -14,6 +14,11 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Belgeler:** README'ye en üstte resmî olmama notu, istemcilere göre yapılandırma dosyası konumları,
   örnek istekler, 5 ürünlük sepet sınırı ve sorun giderme bölümü eklendi. `api.md` eksik hata kodlarını
   açıklar; yeni bir test kodda üretilen her hata kodunun belgelendiğini denetler.
+- **İç sadeleştirme:** Tool işlemleri tipli bir handler tablosundan geçer; ürün endpoint'lerinin listesi
+  endpoint tablosundaki türden türetilir; limitler ve sunucu sürümü tek kaynaktan okunur. Yeni bir
+  karakterizasyon testi tool çıktılarının, API'ye giden gövdelerin ve tool şemalarının değişmediğini denetler.
+  Tool girdisi ve çıktısı değişmedi.
+- **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse hata stderr'e yazılır ve süreç 1 koduyla sonlanır.
 
 ## 1.0.11 — 2026-10-06
 
