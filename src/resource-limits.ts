@@ -1,5 +1,5 @@
 import { AppError } from './errors.js';
-import type { EndpointId } from './contracts.js';
+import { isProductEndpoint, type EndpointId } from './contracts.js';
 import type { RequestMetrics } from './request-metrics.js';
 
 export const RESOURCE_LIMITS = {
@@ -133,10 +133,7 @@ export class InputBudget {
       const response = data as Record<string, unknown>;
       this.countWarnings(response.warnings);
       if (Array.isArray(response.content)) {
-        if (
-          endpoint &&
-          ['search', 'searchByCategories', 'product', 'similar', 'alternative', 'sync'].includes(endpoint)
-        ) {
+        if (endpoint && isProductEndpoint(endpoint)) {
           this.products += response.content.length;
           if (this.products > RESOURCE_LIMITS.productRecords)
             throw new AppError('RESOURCE_LIMIT_EXCEEDED', 'Too many source products; no partial data was returned.', {

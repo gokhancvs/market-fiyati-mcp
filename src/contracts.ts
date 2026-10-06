@@ -11,87 +11,103 @@ import {
 
 export const API_ORIGIN = 'https://api.marketfiyati.org.tr';
 export const MAP_ORIGIN = 'https://harita.marketfiyati.org.tr';
+/** productPage: paged product search; productLookup: exact product ids; other: everything else. */
+export type EndpointKind = 'productPage' | 'productLookup' | 'other';
 export type Endpoint = {
   method: 'GET' | 'POST';
   path: string;
   experimental: boolean;
   origin: string;
+  kind: EndpointKind;
 };
 export const endpoints = {
   categories: {
     method: 'GET',
     path: '/api/v3/info/categories',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'other'
   },
   search: {
     method: 'POST',
     path: '/api/v2/search',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productPage'
   },
   searchByCategories: {
     method: 'POST',
     path: '/api/v3/searchByCategories',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productPage'
   },
   product: {
     method: 'POST',
     path: '/api/v2/searchByIdentity',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productLookup'
   },
   similar: {
     method: 'POST',
     path: '/api/v2/searchSimilarProduct',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productPage'
   },
   priceHistory: {
     method: 'POST',
     path: '/api/v3/price-history',
     experimental: false,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'other'
   },
   nearest: {
     method: 'POST',
     path: '/api/v2/nearest',
     experimental: true,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'other'
   },
   markets: {
     method: 'GET',
     path: '/api/v1/categories',
     experimental: true,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'other'
   },
   alternative: {
     method: 'POST',
     path: '/api/v2/searchAlternative',
     experimental: true,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productPage'
   },
   sync: {
     method: 'POST',
     path: '/api/v1/list/sync',
     experimental: true,
-    origin: API_ORIGIN
+    origin: API_ORIGIN,
+    kind: 'productLookup'
   },
   geocode: {
     method: 'GET',
     path: '/Service/api/v1/AutoSuggestion/Search',
     experimental: true,
-    origin: MAP_ORIGIN
+    origin: MAP_ORIGIN,
+    kind: 'other'
   },
   reverseGeocode: {
     method: 'GET',
     path: '/Service/api/v1/ReverseGeocode',
     experimental: true,
-    origin: MAP_ORIGIN
+    origin: MAP_ORIGIN,
+    kind: 'other'
   }
 } as const satisfies Record<string, Endpoint>;
 export type EndpointId = keyof typeof endpoints;
+export const isProductEndpoint = (endpoint: EndpointId): boolean => endpoints[endpoint].kind !== 'other';
 
 const text = z.string().trim().min(1).max(300);
 const id = z

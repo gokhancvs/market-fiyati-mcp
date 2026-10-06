@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { schemas, validateResponse } from '../src/contracts.js';
+import { endpoints, schemas, validateResponse } from '../src/contracts.js';
 
 const context = {
   latitude: 41,
@@ -250,4 +250,14 @@ test('response total cannot be less than its returned product count', () => {
     assert.throws(() => validateResponse(endpoint, data), {
       code: 'INVALID_RESPONSE'
     });
+});
+test('every endpoint declares its product response kind', () => {
+  const ofKind = (kind: string) =>
+    Object.entries(endpoints)
+      .filter(([, endpoint]) => endpoint.kind === kind)
+      .map(([id]) => id)
+      .sort();
+  assert.deepEqual(ofKind('productPage'), ['alternative', 'search', 'searchByCategories', 'similar']);
+  assert.deepEqual(ofKind('productLookup'), ['product', 'sync']);
+  assert.deepEqual(ofKind('other'), ['categories', 'geocode', 'markets', 'nearest', 'priceHistory', 'reverseGeocode']);
 });

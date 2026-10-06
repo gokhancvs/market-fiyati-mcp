@@ -4,6 +4,7 @@ import {
   MAX_PAGE_INDEX,
   locationShape,
   endpoints,
+  isProductEndpoint,
   schemas,
   validateResponse,
   type Category,
@@ -147,13 +148,13 @@ export class MarketService {
     }
     budget.accept(result.data, endpoint);
     let data = validateResponse(endpoint, result.data);
-    if (['search', 'searchByCategories', 'similar', 'alternative'].includes(endpoint)) {
+    if (endpoints[endpoint].kind === 'productPage') {
       const response = data as SearchResponse;
       const offset = Number(payload.pages) * Number(payload.size);
       if (response.content.length > 0 && response.numberOfFound < offset + response.content.length)
         throw new AppError('INVALID_RESPONSE', 'Upstream total is inconsistent with the returned page.', { endpoint });
     }
-    if (endpoint === 'product' || endpoint === 'sync') {
+    if (endpoints[endpoint].kind === 'productLookup') {
       const requested = new Set(endpoint === 'product' ? [String(payload.identity)] : (payload.identities as string[]));
       const seen = new Set<string>();
       for (const product of (data as SearchResponse).content) {
@@ -174,7 +175,7 @@ export class MarketService {
         ...branch,
         maps: mapLinks(branch.location.lat, branch.location.lon)
       }));
-    } else if (['search', 'searchByCategories', 'product', 'similar', 'alternative', 'sync'].includes(endpoint)) {
+    } else if (isProductEndpoint(endpoint)) {
       const response = data as SearchResponse;
       data = {
         ...response,
@@ -444,7 +445,7 @@ export class MarketService {
     }
     const warnings: string[] = [];
     const meta: Record<string, unknown> = { ...result.meta };
-    if (['search', 'searchByCategories', 'similar', 'alternative', 'product', 'sync'].includes(operation)) {
+    if (operation in endpoints && isProductEndpoint(operation as EndpointId)) {
       const data = result.data as SearchResponse;
       const pages = Number(payload.pages ?? 0),
         size = Number(payload.size ?? 1);
@@ -458,7 +459,7 @@ export class MarketService {
       );
       Object.assign(meta, observations);
       const codes = [...observations.warningCodes, ...responseWarningCodes(data)];
-      const pageable = operation !== 'product' && operation !== 'sync';
+      const pageable = endpoints[operation as EndpointId].kind === 'productPage';
       if (pageable && (pages > 0 || data.content.length < data.numberOfFound)) codes.push('PARTIAL_RESULTS');
       const hasNext = pageable && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
       const limitReached = hasNext && pages === MAX_PAGE_INDEX;
@@ -495,7 +496,7 @@ export class MarketService {
   }
   catalog() {
     return {
-      endpoints,
+      endpoints: Object.fromEntries(Object.entries(endpoints).map(([id, { kind: _, ...endpoint }]) => [id, endpoint])),
       excluded: [
         {
           path: '/api/v1/store',
