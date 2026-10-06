@@ -16,16 +16,19 @@ test('release workflow gates tag publication on main, offline checks and OIDC', 
   assert.equal(parsed.on.workflow_dispatch, undefined);
   assert.equal(parsed.concurrency.queue, 'max');
   assert.equal(parsed.concurrency['cancel-in-progress'], false);
-  assert.equal(parsed.jobs.verify.needs, 'validate');
-  assert.equal(parsed.jobs.verify.uses, './.github/workflows/check.yml');
-  assert.equal(parsed.jobs.publish.needs, 'verify');
+  // Branch protection already requires the full check matrix on every main commit; the tag is not re-verified.
+  assert.equal(parsed.jobs.verify, undefined);
+  assert.equal(parsed.jobs.publish.needs, 'validate');
   assert.equal(parsed.jobs.publish.permissions['id-token'], 'write');
   assert.equal(parsed.env.MARKET_FIYATI_MODE, 'offline');
   const steps = parsed.jobs.publish.steps;
   const check = steps.findIndex((step) => step.run === 'npm run check');
   assert.equal(steps[check].env.MARKET_FIYATI_PACK_DESTINATION, '${{ runner.temp }}/npm-release');
+  const consumer = steps.findIndex((step) => step.run?.startsWith('npm run test:consumer'));
   const publish = steps.findIndex((step) => step.run?.includes('scripts/publish-npm.mjs'));
-  assert.ok(check >= 0 && publish > check);
+  assert.ok(check >= 0 && consumer > check && publish > consumer);
+  const checks = yaml.load(readFileSync(new URL('../.github/workflows/check.yml', import.meta.url), 'utf8'));
+  assert.equal(checks.on.workflow_call, undefined, 'no workflow reuses the full check matrix');
   assert.ok(!JSON.stringify(parsed).includes('NODE_AUTH_TOKEN'));
   const command = parsed.jobs.publish.steps.find((step) => step.name === 'Publish verified release').run;
   assert.match(command, /gh release create "\$RELEASE_TAG" --verify-tag/);
