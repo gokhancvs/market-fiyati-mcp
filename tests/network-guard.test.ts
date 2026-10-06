@@ -11,12 +11,17 @@ test('offline guard blocks network entry points in an isolated process', () => {
     import https from 'node:https';
     import tls from 'node:tls';
     import http2 from 'node:http2';
+    import dns from 'node:dns';
+    import {lookup as promiseLookup} from 'node:dns/promises';
+    import dgram from 'node:dgram';
     import {syncBuiltinESMExports} from 'node:module';
     const sentinel=()=>{throw new Error('UNGUARDED_NETWORK_CALL');};
     globalThis.fetch=sentinel;
     net.Socket.prototype.connect=sentinel;
     net.connect=net.createConnection=sentinel;
     http.request=http.get=https.request=https.get=tls.connect=sentinel;
+    dns.lookup=dns.resolve4=dns.promises.lookup=dns.Resolver.prototype.resolve4=sentinel;
+    dgram.createSocket=sentinel;
     syncBuiltinESMExports();
     ${withGuard ? `await import(${JSON.stringify(guardUrl)});` : ''}
     const probes=[
@@ -31,6 +36,12 @@ test('offline guard blocks network entry points in an isolated process', () => {
       ()=>https.get('https://127.0.0.1:1'),
       ()=>tls.connect({host:'127.0.0.1',port:1}),
       ()=>http2.connect('http://127.0.0.1:1'),
+      ()=>dns.lookup('example.com',()=>{}),
+      ()=>dns.resolve4('example.com',()=>{}),
+      ()=>dns.promises.lookup('example.com'),
+      ()=>promiseLookup('example.com'),
+      ()=>new dns.Resolver().resolve4('example.com',()=>{}),
+      ()=>dgram.createSocket('udp4'),
     ];
     for(const probe of probes)assert.throws(probe,/TEST_NETWORK_DISABLED/);
   `;
