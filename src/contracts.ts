@@ -107,7 +107,11 @@ export const endpoints = {
   }
 } as const satisfies Record<string, Endpoint>;
 export type EndpointId = keyof typeof endpoints;
-export const isProductEndpoint = (endpoint: EndpointId): boolean => endpoints[endpoint].kind !== 'other';
+export type ProductEndpoint = {
+  [E in EndpointId]: (typeof endpoints)[E]['kind'] extends 'other' ? never : E;
+}[EndpointId];
+export const isProductEndpoint = (endpoint: EndpointId): endpoint is ProductEndpoint =>
+  endpoints[endpoint].kind !== 'other';
 
 const text = z.string().trim().min(1).max(300);
 const id = z
@@ -321,7 +325,7 @@ export const historySchema = responseArray(
   })
 );
 export type History = z.infer<typeof historySchema>;
-const responseSchemas: Record<EndpointId, z.ZodType> = {
+const responseSchemas = {
   categories: responseObject({ content: responseArray(categorySchema) }),
   search: searchResponseSchema,
   searchByCategories: searchResponseSchema,
@@ -353,12 +357,14 @@ const responseSchemas: Record<EndpointId, z.ZodType> = {
   }),
   geocode: responseArray(responseArray(responseJson, 9)),
   reverseGeocode: responseRecord(responseJson)
-};
-export function validateResponse(endpoint: EndpointId, data: unknown): unknown {
+} satisfies Record<EndpointId, z.ZodType>;
+export type ResponseOf<E extends EndpointId> = z.output<(typeof responseSchemas)[E]>;
+export function validateResponse<E extends EndpointId>(endpoint: E, data: unknown): ResponseOf<E> {
   try {
-    const result = responseSchemas[endpoint].safeParse(data);
+    // Indexing with a generic key widens the schema union; the table above fixes each output type.
+    const result = (responseSchemas[endpoint] as z.ZodType).safeParse(data);
     if (!result.success) return invalidResponse();
-    return result.data;
+    return result.data as ResponseOf<E>;
   } catch (error) {
     if (error instanceof AppError && error.code === 'INVALID_RESPONSE')
       throw new AppError('INVALID_RESPONSE', 'Upstream response does not match the expected contract.', { endpoint });

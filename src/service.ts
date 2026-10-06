@@ -4,18 +4,17 @@ import {
   MAX_PAGE_INDEX,
   locationShape,
   endpoints,
-  isProductEndpoint,
   schemas,
   validateResponse,
-  type Category,
   type EndpointId,
-  type History,
   type Operation,
   type Product,
+  type ProductEndpoint,
+  type ResponseOf,
   type SearchResponse
 } from './contracts.js';
 import { type Config } from './config.js';
-import type { ZodObject } from 'zod';
+import type { z, ZodObject } from 'zod';
 import { AppError, reportInternalError } from './errors.js';
 import { MAX_PENDING_REQUESTS, type Payload, type SourceMeta, type Transport } from './transport.js';
 import { compareBasket, compareOffers, filterCategories, summarizeHistory } from './analysis.js';
@@ -34,6 +33,34 @@ export type Envelope = {
   meta: Record<string, unknown>;
   warnings: string[];
 };
+type Input<O extends Operation> = z.output<(typeof schemas)[O]>;
+type Call = { signal: AbortSignal | undefined; counts: HttpAttemptCounts; budget: InputBudget };
+type Handlers = { [O in Operation]: (input: Input<O>, call: Call) => Promise<Envelope> };
+
+/** Ordered warning text and trusted codes for one envelope. */
+class Warnings {
+  constructor(
+    readonly texts: string[] = [],
+    readonly codes: WarningCode[] = []
+  ) {}
+  /** Record a code with its text. */
+  warn(code: WarningCode, text: string = WARNING_CODES[code]): void {
+    this.codes.push(code);
+    this.texts.push(text);
+  }
+  /** Record codes whose text, if any, envelope() derives. */
+  code(...codes: WarningCode[]): void {
+    this.codes.push(...codes);
+  }
+  /** Record text that has no code of its own. */
+  note(...texts: string[]): void {
+    this.texts.push(...texts);
+  }
+}
+const EXPERIMENTAL_WARNING =
+  'Experimental endpoint; operator enabled access does not certify live validation. See release verification notes.';
+// The product endpoint takes one exact id; these wire fields are fixed.
+const productLookup = (identity: string) => ({ identity, identityType: 'id', pages: 0, size: 1 });
 const priceScopeWarning =
   'Prices apply to returned offers in the supplied location and depot selection; stock and promotion eligibility are not guaranteed.';
 
@@ -118,13 +145,11 @@ export class MarketService {
       }
     };
   }
-  private async get(
-    endpoint: EndpointId,
+  private async get<E extends EndpointId>(
+    endpoint: E,
     payload: Payload,
-    signal: AbortSignal | undefined,
-    counts: HttpAttemptCounts,
-    budget: InputBudget
-  ) {
+    { signal, counts, budget }: Call
+  ): Promise<{ data: ResponseOf<E>; meta: SourceMeta }> {
     let result: Awaited<ReturnType<Transport['request']>>;
     try {
       result = await this.transport.request(endpoint, payload, signal, counts);
@@ -147,17 +172,19 @@ export class MarketService {
       throw error;
     }
     budget.accept(result.data, endpoint);
-    let data = validateResponse(endpoint, result.data);
+    return { data: validateResponse(endpoint, result.data), meta: result.meta };
+  }
+  /** Fetch a product response, check it against the request and add branch map links to every offer. */
+  private async getProducts(endpoint: ProductEndpoint, payload: Payload, call: Call, requestedIds: string[] = []) {
+    const { data: response, meta } = await this.get(endpoint, payload, call);
     if (endpoints[endpoint].kind === 'productPage') {
-      const response = data as SearchResponse;
       const offset = Number(payload.pages) * Number(payload.size);
       if (response.content.length > 0 && response.numberOfFound < offset + response.content.length)
         throw new AppError('INVALID_RESPONSE', 'Upstream total is inconsistent with the returned page.', { endpoint });
-    }
-    if (endpoints[endpoint].kind === 'productLookup') {
-      const requested = new Set(endpoint === 'product' ? [String(payload.identity)] : (payload.identities as string[]));
+    } else {
+      const requested = new Set(requestedIds);
       const seen = new Set<string>();
-      for (const product of (data as SearchResponse).content) {
+      for (const product of response.content) {
         if (!requested.has(product.id) || seen.has(product.id))
           throw new AppError('INVALID_RESPONSE', 'Exact lookup returned unexpected or duplicate product identities.', {
             endpoint
@@ -165,42 +192,24 @@ export class MarketService {
         seen.add(product.id);
       }
     }
-    if (endpoint === 'nearest') {
-      data = (
-        data as {
-          location: { lat: number; lon: number };
-          [key: string]: unknown;
-        }[]
-      ).map((branch) => ({
-        ...branch,
-        maps: mapLinks(branch.location.lat, branch.location.lon)
-      }));
-    } else if (isProductEndpoint(endpoint)) {
-      const response = data as SearchResponse;
-      data = {
-        ...response,
-        content: response.content.map((product) => ({
-          ...product,
-          productDepotInfoList: product.productDepotInfoList.map((offer) => ({
-            ...offer,
-            maps: mapLinks(offer.latitude, offer.longitude)
-          }))
+    const data: SearchResponse = {
+      ...response,
+      content: response.content.map((product) => ({
+        ...product,
+        productDepotInfoList: product.productDepotInfoList.map((offer) => ({
+          ...offer,
+          maps: mapLinks(offer.latitude, offer.longitude)
         }))
-      };
-    }
-    return { data, meta: result.meta };
+      }))
+    };
+    return { data, meta };
   }
-  private envelope(data: unknown, meta: SourceMeta | Record<string, unknown>, warnings: string[] = []): Envelope {
-    const codes = new Set((meta as { warningCodes?: WarningCode[] }).warningCodes ?? []);
-    if (meta.experimental) {
-      warnings.push(
-        'Experimental endpoint; operator enabled access does not certify live validation. See release verification notes.'
-      );
-      codes.add('EXPERIMENTAL_ENDPOINT');
-    }
+  private envelope(data: unknown, meta: Record<string, unknown>, log = new Warnings()): Envelope {
+    if (meta.experimental) log.warn('EXPERIMENTAL_ENDPOINT', EXPERIMENTAL_WARNING);
+    const codes = new Set(log.codes);
     for (const code of ['DEPOT_AVAILABILITY_UNKNOWN', 'PARTIAL_RESULTS', 'PAGINATION_LIMIT_REACHED'] as const)
-      if (codes.has(code)) warnings.push(WARNING_CODES[code]);
-    return { data, meta: { ...meta, warningCodes: [...codes] }, warnings };
+      if (codes.has(code)) log.texts.push(WARNING_CODES[code]);
+    return { data, meta: { ...meta, warningCodes: [...codes] }, warnings: log.texts };
   }
   async execute(operation: Operation, args: unknown, signal?: AbortSignal): Promise<Envelope> {
     const counts: HttpAttemptCounts = { httpAttempts: 0, retries: 0 };
@@ -210,7 +219,11 @@ export class MarketService {
       durationMs: Math.max(0, performance.now() - started)
     });
     try {
-      const result = await this.executeOperation(operation, args, signal, counts);
+      const result = await this.run(operation, args, {
+        signal,
+        counts,
+        budget: new InputBudget(this.config.maxResponseBytes)
+      });
       const envelope = {
         ...result,
         meta: { ...result.meta, requestMetrics: snapshot() }
@@ -223,12 +236,7 @@ export class MarketService {
       throw new AppError(safe.code, safe.message, safe.details, snapshot());
     }
   }
-  private async executeOperation(
-    operation: Operation,
-    args: unknown,
-    signal: AbortSignal | undefined,
-    counts: HttpAttemptCounts
-  ): Promise<Envelope> {
+  private async run<O extends Operation>(operation: O, args: unknown, call: Call): Promise<Envelope> {
     const defaults = this.config.defaultLocation;
     const shape = schemas[operation].shape;
     if (defaults && 'latitude' in shape && args && typeof args === 'object' && !Array.isArray(args)) {
@@ -241,16 +249,17 @@ export class MarketService {
         ...('distance' in shape && supplied.distance === undefined ? { distance: defaults.distance } : {})
       };
     }
-    const parsed = schemas[operation].safeParse(args);
+    // Indexing with a generic key widens the schema union; the schema table fixes each input type.
+    const parsed = (schemas[operation] as ZodObject).safeParse(args);
     if (!parsed.success)
       throw new AppError('INVALID_ARGUMENT', 'Invalid tool arguments.', {
         issues: parsed.error.issues.slice(0, 15).map((i) => ({ path: i.path.join('.'), message: i.message }))
       });
-    const input = parsed.data as Payload;
-    const budget = new InputBudget(this.config.maxResponseBytes);
-    if (operation === 'status') return this.envelope(this.status(), { source: 'local' });
-    if (operation === 'compareBasket') {
-      const { items, groupBy, ...context } = schemas.compareBasket.parse(input);
+    return this.handlers[operation](parsed.data as Input<O>, call);
+  }
+  private readonly handlers: Handlers = {
+    status: async () => this.envelope(this.status(), { source: 'local' }),
+    compareBasket: async ({ items, groupBy, ...context }, call) => {
       if (items.length * (this.config.retries + 1) > BASKET_REQUEST_BUDGET)
         throw new AppError(
           'REQUEST_BUDGET_EXCEEDED',
@@ -262,36 +271,26 @@ export class MarketService {
         );
       const products: Product[] = [];
       const sources: SourceMeta[] = [];
-      const times = new Map<string, string>(),
-        codes: WarningCode[] = ['BASKET_SCOPE_LIMITED'];
+      const times = new Map<string, string>();
       const upstream: ReturnType<typeof upstreamContext>['record'][] = [];
-      const warnings = [
-        priceScopeWarning,
-        'Scope is the supplied products, location and selected depots. No substitute products are silently selected.'
-      ];
+      const log = new Warnings(
+        [
+          priceScopeWarning,
+          'Scope is the supplied products, location and selected depots. No substitute products are silently selected.'
+        ],
+        ['BASKET_SCOPE_LIMITED']
+      );
       // Use bounded individual lookups without choosing substitute products.
       for (const item of items) {
-        const result = await this.get(
-          'product',
-          {
-            ...context,
-            identity: item.id,
-            identityType: 'id',
-            pages: 0,
-            size: 1
-          },
-          signal,
-          counts,
-          budget
-        );
-        const found = (result.data as SearchResponse).content.find((p) => p.id === item.id);
+        const result = await this.getProducts('product', { ...context, ...productLookup(item.id) }, call, [item.id]);
+        const found = result.data.content.find((p) => p.id === item.id);
         if (found) products.push(found);
         sources.push(result.meta);
         times.set(item.id, result.meta.retrievedAt);
-        const source = upstreamContext(result.data as SearchResponse, item.id, context.depots);
+        const source = upstreamContext(result.data, item.id, context.depots);
         upstream.push(source.record);
-        for (const code of source.warningCodes) codes.push(code);
-        for (const warning of source.warnings) warnings.push(warning);
+        log.code(...source.warningCodes);
+        log.note(...source.warnings);
       }
       const observations = observeProducts(
         products,
@@ -310,38 +309,26 @@ export class MarketService {
           sources,
           upstream,
           currency: 'TRY',
+          // envelope() replaces warningCodes and keeps its position.
           ...observations,
-          offerAssessmentRefs: links.references,
-          warningCodes: [...observations.warningCodes, ...codes]
+          offerAssessmentRefs: links.references
         },
-        warnings
+        new Warnings(log.texts, [...observations.warningCodes, ...log.codes])
       );
-    }
-    if (operation === 'compareProduct') {
-      const result = await this.get(
-        'product',
-        {
-          ...input,
-          identityType: 'id',
-          pages: 0,
-          size: 1
-        },
-        signal,
-        counts,
-        budget
-      );
-      const product = (result.data as SearchResponse).content.find((p) => p.id === input.identity);
+    },
+    compareProduct: async (input, call) => {
+      const result = await this.getProducts('product', { ...input, ...productLookup(input.identity) }, call, [
+        input.identity
+      ]);
+      const product = result.data.content.find((p) => p.id === input.identity);
       if (!product)
         throw new AppError('PRODUCT_NOT_FOUND', 'Product not returned for this location and depot selection.');
-      const source = upstreamContext(result.data as SearchResponse, String(input.identity), input.depots as string[]);
-      const observations = observeProducts(
-        [product],
-        input.depots as string[],
-        new Map([[product.id, result.meta.retrievedAt]]),
-        [String(input.identity)]
-      );
+      const source = upstreamContext(result.data, input.identity, input.depots);
+      const observations = observeProducts([product], input.depots, new Map([[product.id, result.meta.retrievedAt]]), [
+        input.identity
+      ]);
       const links = offerAssessmentLinks([product]);
-      const comparison = compareOffers(product, links.visitOffer, new Set(input.depots as string[]));
+      const comparison = compareOffers(product, links.visitOffer, new Set(input.depots));
       return this.envelope(
         comparison,
         {
@@ -350,53 +337,41 @@ export class MarketService {
           derived: true,
           upstream: [source.record],
           ...observations,
-          offerAssessmentRefs: links.references,
-          warningCodes: [...observations.warningCodes, ...source.warningCodes]
+          offerAssessmentRefs: links.references
         },
-        [priceScopeWarning, ...source.warnings]
+        new Warnings([priceScopeWarning, ...source.warnings], [...observations.warningCodes, ...source.warningCodes])
       );
-    }
-    if (operation === 'categories') {
-      const result = await this.get('categories', {}, signal, counts, budget);
-      const response = result.data as {
-        content: Category[];
-        [key: string]: unknown;
-      };
-      return this.envelope(
-        {
-          ...response,
-          content: filterCategories(response.content, schemas.categories.parse(input))
-        },
-        result.meta
-      );
-    }
-    if (operation === 'priceHistory') {
-      const { from, to, ...payload } = schemas.priceHistory.parse(input);
-      const result = await this.get('priceHistory', payload, signal, counts, budget);
-      const data = summarizeHistory(result.data as History, from, to);
-      const warningCodes: WarningCode[] = ['HISTORY_AGGREGATION_UNKNOWN'];
-      const warnings = [
+    },
+    categories: async (input, call) => {
+      const result = await this.get('categories', {}, call);
+      return this.envelope({ ...result.data, content: filterCategories(result.data.content, input) }, result.meta);
+    },
+    priceHistory: async ({ from, to, ...payload }, call) => {
+      const result = await this.get('priceHistory', payload, call);
+      const data = summarizeHistory(result.data, from, to);
+      const log = new Warnings();
+      log.warn(
+        'HISTORY_AGGREGATION_UNKNOWN',
         'Series are grouped by upstream market name; the aggregation across selected depots is not documented.'
-      ];
-      if (data.summary.some((market) => market.missingPoints > 0)) {
-        warningCodes.push('HISTORY_MISSING_VALUES');
-        warnings.push(WARNING_CODES.HISTORY_MISSING_VALUES);
-      }
-      return this.envelope(data, { ...result.meta, currency: 'TRY', warningCodes }, warnings);
-    }
-    let payload = input;
-    if (operation === 'sync')
-      payload = {
-        ...input,
-        identityType: 'id',
-        pages: 0,
-        size: (input.identities as string[]).length
-      };
-    if (operation === 'reverseGeocode') payload = { Lat: input.latitude, Lon: input.longitude };
-    const result = await this.get(operation, payload, signal, counts, budget);
-    if (operation === 'geocode') {
-      const rows = result.data as unknown[][];
-      const content = rows.map((row) => {
+      );
+      if (data.summary.some((market) => market.missingPoints > 0)) log.warn('HISTORY_MISSING_VALUES');
+      return this.envelope(data, { ...result.meta, currency: 'TRY' }, log);
+    },
+    nearest: async (input, call) => {
+      const result = await this.get('nearest', input, call);
+      const data = result.data.map((branch) => ({
+        ...branch,
+        maps: mapLinks(branch.location.lat, branch.location.lon)
+      }));
+      return this.envelope(data, result.meta);
+    },
+    markets: async (input, call) => {
+      const result = await this.get('markets', input, call);
+      return this.envelope(result.data, result.meta);
+    },
+    geocode: async (input, call) => {
+      const result = await this.get('geocode', input, call);
+      const content = result.data.map((row) => {
         const numeric = (value: unknown) =>
           typeof value === 'number' ||
           (typeof value === 'string' && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim()));
@@ -419,9 +394,10 @@ export class MarketService {
         };
       });
       return this.envelope({ content }, result.meta);
-    }
-    if (operation === 'reverseGeocode') {
-      const address = result.data as Payload;
+    },
+    reverseGeocode: async (input, call) => {
+      const result = await this.get('reverseGeocode', { Lat: input.latitude, Lon: input.longitude }, call);
+      const address = result.data;
       const parts = [
         ['Mahalle_Adi', '', ' Mh.'],
         ['Yol_Adi', '', ''],
@@ -442,57 +418,72 @@ export class MarketService {
         },
         result.meta
       );
+    },
+    search: (input, call) => this.productQuery('search', input, input, call),
+    searchByCategories: (input, call) => this.productQuery('searchByCategories', input, input, call),
+    similar: (input, call) => this.productQuery('similar', input, input, call),
+    alternative: (input, call) => this.productQuery('alternative', input, input, call),
+    product: (input, call) => this.productQuery('product', input, input, call, [input.identity]),
+    sync: (input, call) =>
+      this.productQuery(
+        'sync',
+        input,
+        { ...input, identityType: 'id', pages: 0, size: input.identities.length },
+        call,
+        input.identities
+      )
+  };
+  private async productQuery(
+    operation: ProductEndpoint,
+    input: { depots: string[]; offer_discount?: string[] | undefined },
+    payload: Payload,
+    call: Call,
+    requestedIds: string[] = []
+  ): Promise<Envelope> {
+    const result = await this.getProducts(operation, payload, call, requestedIds);
+    const data = result.data;
+    const pages = Number(payload.pages ?? 0),
+      size = Number(payload.size ?? 1);
+    const observations = observeProducts(
+      data.content,
+      input.depots,
+      new Map(data.content.map((product) => [product.id, result.meta.retrievedAt])),
+      requestedIds
+    );
+    // envelope() replaces the observation warningCodes and keeps their position.
+    const meta: Record<string, unknown> = { ...result.meta, ...observations };
+    const log = new Warnings([], [...observations.warningCodes, ...responseWarningCodes(data)]);
+    const pageable = endpoints[operation].kind === 'productPage';
+    if (pageable && (pages > 0 || data.content.length < data.numberOfFound)) log.code('PARTIAL_RESULTS');
+    const hasNext = pageable && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
+    const limitReached = hasNext && pages === MAX_PAGE_INDEX;
+    if (limitReached) log.code('PAGINATION_LIMIT_REACHED');
+    meta.currency = 'TRY';
+    meta.pagination = {
+      page: pages,
+      size,
+      returned: data.content.length,
+      total: data.numberOfFound,
+      nextPage: hasNext && !limitReached ? pages + 1 : null
+    };
+    if (operation === 'sync') {
+      const returned = new Set(data.content.map((p) => p.id));
+      meta.missingProductIds = requestedIds.filter((id) => !returned.has(id));
     }
-    const warnings: string[] = [];
-    const meta: Record<string, unknown> = { ...result.meta };
-    if (operation in endpoints && isProductEndpoint(operation as EndpointId)) {
-      const data = result.data as SearchResponse;
-      const pages = Number(payload.pages ?? 0),
-        size = Number(payload.size ?? 1);
-      const requestedIds =
-        operation === 'sync' ? (input.identities as string[]) : operation === 'product' ? [String(input.identity)] : [];
-      const observations = observeProducts(
-        data.content,
-        input.depots as string[],
-        new Map(data.content.map((product) => [product.id, result.meta.retrievedAt])),
-        requestedIds
+    log.note(priceScopeWarning, ...offerScopeWarnings(data, input.depots));
+    if (input.offer_discount?.includes('true'))
+      log.warn(
+        'DISCOUNT_FILTER_UNVERIFIED',
+        'The offer_discount filter is forwarded to the API, but its semantics are not fully verified. Returned offers are not proof of a confirmed discount or promotion eligibility.'
       );
-      Object.assign(meta, observations);
-      const codes = [...observations.warningCodes, ...responseWarningCodes(data)];
-      const pageable = endpoints[operation as EndpointId].kind === 'productPage';
-      if (pageable && (pages > 0 || data.content.length < data.numberOfFound)) codes.push('PARTIAL_RESULTS');
-      const hasNext = pageable && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
-      const limitReached = hasNext && pages === MAX_PAGE_INDEX;
-      if (limitReached) codes.push('PAGINATION_LIMIT_REACHED');
-      meta.currency = 'TRY';
-      meta.pagination = {
-        page: pages,
-        size,
-        returned: data.content.length,
-        total: data.numberOfFound,
-        nextPage: hasNext && !limitReached ? pages + 1 : null
-      };
-      if (operation === 'sync') {
-        const returned = new Set(data.content.map((p) => p.id));
-        meta.missingProductIds = (input.identities as string[]).filter((id) => !returned.has(id));
-      }
-      warnings.push(priceScopeWarning);
-      warnings.push(...offerScopeWarnings(data, input.depots as string[]));
-      if ((input.offer_discount as string[] | undefined)?.includes('true')) {
-        warnings.push(
-          'The offer_discount filter is forwarded to the API, but its semantics are not fully verified. Returned offers are not proof of a confirmed discount or promotion eligibility.'
-        );
-        codes.push('DISCOUNT_FILTER_UNVERIFIED');
-      }
-      if (operation === 'search') {
-        warnings.push('Search may be fuzzy. Confirm title, category and package size before comparing products.');
-        codes.push('SEARCH_MAY_BE_FUZZY');
-      }
-      if (data.searchResultType === 2 || data.searchResultType === 3)
-        warnings.push(`Upstream fuzzy search result type: ${data.searchResultType}.`);
-      meta.warningCodes = codes;
-    }
-    return this.envelope(result.data, meta, warnings);
+    if (operation === 'search')
+      log.warn(
+        'SEARCH_MAY_BE_FUZZY',
+        'Search may be fuzzy. Confirm title, category and package size before comparing products.'
+      );
+    if (data.searchResultType === 2 || data.searchResultType === 3)
+      log.note(`Upstream fuzzy search result type: ${data.searchResultType}.`);
+    return this.envelope(data, meta, log);
   }
   catalog() {
     return {
