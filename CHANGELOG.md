@@ -4,6 +4,14 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **Güvenlik:** `@modelcontextprotocol/sdk` 1.32.1'e yükseltildi. SDK'nın `express` bağımlılığı üzerinden
+  gelen `proxy-addr`, IP sahteciliği bildirimi
+  [GHSA-jqcg-44mw-7w3h](https://github.com/advisories/GHSA-jqcg-44mw-7w3h) için 2.0.8'e güncellendi.
+  Sunucu yalnız stdio kullanır ve express'i yüklemez; değişiklik bağımlılık denetimini düzeltir.
+- SDK 1.30 ve sonrasını kullanan stdio istemcilerinin 10 MiB mesaj okuma sınırı `docs/api.md` içinde
+  belirtildi.
+- SDK değişikliği: zorunlu alanı olmayan tool'lar (`market_status` gibi) `arguments` gönderilmeden de
+  çağrılabilir. SDK giriş hatası metinleri yeni biçimde gelir; `Input validation error` öneki aynı kalır.
 - **Belgeler:** Türkçe belgeler tek terim sözlüğüne ve düz kesme işaretine geçti; anlaşılmayan cümleler
   yeniden yazıldı, bakımcı notları ve tahmini süreler kaldırıldı. `api.md` içindeki konum başlığı
   "Konum ve şube bağlamı" oldu. 1.0.6 yarıçap geçişi, `discount` yorumu ve sentetik test sınırları tek

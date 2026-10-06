@@ -516,7 +516,9 @@ JSON boyutu, tüm string'i veya anahtar-değer dizisini oluşturmadan artımlı 
 
 **8 MiB zarf sınırı, JSON-RPC mesaj sınırı değildir.** Mesaj hem metin çıktısını hem de `structuredContent`'i
 taşıdığı ve escape karakterleri eklendiği için, küçük protokol alanlarıyla birlikte yaklaşık üç katına
-çıkabilir.
+çıkabilir. MCP SDK 1.30 ve sonrasını kullanan stdio istemcileri varsayılan olarak 10 MiB'den büyük bir mesajı
+okumaz. Varsayılan sınırlar altında bile çok büyük bir yanıt bu istemcilerde bağlantıyı kapatır; sorgu
+kapsamını (`size`, şube sayısı) küçük tutun.
 
 ### Retry, kuyruk ve iptal
 
