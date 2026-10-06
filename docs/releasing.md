@@ -21,7 +21,7 @@ Patch düzeltme, minor geriye uyumlu özellik, major uyumsuz sözleşme içindir
 
 | Eşitleyin           | Dosyalar                                                                                      |
 | ------------------- | --------------------------------------------------------------------------------------------- |
-| Paket ve sunucu     | `package.json`, `package-lock.json`, `src/server.ts`                                          |
+| Paket ve sunucu     | `package.json`, `package-lock.json`; sunucu sürümünü `package.json`'dan okur                  |
 | Kurulum ve manifest | README, `examples/mcp-config.json`, `docs/live-testing.md`, `server.json` üst ve paket sürümü |
 | Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.7.md`                               |
 | Paket içeriği       | Sürüm notları ve bakımcı belgeleri npm paketine girmez; `files` listesini değiştirmeyin.      |

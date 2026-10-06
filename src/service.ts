@@ -1,7 +1,7 @@
 import { InputBudget, RESOURCE_LIMITS, assertOutputBudget } from './resource-limits.js';
 import {
   BASKET_REQUEST_BUDGET,
-  MAX_PAGE_INDEX,
+  INPUT_LIMITS,
   locationShape,
   endpoints,
   schemas,
@@ -119,11 +119,11 @@ export class MarketService {
       currency: 'TRY',
       locationDefaults: { configured: !!this.config.defaultLocation },
       limits: {
-        pageSize: 100,
+        pageSize: INPUT_LIMITS.pageSize,
         basketItems: Math.floor(BASKET_REQUEST_BUDGET / (this.config.retries + 1)),
         basketRequestBudget: BASKET_REQUEST_BUDGET,
-        quantityPerItem: 50,
-        radiusKm: 50,
+        quantityPerItem: INPUT_LIMITS.quantityPerItem,
+        radiusKm: INPUT_LIMITS.radiusKm,
         pendingRequests: MAX_PENDING_REQUESTS,
         responseBytes: this.config.maxResponseBytes,
         inputBytesPerCall: this.config.maxResponseBytes,
@@ -456,7 +456,7 @@ export class MarketService {
     const pageable = endpoints[operation].kind === 'productPage';
     if (pageable && (pages > 0 || data.content.length < data.numberOfFound)) log.code('PARTIAL_RESULTS');
     const hasNext = pageable && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
-    const limitReached = hasNext && pages === MAX_PAGE_INDEX;
+    const limitReached = hasNext && pages === INPUT_LIMITS.maxPageIndex;
     if (limitReached) log.code('PAGINATION_LIMIT_REACHED');
     meta.currency = 'TRY';
     meta.pagination = {

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { assertMessageBudget, assertOutputBudget } from './resource-limits.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -12,6 +13,10 @@ import { RequestCancellation } from './cancellation.js';
 import { withCancellation } from './cancellation-transport.js';
 import { outputSchema, outputSchemas } from './output-schemas.js';
 
+// Compiled to dist/src; package.json ships with every install.
+const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+  version: string;
+};
 const tools: { name: string; operation: Operation; description: string }[] = [
   {
     name: 'market_status',
@@ -182,7 +187,7 @@ export function createServer(service: MarketService): McpServer {
     }
   }
   const server = new CancellationServer(
-    { name: 'market-fiyati-mcp', version: '1.0.11' },
+    { name: 'market-fiyati-mcp', version },
     {
       instructions:
         'Read market://guide and market_status before calling data tools. Use API filters and sorting with call or configured location and explicit depots. Read market_status.data.locationDefaults.configured; if true, omit coordinates to use env defaults. Reuse supplied context and returned offers to minimize calls; the server caches no results or user context. Track meta.requestMetrics against the agreed call budget, including application errors. Use meta.depotCoverage, meta.offerAssessments and meta.warningCodes to explain evidence limits; unreturned depots have unknown availability. Live access is operator-controlled.'

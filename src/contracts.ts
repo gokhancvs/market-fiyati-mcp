@@ -126,19 +126,30 @@ const uniqueIds = z
   .min(1)
   .max(500)
   .refine((a) => new Set(a).size === a.length, 'IDs must be unique');
+/** Local input bounds; schemas and market_status share them. */
+export const INPUT_LIMITS = { pageSize: 100, quantityPerItem: 50, radiusKm: 50, maxPageIndex: 10_000 } as const;
 export const locationShape = {
   latitude: z.number().min(-90).max(90).describe('Explicit user-selected latitude.'),
   longitude: z.number().min(-180).max(180).describe('Explicit longitude.'),
-  distance: z.number().positive().max(50).describe('Required search radius in km. 50 is a local safety limit.')
+  distance: z
+    .number()
+    .positive()
+    .max(INPUT_LIMITS.radiusKm)
+    .describe(`Required search radius in km. ${INPUT_LIMITS.radiusKm} is a local safety limit.`)
 };
 const contextShape = {
   ...locationShape,
   depots: uniqueIds.describe('Selected branch IDs from nearest; required and never auto-expanded.')
 };
-export const MAX_PAGE_INDEX = 10000;
 const pageShape = {
-  pages: z.number().int().min(0).max(MAX_PAGE_INDEX).default(0).describe('Zero-based API page.'),
-  size: z.number().int().min(1).max(100).default(25).describe('Page size, local maximum 100.')
+  pages: z.number().int().min(0).max(INPUT_LIMITS.maxPageIndex).default(0).describe('Zero-based API page.'),
+  size: z
+    .number()
+    .int()
+    .min(1)
+    .max(INPUT_LIMITS.pageSize)
+    .default(25)
+    .describe(`Page size, local maximum ${INPUT_LIMITS.pageSize}.`)
 };
 const priceRange = text.refine((v) => {
   if (/^\d+(?:\.\d{1,2})?(?:\+|-\*)$/.test(v)) return true;
@@ -175,7 +186,7 @@ const categoryFilters = z.strictObject({
 });
 export const basketItemSchema = z.strictObject({
   id,
-  quantity: z.number().int().min(1).max(50)
+  quantity: z.number().int().min(1).max(INPUT_LIMITS.quantityPerItem)
 });
 // Local per-call HTTP attempt budget, not an upstream rate-limit guarantee.
 export const BASKET_REQUEST_BUDGET = 5;
