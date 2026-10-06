@@ -197,7 +197,7 @@ export const schemas = {
   priceHistory: z
     .strictObject({
       ...contextShape,
-      uniqueId: id,
+      uniqueId: id.describe('Product id from search or product results.'),
       from: date.optional(),
       to: date.optional()
     })

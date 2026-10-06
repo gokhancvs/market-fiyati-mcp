@@ -24,8 +24,9 @@ the project directory. Never force-add private archives to Git.
 ## Network rule
 
 The user requires **no live API requests until testing together with the user**.
-Keep `MARKET_FIYATI_MODE=offline` for development commands and client sessions;
-this does not define the installed package default. A later explicit instruction to start live
+The package default mode is `live` (since v1.0.8), so never rely on the default during
+development: set `MARKET_FIYATI_MODE=offline` explicitly for every development command and
+for client sessions that run this checkout. A later explicit instruction to start live
 testing supersedes this temporary restriction. Follow `docs/live-testing.md`
 at that point. Live and experimental settings are operator choices, not tool inputs.
 

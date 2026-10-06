@@ -127,3 +127,21 @@ test('public documentation follows the Turkish glossary and style', () => {
   }
   assert.deepEqual(findings, []);
 });
+
+test('every application error code in src is documented in the API error sections', () => {
+  const api = read('docs/api.md');
+  const errorDocs = api.slice(api.indexOf('### Hata çıktısı'));
+  // A code is the first AppError argument (possibly a ternary) or an envelope `code:` literal.
+  const sources = readdirSync(join(root, 'src'))
+    .filter((name) => name.endsWith('.ts'))
+    .flatMap((name) => [
+      ...[...read(join('src', name)).matchAll(/new AppError\(\s*([^,]+),/g)].map(([, first]) => first),
+      ...[...read(join('src', name)).matchAll(/code: ('[A-Z_]+')/g)].map(([, literal]) => literal)
+    ]);
+  const codes = new Set(sources.flatMap((source) => [...source.matchAll(/'([A-Z_]+)'/g)].map(([, code]) => code)));
+  assert.ok(codes.has('RATE_LIMITED') && codes.has('INTERNAL_ERROR'));
+  assert.deepEqual(
+    [...codes].filter((code) => !errorDocs.includes(`\`${code}\``)),
+    []
+  );
+});

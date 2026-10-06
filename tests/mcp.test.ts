@@ -990,37 +990,83 @@ test('default-live MCP stays local until a data call and preserves experimental 
     await server.close();
   }
 });
-test('basket guidance reaches clients through the guide, tool description and shopping prompt', async () => {
+async function llmSurfaces() {
   const server = createServer(new MarketService(new OfflineTransport(), readConfig({})));
-  const client = new Client({ name: 'basket-guidance-test', version: '1' });
+  const client = new Client({ name: 'llm-surface-test', version: '1' });
   const [ct, st] = InMemoryTransport.createLinkedPair();
   try {
     await server.connect(st);
     await client.connect(ct);
-    const guide = await client.readResource({ uri: 'market://guide' });
-    const prompt = await client.getPrompt({
-      name: 'compare_shopping_list',
-      arguments: { items: '1 kg patates, 3 kg yarım yağlı yoğurt' }
-    });
-    const description =
-      (await client.listTools()).tools.find((t) => t.name === 'market_compare_basket')?.description ?? '';
-    const surfaces = [
-      ['guide', guide.contents.map((c) => ('text' in c ? c.text : '')).join('\n')],
-      ['tool', description],
-      ['prompt', prompt.messages.map((m) => (m.content.type === 'text' ? m.content.text : '')).join('\n')]
-    ] as const;
-    // These assert the published instruction contract, not an AI's compliance with it.
-    for (const [name, content] of surfaces) {
-      const text = content.replace(/\s+/g, ' ');
-      assert.match(text, /complete (?:basket )?groups first/i, name);
-      assert.match(text, /all (?:complete )?groups tied (?:at|for) the lowest total/i, name);
-      assert.match(text, /selected (?:offer )?depot IDs/i, name);
-      assert.match(text, /splitBasket.*strictly cheaper/i, name);
-    }
+    const flat = (text: string) => text.replace(/\s+/g, ' ');
+    const guide = (await client.readResource({ uri: 'market://guide' })).contents
+      .map((c) => ('text' in c ? c.text : ''))
+      .join('\n');
+    const { tools } = await client.listTools();
+    const promptArgs: Record<string, Record<string, string>> = {
+      compare_shopping_list: { items: '1 kg patates' },
+      find_best_product_price: { product: 'süt' },
+      analyze_price_history: { productId: 'p1' }
+    };
+    const prompts = await Promise.all(
+      (await client.listPrompts()).prompts.map(async ({ name }) => {
+        const prompt = await client.getPrompt({ name, arguments: promptArgs[name] });
+        return [`prompt:${name}`, prompt.messages.map((m) => (m.content.type === 'text' ? m.content.text : ''))];
+      })
+    );
+    const surfaces = new Map<string, string>([
+      ['guide', guide],
+      ['instructions', client.getInstructions() ?? ''],
+      ...tools.map((t) => [`tool:${t.name}`, t.description ?? ''] as [string, string]),
+      ...prompts.map(([name, text]) => [name as string, (text as string[]).join('\n')] as [string, string])
+    ]);
+    for (const [name, text] of surfaces) surfaces.set(name, flat(text));
+    return { surfaces, tools };
   } finally {
     await client.close();
     await server.close();
   }
+}
+test('each LLM-facing rule has one owner: basket rules in the basket tool, discount rules in the guide', async () => {
+  const { surfaces } = await llmSurfaces();
+  // These assert the published instruction contract, not an AI's compliance with it.
+  const owned = [
+    [/complete (?:basket )?groups first/i, 'tool:market_compare_basket'],
+    [/all (?:complete )?groups tied (?:at|for) the lowest total/i, 'tool:market_compare_basket'],
+    [/requiresMultipleDepots/i, 'tool:market_compare_basket'],
+    [/splitBasket[^.]*strictly cheaper/i, 'tool:market_compare_basket'],
+    [/never split the (?:shopping )?list/i, 'tool:market_compare_basket'],
+    [/never present a shortened basket as complete/i, 'tool:market_compare_basket'],
+    [/total null, never zero/i, 'tool:market_compare_basket'],
+    [/equal prices do not prove/i, 'tool:market_compare_basket'],
+    [/never invent alternatives absent from returned data/i, 'tool:market_compare_basket'],
+    [/no group is complete/i, 'tool:market_compare_basket'],
+    [/false means[^.]*not mark/i, 'guide'],
+    [/absent (?:discount )?flag means unknown/i, 'guide'],
+    [/reference price is not evidence/i, 'guide']
+  ] as const;
+  for (const [rule, owner] of owned) {
+    const matches = [...surfaces].filter(([, text]) => rule.test(text)).map(([name]) => name);
+    assert.deepEqual(matches, [owner], String(rule));
+  }
+  for (const name of ['guide', 'prompt:compare_shopping_list'])
+    assert.match(surfaces.get(name)!, /market_compare_basket (?:tool )?description/i, name);
+  assert.match(surfaces.get('prompt:compare_shopping_list')!, /market:\/\/guide/);
+});
+test('LLM-facing text carries no development notes and states language and narrowing rules', async () => {
+  const { surfaces, tools } = await llmSurfaces();
+  const notes = /live acceptance|wire type is unverified|verification notes|identityType=id/i;
+  assert.deepEqual(
+    [...surfaces].filter(([, text]) => notes.test(text)).map(([name]) => name),
+    []
+  );
+  const guide = surfaces.get('guide')!;
+  assert.match(guide, /answer in the user's language/i);
+  assert.match(guide, /OUTPUT_TOO_LARGE[^.]*\.[^]*ask the user to narrow[^.]*size[^.]*depots/i);
+  assert.doesNotMatch(surfaces.get('tool:market_status')!, /supported endpoints/i);
+  const history = tools.find((t) => t.name === 'market_get_price_history')!;
+  assert.match(history.description ?? '', /uniqueId[^.]*product id/i);
+  const uniqueId = (history.inputSchema.properties as Record<string, { description?: string }>).uniqueId;
+  assert.match(uniqueId?.description ?? '', /product id/i);
 });
 test('stdio entrypoint initializes without API access or stdout noise', async () => {
   const transport = new StdioClientTransport({

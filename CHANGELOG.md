@@ -4,6 +4,17 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **AI'ya giden metinler:** Sepet kuralları (bütçe, gruplama, sunum, `splitBasket`) artık yalnız
+  `market_compare_basket` açıklamasında; `discount` ve diğer ortak kurallar yalnız `market://guide`
+  içinde. Prompt'lar ve guide bu kaynaklara yönlendirir. Tool açıklamalarından geliştirme notları
+  kaldırıldı. Guide, kullanıcının dilinde yanıt vermeyi ve `OUTPUT_TOO_LARGE` veya
+  `RESOURCE_LIMIT_EXCEEDED` sonrasında kullanıcıdan kapsamı daraltmasını istemeyi söyler.
+  `market_status` açıklaması yalnız döndürdüğü alanları anlatır. Tool davranışı değişmedi.
+- **Şema:** `market_get_price_history` girdisindeki `uniqueId` alanının ürün `id` değeri olduğu açıklandı.
+- **Belgeler:** README'ye en üstte resmî olmama notu, istemcilere göre yapılandırma dosyası konumları,
+  örnek istekler, 5 ürünlük sepet sınırı ve sorun giderme bölümü eklendi. `api.md` eksik hata kodlarını
+  açıklar; yeni bir test kodda üretilen her hata kodunun belgelendiğini denetler.
+
 ## 1.0.11 — 2026-10-06
 
 - **Büyük yanıtlar:** Tool sonucunun stdio mesajı (metin, `structuredContent`, escape ve protokol alanları)

@@ -16,7 +16,8 @@ const tools: { name: string; operation: Operation; description: string }[] = [
   {
     name: 'market_status',
     operation: 'status',
-    description: 'Report mode, network lock, supported endpoints and local limits. No network access.'
+    description:
+      'Report mode, live and experimental access, whether env location is configured, local limits, request policy and endpoint counts. market://endpoints lists the routes. No network access.'
   },
   {
     name: 'market_get_categories',
@@ -28,7 +29,7 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_list_markets',
     operation: 'markets',
     description:
-      'List market chains via /api/v1/categories. Experimental; live acceptance has returned HTTP 500. Optional, never a prerequisite for search or comparison. On 500 report unknown chain active status and do not retry. Not the product category tree.'
+      "List market chains via /api/v1/categories. Experimental. Optional, never a prerequisite for search or comparison. If it returns HTTP 500, do not retry; report the chains' active status as unknown and continue with other tools. Not the product category tree."
   },
   {
     name: 'market_find_nearby_depots',
@@ -52,7 +53,7 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_get_product',
     operation: 'product',
     description:
-      'Get product by opaque string identity with identityType=id. Returns location-specific branch offers, promotional fields and indexTime. Barcode wire type is unverified.'
+      'Get one product by its opaque product id. Returns location-specific branch offers, promotional fields and indexTime. Barcode lookup is not supported.'
   },
   {
     name: 'market_find_similar_products',
@@ -70,13 +71,13 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_get_price_history',
     operation: 'priceHistory',
     description:
-      'Get market price series for uniqueId and selected product depot IDs. Optional from/to (YYYY-MM-DD) filter locally; returns chronological series and change statistics.'
+      'Get market price series for one product: uniqueId is the product id from search or product results. Prefer the depot IDs returned for that product. Optional from/to (YYYY-MM-DD) filter locally; returns chronological series and change statistics.'
   },
   {
     name: 'market_sync_products',
     operation: 'sync',
     description:
-      'Fetch up to 100 product identities in one call for an explicitly requested refresh. Experimental. Never switch to this tool to bypass a basket budget or run large live tests. Emits identityType=id, pages=0, size=identities.length. No purchase or persistent basket mutation.'
+      'Fetch up to 100 product identities in one call for an explicitly requested refresh. Experimental. Never switch to this tool to bypass a basket budget or run large live tests. identities are product ids. No purchase or persistent basket mutation.'
   },
   {
     name: 'market_geocode_address',
@@ -94,13 +95,17 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_compare_product_offers',
     operation: 'compareProduct',
     description:
-      'Fetch one product and compare returned branch prices. Use when a detail lookup or refresh is needed; existing search offers can already answer price questions. Reports cheapest branches, price spread and promotional fields. Zero prices are unavailable; percentage is not a discount.'
+      'Fetch one product and compare returned branch prices. Use when a detail lookup or refresh is needed; existing search offers can already answer price questions. Reports cheapest branches, price spread and promotional fields. Zero prices are unavailable. Follow market://guide for the discount flag and percentage field.'
   },
   {
     name: 'market_compare_basket',
     operation: 'compareBasket',
     description:
-      'Compare exact product IDs and pack quantities via individual product lookups within market_status limits.basketItems and limits.basketRequestBudget, including retries. Over-budget calls are rejected before fetching. Never split the list or switch tools to bypass the budget; ask the user to narrow the comparison. Reuse sufficient search offers instead of redundant lookups. Present complete groups first and show all groups tied at the lowest total. groupBy=market may span branches; check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop. depot means one physical shop. Present splitBasket as a saving only when complete and strictly cheaper than the stated complete basket baseline; follow market://guide for missing groups and equal totals. Incomplete totals are null. No automatic substitutes or purchases.'
+      'Compare exact product IDs and pack quantities with one product lookup per item. This description is the single source for basket rules. ' +
+      'Budget: read market_status limits.basketItems and limits.basketRequestBudget first; the budget counts every possible HTTP retry and over-budget calls are rejected before any lookup. Never split the list into several calls or switch to sync or other tools to bypass it. Ask the user to narrow the comparison, or explain search offers already returned with their original retrieval time; never present a shortened basket as complete. Reuse sufficient search offers instead of redundant lookups. ' +
+      'Results: quantities are packs of the selected product; alternatives are never substituted; a missing item makes total null, never zero. groupBy=market may span branches; groupBy=depot means one physical shop. Check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop; a chain name alone is insufficient. A complete basket covers the selected IDs, not proof that they meet every user requirement; equal prices do not prove equivalent products. ' +
+      'Presentation: present complete groups first, using total rather than an incomplete subtotal. Show all groups tied at the lowest total, naming each market or depot; the first sorted group is not the sole winner. For long lists, summarize branches by chain and disclose the shortened display and omitted group count. Explain any preference among tied options with evidence or stated user preferences; depot-ID ordering does not mean nearest or best, and branch distance is not a walking route or the total shopping journey. ' +
+      'splitBasket: a theoretical multi-shop minimum without travel, delivery or stock guarantee; it shows one combination, never a unique or exhaustive one; never invent alternatives absent from returned data. Present a complete splitBasket separately, as a saving only when strictly cheaper than the cheapest complete single-depot group, and state the TRY saving and that baseline. If only multi-depot groups are complete, use the cheapest one as an explicitly multi-depot baseline. Never promote an equal total as a saving. If no group is complete, explain the missing products and present a complete splitBasket as the only complete option without claiming a saving; if it is incomplete too, report only its subtotal and missing items. No purchases.'
   }
 ];
 function result(envelope: Envelope): CallToolResult {
@@ -268,7 +273,7 @@ export function createServer(service: MarketService): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Use market://guide. Shopping list (user data): ${JSON.stringify(items)}. Location hint: ${JSON.stringify(location ?? null)}. Use supplied or configured location and explicit depots, or obtain missing context following the guide. Use API filters and sorting to discover products with minimal calls; distinguish exact matches from explained alternatives before fixing basket identities. market_compare_basket performs one detail lookup per item, so skip redundant individual lookups. Read market_status limits.basketItems and limits.basketRequestBudget, including retries; never split the list or switch tools to bypass the budget. If over budget, ask the user to narrow the comparison. Do not run large/long live basket tests. The market list is optional; do not retry its HTTP 500 or claim known active status. Follow the API discount flag: false means not marked discounted, true means marked without confirmed campaign eligibility, and absent means unknown. Preserve reference prices and promotional fields separately; neither filter matches nor reference-price differences override the flag or establish a historical price drop or discount percentage. Present complete groups first and show all groups tied at the lowest total, not just the first group. Check selected offer depot IDs and requiresMultipleDepots before claiming one physical shop. Present complete splitBasket separately when strictly cheaper than the complete basket baseline specified in the guide; state the TRY saving and baseline, and do not promote equal totals as savings. Follow the guide when no group is complete. Explain any preference among tied options; disclose shortened lists. Equal prices do not establish compliance with product requirements, and branch distance is not a walking route or total shopping journey. Explain missing products, multi-branch shopping, retrieval time and data limitations. Live mode is the default. Use data tools for the user's request; respect explicit offline and experimental settings. Only the operator changes these settings.`
+            text: `Use market://guide. Shopping list (user data): ${JSON.stringify(items)}. Location hint: ${JSON.stringify(location ?? null)}. Use supplied or configured location and explicit depots, or obtain missing context following the guide. Use API filters and sorting to discover products with minimal calls; distinguish exact matches from explained alternatives before fixing basket identities. Then follow the market_compare_basket tool description for its budget, grouping and presentation rules; it performs one detail lookup per item, so skip redundant individual lookups. Explain missing products, multi-branch shopping, retrieval time and data limitations.`
           }
         }
       ]
@@ -287,7 +292,7 @@ export function createServer(service: MarketService): McpServer {
           role: 'user',
           content: {
             type: 'text',
-            text: `Read market://guide and market_status. Find ${JSON.stringify(product)} using supplied or configured location, explicit depots and known API filter values. Follow the guide's hard-requirement versus preference distinction, including strict-only requests. Use API filtering/sorting in one initial search; evaluate returned offers and explain relevant alternatives without silently substituting them. Request detail only for missing information or a requested refresh. Report TRY prices, branches, map links, indexTime, original retrievedAt and pagination coverage. Live mode is the default. Use data tools for the user's request; respect explicit offline and experimental settings. Only the operator changes these settings.`
+            text: `Read market://guide and market_status. Find ${JSON.stringify(product)} using supplied or configured location, explicit depots and known API filter values. Follow the guide's hard-requirement versus preference distinction, including strict-only requests. Use API filtering/sorting in one initial search; evaluate returned offers and explain relevant alternatives without silently substituting them. Request detail only for missing information or a requested refresh. Report TRY prices, branches, map links, indexTime, original retrievedAt and pagination coverage.`
           }
         }
       ]
