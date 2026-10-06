@@ -18,7 +18,7 @@ Bu yüzden örnek `"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` içerir. Ayarın
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.10"],
+      "args": ["-y", "market-fiyati-mcp@1.0.11"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
