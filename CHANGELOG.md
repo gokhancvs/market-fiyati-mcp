@@ -29,6 +29,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   değişmedi.
 - **CI:** Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testleri artık `main` için zorunlu kontroller
   arasında; Windows kurulumu yayından önce PR'da doğrulanmış olur.
+- **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
+  izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
+  hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı
+  anda yinelenen istek kimlikleri artık reddedilmez.
 - **Kapanış:** Sunucu kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır ve süreç 1 koduyla
   sonlanır.
 
