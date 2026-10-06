@@ -1,6 +1,5 @@
-import { AppError } from './errors.js';
+import { AppError, type RequestMetrics } from './errors.js';
 import { isProductEndpoint, type EndpointId } from './contracts.js';
-import type { RequestMetrics } from './request-metrics.js';
 
 export const RESOURCE_LIMITS = {
   inputValues: 500_000,

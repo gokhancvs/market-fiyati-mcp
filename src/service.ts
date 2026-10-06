@@ -15,11 +15,10 @@ import {
 } from './contracts.js';
 import { type Config } from './config.js';
 import type { z, ZodObject } from 'zod';
-import { AppError, reportInternalError } from './errors.js';
+import { AppError, reportInternalError, type HttpAttemptCounts } from './errors.js';
 import { MAX_PENDING_REQUESTS, type Payload, type SourceMeta, type Transport } from './transport.js';
 import { compareBasket, compareOffers, filterCategories, summarizeHistory } from './analysis.js';
 import { mapLinks } from './maps.js';
-import type { HttpAttemptCounts } from './request-metrics.js';
 import {
   observeProducts,
   offerAssessmentLinks,

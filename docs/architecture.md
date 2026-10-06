@@ -19,13 +19,13 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 
 ### Koruma ve açıklama katmanları
 
-| Dosya                                                          | Sorumluluk                                                                                                                                                       |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resource-limits.ts`                                           | Çağrı boyunca kaynak, ürün, offer ve uyarı bütçelerini izler. Kontrolü veriyi kopyalamadan önce yapar, JSON boyutunu artımlı hesaplar ve aşımda açık hata döner. |
-| `response-validation.ts`                                       | İlk geçersiz alanda durur. Upstream yanıttaki path ve değerleri hata ayrıntısına taşımaz.                                                                        |
-| `cancellation.ts`, `cancellation-transport.ts`, `lifecycle.ts` | İstek kimliklerini ve AbortController'ları yönetir. EOF, SIGINT veya SIGTERM geldiğinde sunucuyu bir kez kapatır ve dinleyicileri temizler.                      |
-| `request-metrics.ts`, `observations.ts`                        | Çağrı başına sayaçları tutar. Şube kapsamını, API'nin boolean işaretine dayanan indirim yorumunu, fiyat zamanlarını ve sabit uyarı kodlarını üretir.             |
-| `maps.ts`                                                      | Şube koordinatlarından harita URL'leri üretir. Bunun için ağ gerekmez; linkler offer ve sepet çıktılarında korunur.                                              |
+| Dosya                                                          | Sorumluluk                                                                                                                                                                     |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `resource-limits.ts`                                           | Çağrı boyunca kaynak, ürün, offer ve uyarı bütçelerini izler. Kontrolü veriyi kopyalamadan önce yapar, JSON boyutunu artımlı hesaplar ve aşımda açık hata döner.               |
+| `response-validation.ts`                                       | İlk geçersiz alanda durur. Upstream yanıttaki path ve değerleri hata ayrıntısına taşımaz.                                                                                      |
+| `cancellation.ts`, `cancellation-transport.ts`, `lifecycle.ts` | İstek kimliklerini ve AbortController'ları yönetir. EOF, SIGINT veya SIGTERM geldiğinde sunucuyu bir kez kapatır ve dinleyicileri temizler.                                    |
+| `errors.ts`, `observations.ts`                                 | Hata biçimini ve çağrı başına sayaç tiplerini tanımlar. Şube kapsamını, API'nin boolean işaretine dayanan indirim yorumunu, fiyat zamanlarını ve sabit uyarı kodlarını üretir. |
+| `maps.ts`                                                      | Şube koordinatlarından harita URL'leri üretir. Bunun için ağ gerekmez; linkler offer ve sepet çıktılarında korunur.                                                            |
 
 ### Durum ve çalışma kuralları
 

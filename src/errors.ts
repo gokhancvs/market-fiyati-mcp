@@ -1,4 +1,6 @@
-import type { RequestMetrics } from './request-metrics.js';
+/** Invocation-owned counters; no user session or process-wide usage state. */
+export type HttpAttemptCounts = { httpAttempts: number; retries: number };
+export type RequestMetrics = HttpAttemptCounts & { durationMs: number };
 
 export class AppError extends Error {
   constructor(

@@ -1,8 +1,7 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { endpoints, type Endpoint, type EndpointId } from './contracts.js';
-import { AppError } from './errors.js';
+import { AppError, type HttpAttemptCounts } from './errors.js';
 import { type Config } from './config.js';
-import type { HttpAttemptCounts } from './request-metrics.js';
 
 export type Payload = Record<string, unknown>;
 export type SourceMeta = {
