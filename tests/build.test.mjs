@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, cpSync, mkdirSync, writeFileSync, existsSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, cpSync, mkdirSync, writeFileSync, existsSync, rmSync, symlinkSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -42,6 +42,10 @@ test('build removes stale output without deleting files outside dist', () => {
     assert.equal(existsSync(stale), false);
     assert.equal(existsSync(keep), true);
     assert.equal(existsSync(join(folder, 'dist/src/index.js')), true);
+    const unused = readdirSync(join(folder, 'dist'), { recursive: true }).filter((file) =>
+      /\.(?:d\.ts|map)$/.test(String(file))
+    );
+    assert.deepEqual(unused, [], 'declarations and source maps are not shipped');
   } finally {
     rmSync(folder, { recursive: true, force: true });
   }

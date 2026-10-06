@@ -102,9 +102,9 @@ Kaynak deponun klonunda:
 | `npm run check`                   | Yukarıdaki kontrollerin hepsini ve ağ erişimi engellenmiş testleri çalıştırır.                                                                        |
 
 Kod biçimi: tek tırnak, sonda virgül (trailing comma) yok, 2 boşluk girinti, noktalı virgül, satır başına
-hedef 120 karakter ve LF satır sonu. Prettier ile çakışan Airbnb biçim kuralları `eslint-config-prettier`
-ile kapatılır. Lint, `@typescript-eslint` önerilerini kullanır. Mevcut Airbnb uyarıları `--quiet` ile
-gizlenir; hatalar ise kontrolü durdurur.
+hedef 120 karakter ve LF satır sonu. Lint, ESLint flat config ile `@eslint/js` ve typescript-eslint
+önerilerini kullanır; Prettier ile çakışan kurallar `eslint-config-prettier` ile kapatılır. Hatalar da
+uyarılar da kontrolü durdurur. ESLint 10, Node 22 serisinde en az 22.13 ister.
 
 Planlar `plans/`, inceleme ve test raporları `reports/` klasöründe tutulur. Bu klasörler yereldir ve Git
 tarafından yok sayılır. Temiz bir klonda gerekmezler. Git bunları saklamadığı için ayrıca yedekleyin ve temizlik yaparken silmeyin.
