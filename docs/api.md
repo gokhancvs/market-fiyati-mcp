@@ -255,8 +255,8 @@ Sağlayıcı belgeleri: [Google](https://developers.google.com/maps/documentatio
 
 ## Fiyat geçmişi
 
-İstek: `{uniqueId,depots,latitude,longitude,distance}`. Şube ID'leri olarak tercihen ürün offer'larında dönen
-ID'leri kullanın.
+İstek: `{uniqueId,depots,latitude,longitude,distance}`. `uniqueId`, arama veya ürün yanıtındaki ürün `id`
+değeridir. Şube ID'leri olarak tercihen ürün offer'larında dönen ID'leri kullanın.
 
 Yanıt: `[{name:<market>,series:[{name:"YYYY-MM-DD",value:<number|null>}]}]`.
 
@@ -551,3 +551,14 @@ Uygulama hataları `isError=true` ve `error.code` alanlarını taşır; SDK giri
 metninden oluşabilir. `NETWORK_DISABLED`, `EXPERIMENTAL_DISABLED`, `INVALID_ARGUMENT`, `HTTP_ERROR`,
 `RATE_LIMITED`, `TIMEOUT`, `CANCELLED`, `RESPONSE_TOO_LARGE`, `QUEUE_FULL`, `INVALID_PRICE` ve
 `REQUEST_BUDGET_EXCEEDED` kodları adlarındaki koşulu bildirir. Ham hata gövdesi dışarıya verilmez.
+
+Adından anlaşılmayan kodlar:
+
+| Kod                    | Anlamı                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `PRODUCT_NOT_FOUND`    | Ürün detayı yanıtında istenen ID bu konum ve şube seçimi için dönmedi. Ürünün yokluğunu kanıtlamaz. |
+| `NETWORK_ERROR`        | HTTP yanıtı alınamadı. Yönlendirmeler izlenmez; otomatik retry yapılmaz.                            |
+| `INVALID_CONTENT_TYPE` | Upstream yanıtı JSON içerik türünde değil; gövde okunmaz.                                           |
+| `INVALID_JSON`         | Upstream gövdesi geçerli JSON değil.                                                                |
+| `INVALID_ENDPOINT`     | İstek allowlist dışındaki bir endpoint'i hedefledi ve gönderilmedi. İç koruma hatasıdır.            |
+| `CONFIG_ERROR`         | Ortam değişkenlerinden biri geçersiz. Sunucu başlamaz; istemci ayarını düzeltip yeniden başlatın.   |
