@@ -5,6 +5,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const context = {
   latitude: 0,
@@ -267,7 +268,10 @@ test('error and timeout return explicit synthetic failures without partial baske
   }
 });
 
-test('slow basket cancellation aborts first body and leaves client usable', { timeout: 5000 }, async () => {
+/** Run the slow acceptance server, write messages after `ready`, and collect replies until exit. */
+async function slowSession(
+  write: (send: (message: unknown) => void, stderr: () => string) => Promise<void>
+): Promise<{ replies: Record<string, unknown>[]; stderr: string; code: unknown }> {
   const child = spawn(process.execPath, [entry, 'slow'], {
     env: { ...process.env, MARKET_FIYATI_MODE: 'offline' },
     stdio: ['pipe', 'pipe', 'pipe']
@@ -275,17 +279,8 @@ test('slow basket cancellation aborts first body and leaves client usable', { ti
   let stderr = '',
     buffer = '';
   const replies: Record<string, unknown>[] = [];
-  let started!: () => void;
-  let finished!: () => void;
-  const first = new Promise<void>((resolve) => {
-    started = resolve;
-  });
-  const done = new Promise<void>((resolve) => {
-    finished = resolve;
-  });
   child.stderr.on('data', (chunk) => {
     stderr += String(chunk);
-    if (stderr.includes('synthetic-acceptance:slow:start')) started();
   });
   child.stdout.on('data', (chunk) => {
     buffer += String(chunk);
@@ -295,124 +290,78 @@ test('slow basket cancellation aborts first body and leaves client usable', { ti
       buffer = buffer.slice(end + 1);
       if (line) replies.push(JSON.parse(line) as Record<string, unknown>);
     }
-    if (replies.some((reply) => reply.id === 1) && replies.some((reply) => reply.id === 2)) finished();
   });
   const watchdog = setTimeout(() => child.kill('SIGKILL'), 4000);
   try {
-    child.stdin.write(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'tools/call',
-        params: {
-          name: 'market_compare_basket',
-          arguments: {
-            ...context,
-            items: [
-              { id: 'test-milk-1l', quantity: 1 },
-              { id: 'test-yogurt-1kg', quantity: 1 }
-            ]
-          }
-        }
-      }) + '\n'
+    await write(
+      (message) => child.stdin.write(`${JSON.stringify(message)}\n`),
+      () => stderr
     );
-    await first;
+    const answered = async (id: number) => {
+      while (!replies.some((reply) => reply.id === id)) await delay(10);
+    };
+    // A later local call proves the server stayed usable and has processed the cancellation.
     child.stdin.write(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'notifications/cancelled',
-        params: { requestId: 1 }
-      }) + '\n'
+      `${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'market_status', arguments: {} } })}\n`
     );
-    child.stdin.write(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        id: 2,
-        method: 'tools/call',
-        params: { name: 'market_status', arguments: {} }
-      }) + '\n'
+    await answered(2);
+    child.stdin.end();
+    const [code] = await once(child, 'exit');
+    return { replies, stderr, code };
+  } finally {
+    clearTimeout(watchdog);
+    if (child.exitCode === null) child.kill('SIGKILL');
+  }
+}
+const basketCall = {
+  jsonrpc: '2.0',
+  id: 1,
+  method: 'tools/call',
+  params: {
+    name: 'market_compare_basket',
+    arguments: {
+      ...context,
+      items: [
+        { id: 'test-milk-1l', quantity: 1 },
+        { id: 'test-yogurt-1kg', quantity: 1 }
+      ]
+    }
+  }
+};
+const cancelCall = { jsonrpc: '2.0', method: 'notifications/cancelled', params: { requestId: 1 } };
+
+test(
+  'slow basket cancellation aborts first body, sends no result and leaves client usable',
+  { timeout: 5000 },
+  async () => {
+    const { replies, stderr, code } = await slowSession(async (send, output) => {
+      send(basketCall);
+      while (!output().includes('synthetic-acceptance:slow:start')) await delay(10);
+      send(cancelCall);
+    });
+    assert.equal(
+      replies.find((reply) => reply.id === 1),
+      undefined,
+      'a cancelled request gets no response'
     );
-    await done;
-    const cancelled = replies.find((reply) => reply.id === 1)?.result as CallToolResult;
-    assert.equal(cancelled.isError, true);
-    assert.equal((cancelled.structuredContent?.error as { code: string }).code, 'CANCELLED');
-    assert.equal((cancelled.structuredContent?.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
     assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
     assert.equal((stderr.match(/synthetic-acceptance:slow:start/g) ?? []).length, 1);
     assert.match(stderr, /synthetic-acceptance:slow:cancel/);
-    child.stdin.end();
-    const [code] = await once(child, 'exit');
     assert.equal(code, 0);
-  } finally {
-    clearTimeout(watchdog);
-    if (child.exitCode === null) child.kill('SIGKILL');
   }
-});
+);
 
-test('same-write early cancellation is visibly synthetic without a fake fetch', { timeout: 5000 }, async () => {
-  const child = spawn(process.execPath, [entry, 'slow'], {
-    env: { ...process.env, MARKET_FIYATI_MODE: 'offline' },
-    stdio: ['pipe', 'pipe', 'pipe']
+test('same-write early cancellation sends no result and starts no fake fetch', { timeout: 5000 }, async () => {
+  const { replies, stderr, code } = await slowSession(async (send) => {
+    send(basketCall);
+    send(cancelCall);
   });
-  let stderr = '',
-    buffer = '';
-  child.stderr.on('data', (chunk) => {
-    stderr += String(chunk);
-  });
-  let received!: (reply: Record<string, unknown>) => void;
-  const answer = new Promise<Record<string, unknown>>((resolve) => {
-    received = resolve;
-  });
-  child.stdout.on('data', (chunk) => {
-    buffer += String(chunk);
-    const end = buffer.indexOf('\n');
-    if (end >= 0) received(JSON.parse(buffer.slice(0, end)) as Record<string, unknown>);
-  });
-  const watchdog = setTimeout(() => child.kill('SIGKILL'), 4000);
-  try {
-    const call = {
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'tools/call',
-      params: {
-        name: 'market_compare_basket',
-        arguments: {
-          ...context,
-          items: [
-            { id: 'test-milk-1l', quantity: 1 },
-            { id: 'test-yogurt-1kg', quantity: 1 }
-          ]
-        }
-      }
-    };
-    const cancel = {
-      jsonrpc: '2.0',
-      method: 'notifications/cancelled',
-      params: { requestId: 1 }
-    };
-    child.stdin.write(`${JSON.stringify(call)}\n${JSON.stringify(cancel)}\n`);
-    const reply = await answer;
-    const result = reply.result as CallToolResult;
-    assert.equal(result.isError, true);
-    assert.equal(result.structuredContent?.data, null);
-    assert.equal((result.structuredContent?.error as { code: string }).code, 'CANCELLED');
-    assert.equal(
-      (
-        result.structuredContent?.meta as {
-          requestMetrics: { httpAttempts: number };
-        }
-      ).requestMetrics.httpAttempts,
-      0
-    );
-    assert.deepEqual(JSON.parse((result.content[0] as { text: string }).text), result.structuredContent);
-    assert.match(JSON.stringify(result.content), /Synthetic acceptance data only/);
-    assert.equal((result._meta as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
-    assert.doesNotMatch(stderr, /synthetic-acceptance:slow:start/);
-    child.stdin.end();
-    const [code] = await once(child, 'exit');
-    assert.equal(code, 0);
-  } finally {
-    clearTimeout(watchdog);
-    if (child.exitCode === null) child.kill('SIGKILL');
-  }
+  assert.equal(
+    replies.find((reply) => reply.id === 1),
+    undefined,
+    'a cancelled request gets no response'
+  );
+  assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
+  assert.doesNotMatch(stderr, /synthetic-acceptance:slow:start/);
+  assert.equal(code, 0);
 });

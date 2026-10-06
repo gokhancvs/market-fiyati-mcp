@@ -536,9 +536,10 @@ kapsamını (`size`, şube sayısı) daraltın.
 - Kuyrukta bekleyen bir istek iptal edilirse FIFO kaydı ve dinleyicisi hemen kaldırılır, kapasite boşalır ve
   sonradan fetch başlatılmaz. Aktif bir isteğin iptalinde de istekler arası süre ile retry ve sepet
   bütçeleri korunur.
-- JSON-RPC istek kimliği, yanıt verilene kadar izlenir. Sayısal `0` veya boş string kimlikli isteklerin
-  iptali de çalışır. Aktif bir kimlik tekrar kullanılırsa reddedilir; tamamlanmış bir kimlik yeniden
-  kullanılabilir. Bağlantı (transport) kapanınca kayıtlar iptal edilir ve silinir.
+- İptal MCP SDK'nin istek başına sinyaliyle çalışır. İptal edilen tool çağrısına yanıt gönderilmez; MCP
+  istemcisi bu çağrının sonucunu zaten beklemez. SDK, kimliği sayısal `0` veya boş string olan isteklerin
+  iptal bildirimini yok sayar; bu istekler tamamlanana kadar sürer. Aynı kimliği aynı anda iki istekte
+  kullanmak JSON-RPC kuralına aykırıdır ve reddedilmez.
 - MCP SDK'nin varsayılan istek süresi 60 saniyedir ve istemci bunu değiştirebilir. HTTP timeout ise tek bir
   denemeye aittir. Sunucu ilerleme (progress) bildirimi göndermez. Upstream yavaşsa küçük bir sepet bile
   istemcinin süre sınırını aşabilir.

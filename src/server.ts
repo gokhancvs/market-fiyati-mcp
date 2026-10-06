@@ -7,9 +7,6 @@ import { type Operation } from './contracts.js';
 import { MarketService, type Envelope } from './service.js';
 import { AppError, publicError, reportInternalError, type RequestMetrics } from './errors.js';
 import { GUIDE } from './guidance.js';
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
-import { RequestCancellation } from './cancellation.js';
-import { withCancellation } from './cancellation-transport.js';
 import { outputSchema, outputSchemas } from './output-schemas.js';
 
 // Compiled to dist/src; package.json ships with every install.
@@ -180,13 +177,7 @@ function errorResult(error: unknown): CallToolResult {
   }
 }
 export function createServer(service: MarketService): McpServer {
-  const requests = new RequestCancellation();
-  class CancellationServer extends McpServer {
-    override async connect(transport: Transport): Promise<void> {
-      await super.connect(withCancellation(transport, requests));
-    }
-  }
-  const server = new CancellationServer(
+  const server = new McpServer(
     { name: 'market-fiyati-mcp', version },
     {
       instructions:
@@ -208,9 +199,8 @@ export function createServer(service: MarketService): McpServer {
           openWorldHint: tool.operation !== 'status'
         }
       },
-      async (args: unknown, extra: { signal: AbortSignal; requestId: string | number }): Promise<CallToolResult> => {
-        const owner = requests.current(extra.requestId);
-        const signal = owner ? AbortSignal.any([extra.signal, owner.signal]) : extra.signal;
+      // The SDK aborts this signal on client cancellation or connection close and sends no response for it.
+      async (args: unknown, { signal }: { signal: AbortSignal }): Promise<CallToolResult> => {
         try {
           if (signal.aborted)
             throw new AppError('CANCELLED', 'Request cancelled.', {}, { httpAttempts: 0, retries: 0, durationMs: 0 });

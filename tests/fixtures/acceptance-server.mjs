@@ -63,7 +63,7 @@ async function main() {
   server.server.onclose = cleanup;
   const stdio = new StdioServerTransport();
   const send = stdio.send.bind(stdio);
-  // SDK validation and early cancellation can bypass AcceptanceService.execute.
+  // SDK validation errors bypass AcceptanceService.execute; cancelled calls get no response.
   stdio.send = (message) => {
     const result = message.result;
     if (result?.isError && Array.isArray(result.content))

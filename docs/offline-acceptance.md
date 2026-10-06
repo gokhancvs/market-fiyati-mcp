@@ -53,8 +53,8 @@ yükler ve yalnızca enjekte edilmiş fake fetch kullanır.
 **Beklenen sonuç:** `mode=offline`, `liveRequestsEnabled=false`, `syntheticAcceptance=true` ve sentetik
 sunucu uyarısı görünür. Başarılı yanıtlarda bu işaret `meta` içinde, servis hatalarında `error` içinde yer
 alır. Tüm tool hatalarında özgün metin ve yanıt zarfı korunur. Ayrıca eklenen bir metin öğesi ve
-`_meta.syntheticAcceptance=true`, SDK giriş hataları ve erken iptaller dâhil, yanıtın sentetik sunucudan
-geldiğini gösterir.
+`_meta.syntheticAcceptance=true`, SDK giriş hataları dâhil, yanıtın sentetik sunucudan geldiğini gösterir.
+İptal edilen çağrıya yanıt gönderilmez.
 
 İçeride gerçek kuyruk ve timeout kodunu çalıştıran enjekte edilmiş bir `LiveTransport` kullanıldığı için
 `source:live` görebilirsiniz. **Bu bir live istek veya kanıt değildir.** `test-` ile başlayan kimlikler ve

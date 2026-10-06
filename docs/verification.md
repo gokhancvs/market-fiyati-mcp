@@ -62,8 +62,8 @@ Aşım kısmi başarı sayılmaz; kabul edilmiş ek alanlar ve uyarılar korunur
 
 ### SDK ve ağ
 
-`0`/boş string istek ID'si, erken iptal, iki yönde yinelenen ID, yanıt callback'inde ID'nin yeniden
-kullanılması ve kapanış temizliği sınanır. Bellek içi SDK ve stdio testleri vardır.
+Aktif ve aynı turda gelen iptal, iptal edilen çağrıya yanıt gönderilmemesi, kuyruktaki işin iptali ve
+bağlantı kapanışında iptal sınanır. Bellek içi SDK ve stdio testleri vardır.
 Çok şubeli/eşit fiyatlı büyüme testi alan erişimlerini sayar; süre eşiği veya live yük testi değildir.
 Ağ koruması fetch, TCP, HTTP(S), TLS, HTTP/2, DNS sorgularını ve `dgram.createSocket` ile açılan UDP
 soketlerini izole süreçte dener; tüm özel HTTP/2 sağlayıcılarını kapsadığı iddia edilmez.

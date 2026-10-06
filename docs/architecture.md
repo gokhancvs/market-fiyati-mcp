@@ -19,13 +19,13 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 
 ### Koruma ve açıklama katmanları
 
-| Dosya                                                          | Sorumluluk                                                                                                                                                                                                                     |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `resource-limits.ts`                                           | Çağrı boyunca kaynak, ürün, offer ve uyarı bütçelerini izler. Kontrolü veriyi kopyalamadan önce yapar, JSON boyutunu artımlı hesaplar ve aşımda açık hata döner.                                                               |
-| `response-validation.ts`                                       | İlk geçersiz alanda durur. Upstream yanıttaki path ve değerleri hata ayrıntısına taşımaz.                                                                                                                                      |
-| `cancellation.ts`, `cancellation-transport.ts`, `lifecycle.ts` | İstek kimliklerini ve AbortController'ları yönetir. EOF, SIGINT veya SIGTERM geldiğinde sunucuyu bir kez kapatır ve dinleyicileri temizler. Kapanış 5 saniyede bitmezse hatayı stderr'e yazar ve süreci 1 koduyla sonlandırır. |
-| `errors.ts`, `observations.ts`                                 | Hata biçimini ve çağrı başına sayaç tiplerini tanımlar. Şube kapsamını, API'nin boolean işaretine dayanan indirim yorumunu, fiyat zamanlarını ve sabit uyarı kodlarını üretir.                                                 |
-| `maps.ts`                                                      | Şube koordinatlarından harita URL'leri üretir. Bunun için ağ gerekmez; linkler offer ve sepet çıktılarında korunur.                                                                                                            |
+| Dosya                          | Sorumluluk                                                                                                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `resource-limits.ts`           | Çağrı boyunca kaynak, ürün, offer ve uyarı bütçelerini izler. Kontrolü veriyi kopyalamadan önce yapar, JSON boyutunu artımlı hesaplar ve aşımda açık hata döner.                                                               |
+| `response-validation.ts`       | İlk geçersiz alanda durur. Upstream yanıttaki path ve değerleri hata ayrıntısına taşımaz.                                                                                                                                      |
+| `lifecycle.ts`                 | İptal için SDK'nin istek başına sinyali kullanılır. EOF, SIGINT veya SIGTERM geldiğinde sunucuyu bir kez kapatır ve dinleyicileri temizler. Kapanış 5 saniyede bitmezse hatayı stderr'e yazar ve süreci 1 koduyla sonlandırır. |
+| `errors.ts`, `observations.ts` | Hata biçimini ve çağrı başına sayaç tiplerini tanımlar. Şube kapsamını, API'nin boolean işaretine dayanan indirim yorumunu, fiyat zamanlarını ve sabit uyarı kodlarını üretir.                                                 |
+| `maps.ts`                      | Şube koordinatlarından harita URL'leri üretir. Bunun için ağ gerekmez; linkler offer ve sepet çıktılarında korunur.                                                                                                            |
 
 ### Durum ve çalışma kuralları
 
@@ -33,9 +33,8 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
   Her çağrı yeni nesneyle çözümlenir. Şubeler çağrıya aittir; kullanıcı/tercih/override hafızası ve sonuç cache'i yoktur.
 - **Transport durumu geçicidir.** FIFO kuyruğunda 1 aktif ve en fazla 32 bekleyen iş bulunur. İptal edilen
   bekleyen iş ve dinleyicisi hemen kaldırılır. Retry-After bilgisi en fazla iki sunucu (API ve harita origin'i) için ve en fazla 60 saniye tutulur.
-- **Kapanış tüm işleri durdurur.** SDK transport katmanı gelen istek kimliklerini yanıt verilene kadar izler.
-  Aktif bir tool çağrısının iptalini SDK'ye iletmeden kendisi işler; diğer bildirimleri olduğu gibi iletir. Transport kapanınca
-  bu kayıtlar silinir.
+- **Kapanış tüm işleri durdurur.** İstemcinin iptal bildirimi veya transport kapanışı, SDK'nin istek başına
+  sinyalini tetikler; tool işi ve kuyruktaki HTTP isteği bu sinyalle durur. İptal edilen çağrıya yanıt gönderilmez.
 - **Analiz yalnızca seçili şubeleri kapsar.** Diğer şubelerden gelen offer'lar ayrıca saklanır. Sepet tek
   geçişte en ucuz ve eşit fiyatlı offer gruplarına ayrılır; ortak şube Set/Map ile seçilir. Grupların
   sıralanması dışında iş miktarı, offer ve çıktı sayısıyla doğru orantılı büyür.
