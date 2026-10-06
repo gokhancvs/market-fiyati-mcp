@@ -324,8 +324,8 @@ kullanarak aşmak yasaktır. Kontrol her çağrı için ayrı yapılır; oturum,
   şubede toplanabiliyorsa o şube seçilir. Son eşitlik durumunda kimlikler locale'den bağımsız olarak UTF-16
   code unit sırasına göre dizilir.
 - Eksik ürün varsa `total=null` olur; `subtotal` yalnızca bulunan ürünlerin toplamıdır.
-  `lines` boşsa `subtotal=0`, o grupta hiçbir ürünün fiyatlanmadığını gösterir; bedava sepet anlamına gelmez.
   `requiresMultipleDepots`, birden fazla şubeye gitmek gerektiğini gösterir.
+- `lines` boşsa `subtotal=0`, o grupta hiçbir ürünün fiyatlanmadığını gösterir; bedava sepet anlamına gelmez.
 - `splitBasket`: Zincirler arasında teorik olarak en düşük toplamı gösterir. Yol veya teslimat maliyetini
   içermez ve stok garantisi vermez.
 - Para değerleri önce decimal half-up yöntemiyle kuruşa yuvarlanır (`10.075 → 10.08`), sonra paket adediyle

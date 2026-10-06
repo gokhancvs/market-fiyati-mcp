@@ -282,7 +282,8 @@ test('product lookup always sends the fixed wire fields, which stay optional inp
   ]) {
     const transport = new FixtureTransport();
     await new MarketService(transport, readConfig({})).execute('product', args);
-    assert.deepEqual(transport.calls[0]?.payload, { ...context, identity: 'A', ...fixed });
+    // Key order is part of the request body.
+    assert.equal(JSON.stringify(transport.calls[0]?.payload), JSON.stringify({ ...context, identity: 'A', ...fixed }));
   }
   const service = new MarketService(new FixtureTransport(), readConfig({}));
   for (const wrong of [{ pages: 1 }, { size: 2 }, { identityType: 'barcode' }])
