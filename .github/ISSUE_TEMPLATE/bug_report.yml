@@ -23,7 +23,7 @@ body:
     id: reproduce
     attributes:
       label: Tekrarlama adımları
-      description: Kullanılan araç, anonimleştirilmiş girdi ve sorunu oluşturan adımlar.
+      description: Kullanılan tool, anonimleştirilmiş girdi ve sorunu oluşturan adımlar.
     validations:
       required: true
   - type: textarea

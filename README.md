@@ -1,17 +1,17 @@
 # Market Fiyatı MCP
 
-**Başlayın:** Aşağıdaki yapılandırmayı MCP istemcinize ekleyin. Yaklaşık 2 dakika.
+**Başlayın:** Aşağıdaki yapılandırmayı MCP istemcinize ekleyin.
 
-Türkiye’de ürün, şube fiyatı ve sepet karşılaştırması için resmî olmayan MCP sunucusu.
+Türkiye'de ürün, şube fiyatı ve sepet karşılaştırması için resmî olmayan MCP sunucusu.
 **Node.js 22+ gerekir.** Normal kullanım gerçek fiyat sorguları için `live` modudur;
 `offline` geliştirme ve test içindir. Aşağıdaki örnek, önceki sürümlerde de çalışması için modu açıkça seçer.
 
 ## 1. İstemciye ekleyin
 
-**Şube keşfi:** Ürün aramaları şube ID’si ister; yakındaki şubeleri bulan araç deneysel erişim gerektirir.
-Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün araçlarını açar.
+**Şube keşfi:** Ürün aramaları şube ID'si ister; yakındaki şubeleri bulan tool deneysel erişim gerektirir.
+Bu ayar yakın şube, market listesi, adres/koordinat arama, toplu ürün güncelleme ve alternatif ürün tool'larını açar.
 Bu yüzden örnek `"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` içerir. Ayarın varsayılanı `false` olarak kalır;
-şube ID’lerinizi zaten biliyorsanız bu satırı silebilirsiniz.
+şube ID'lerinizi zaten biliyorsanız bu satırı silebilirsiniz.
 
 ```json
 {
@@ -34,7 +34,7 @@ Bu yüzden örnek `"MARKET_FIYATI_ENABLE_EXPERIMENTAL": "true"` içerir. Ayarın
 **Örnek: Galata Kulesi — `41.025591, 28.974075`.**
 `distance=4`, merkezden **4 km yarıçap** demektir (8 km çap).
 
-**Sayı tipi:** Tool/API girdisi `number`’dır; sunucuda 64 bit kayan noktalı sayı (`double`) kullanılır.
+**Sayı tipi:** Tool girdisindeki koordinat ve yarıçap tırnaksız JSON sayısıdır.
 Yalnız `env` değerleri ortam değişkeni olduğu için tırnaklıdır; sunucu bunları sayıya çevirir.
 
 `market_find_nearby_depots` için aynı örnek, tırnaksız sayılarla:
@@ -43,14 +43,14 @@ Yalnız `env` değerleri ortam değişkeni olduğu için tırnaklıdır; sunucu 
 { "latitude": 41.025591, "longitude": 28.974075, "distance": 4 }
 ```
 
-Kendi konumunuz için koordinatları değiştirin. Kişisel konumunuzu özel istemci ayarında tutun; Git’e eklemeyin.
+Kendi konumunuz için koordinatları değiştirin. Kişisel konumunuzu özel istemci ayarında tutun; Git'e eklemeyin.
 
-Env konumu 1.0.6 ile geldi. Paket kurulamıyorsa [kaynak koddan çalıştırın](#kaynak-koddan-geliştirme).
+Env konumu 1.0.6'dan beri desteklenir ([yarıçap geçişi](docs/api.md#106-yarıçap-geçişi)). Paket kurulamıyorsa [kaynak koddan çalıştırın](#kaynak-koddan-geliştirme).
 `npx` paketi indirir; bulunamazsa mutlak yolunu kullanın. [Hazır Galata yapılandırması](examples/mcp-config.json).
 
 ## 2. Bağlantıyı doğrulayın
 
-Sunucuyu yeniden başlatıp AI’a şunu yazın:
+Sunucuyu yeniden başlatıp AI'ya şunu yazın:
 
 > `market_status` çağır. Modu ve konum ayarının hazır olup olmadığını göster.
 
@@ -59,29 +59,27 @@ Status yalnız ayarları kontrol eder; gerçek fiyat için sonraki adımdaki ara
 
 ## 3. Fiyat sorgulayın
 
-AI’a istediğiniz ürünü ve marketleri söyleyin. Konum ayarı hazırsa tekrar vermeniz gerekmez.
+AI'ya istediğiniz ürünü ve marketleri söyleyin. Konum ayarı hazırsa tekrar vermeniz gerekmez.
 Şubeler bilinmiyorsa yukarıda açtığınız deneysel erişimle `market_find_nearby_depots` bir kez çağrılır;
-ürün aramasında dönen şube ID’leri kullanılır. [Adım adım sorgulama](docs/live-testing.md).
-Offline test veya ayrıca “canlı testi başlat” onayı gerekmez. Açık offline ve deneysel ayarları operatör yönetir.
+ürün aramasında dönen şube ID'leri kullanılır. Adımlar: [Gerçek fiyatlarla sorgulama](docs/live-testing.md).
 
-**Eski kurulumda `NETWORK_DISABLED` alıyorsanız:** İstemcideki `MARKET_FIYATI_MODE=offline`
-ayarını `live` yapıp sunucuyu yeniden başlatın. 1.0.8’den itibaren mod belirtilmediğinde `live`
-seçilir; 1.0.7 ve öncesinde değişkeni kaldırmak yeterli değildir. Offline kalması gereken geliştirme
-ortamlarında ayarı açıkça `offline` tutun.
+**`NETWORK_DISABLED` hatası alıyorsanız:** İstemci ayarında `MARKET_FIYATI_MODE=offline` vardır veya
+1.0.7 ya da daha eski bir sürüm kuruludur. Değeri `live` yapıp sunucuyu yeniden başlatın. Değişkeni silmek
+yalnız 1.0.8 ve sonrasında yeterlidir; 1.0.7 ve öncesinde varsayılan mod `offline`'dır. Ağsız çalışması gereken geliştirme ortamında `offline` değerini koruyun.
 
 ## Konum nasıl çalışır?
 
-| Durum                     | Kural                                                                       |
-| ------------------------- | --------------------------------------------------------------------------- |
-| Env kullanıyorum          | Üç değeri birlikte ayarlayın; AI her sorguda tekrar sormaz.                 |
-| Env kullanmıyorum         | Üçünü de kaldırın; enlem, boylam ve yarıçapı her konumlu çağrıda sağlayın.  |
-| Başka konum arıyorum      | Enlem/boylamı birlikte verin. Distance yoksa env yarıçapı kullanılır.       |
-| Eksik veya geçersiz değer | Env hatası başlangıcı, çağrı hatası sorguyu durdurur. Otomatik 1 km yoktur. |
-| Ayarı değiştirdim         | Env için yeniden başlatın. Çağrıdaki değişiklik yalnız o çağrıya aittir.    |
+| Durum                     | Kural                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| Env kullanıyorum          | Üç değeri birlikte ayarlayın; AI her sorguda tekrar sormaz.                                   |
+| Env kullanmıyorum         | Üçünü de kaldırın; enlem, boylam ve yarıçapı her konumlu çağrıda sağlayın.                    |
+| Başka konum arıyorum      | Enlem/boylamı birlikte verin. Distance yoksa env yarıçapı kullanılır.                         |
+| Eksik veya geçersiz değer | Env hatalıysa sunucu başlamaz; çağrı hatalıysa o çağrı reddedilir. Varsayılan yarıçap yoktur. |
+| Ayarı değiştirdim         | Env için yeniden başlatın. Çağrıdaki değişiklik yalnız o çağrıya aittir.                      |
 
 Şubeler (`depots`) ürün çağrısında ayrıca gerekir; MCP bunları saklamaz.
 Aynı süreç env konumunu paylaşır; farklı kullanıcılar ayrı süreç veya açık çağrı değerleri kullanmalıdır.
-[Tüm konum kuralları ve sınırlar](docs/api.md#context).
+[Tüm konum kuralları ve sınırlar](docs/api.md#konum-ve-şube-bağlamı).
 
 ## Yapabilecekleriniz
 
@@ -97,10 +95,10 @@ Aynı süreç env konumunu paylaşır; farklı kullanıcılar ayrı süreç veya
 
 ## Sonuçları doğru okuyun
 
-- Fiyatlar **TRY**. `percentage` indirim oranı değildir; API’nin `discount` işaretine bakın.
-- Eksik teklif **bilinmiyor** demektir; “stok yok” veya “tüm fiyatlar tarandı” denemez.
+- Fiyatlar **TRY**. `percentage` indirim oranı değildir; API'nin [`discount` işaretine](docs/api.md#discount-işaretini-okuma) bakın.
+- Eksik offer **bilinmiyor** demektir; “stok yok” veya “tüm fiyatlar tarandı” denemez.
 - Eksik sepette `total=null`; `subtotal` yalnız bulunan ürünlerdir.
-- Fiziksel şube karşılaştırması için `groupBy=depot` kullanın; zincir tek mağaza değildir.
+- Fiziksel şube karşılaştırması için `groupBy=depot` kullanın; zincir tek bir şube değildir.
 - Sepet bütçesi retry dâhil **5 HTTP denemesi**. Listeyi bölerek veya tool değiştirerek aşmayın.
 
 ## Kaynak koddan geliştirme
@@ -115,17 +113,16 @@ MARKET_FIYATI_MODE=offline npm run check
 `check` derlemeyi de yapar. İstemcide `command: "node"`, `args` içinde `dist/src/index.js` dosyasının
 mutlak yolunu kullanın. Geliştirirken istemci env ayarını açıkça `MARKET_FIYATI_MODE=offline` yapın;
 testlerin ağ engeli de korunur. Gerekirse `node` yolunu da mutlak yazın.
-RTK kullanıyorsanız komutları onunla çalıştırın.
 
 Sunucu stdio JSON-RPC kullanır; HTTP portu açmaz. Geliştirmede `MARKET_FIYATI_MODE=offline npm start`
 MCP mesajlarını bekler. Mod ayarı olmadan başlangıç `live` seçer; yalnız başlatmak HTTP isteği göndermez.
-stdout yalnız MCP trafiğidir. npm kurulumu ağ kullanabilir; uygulama testleri API’ye bağlanmaz.
+stdout yalnız MCP trafiğidir. npm kurulumu ağ kullanabilir; uygulama testleri API'ye bağlanmaz.
 
 ## Ayrıntı gerektiğinde
 
 | İhtiyaç                         | Belge                                                                            |
 | ------------------------------- | -------------------------------------------------------------------------------- |
-| Gerçek fiyatları sorgula        | [Sorgulama rehberi](docs/live-testing.md)                                        |
+| Gerçek fiyatları sorgula        | [Gerçek fiyatlarla sorgulama](docs/live-testing.md)                              |
 | Tool, filtre ve yanıt kuralları | [API](docs/api.md)                                                               |
 | Ayarlar ve kod yapısı           | [Mimari](docs/architecture.md)                                                   |
 | Testler ve sınırları            | [Doğrulama](docs/verification.md) · [Sentetik kabul](docs/offline-acceptance.md) |

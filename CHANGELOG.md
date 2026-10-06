@@ -4,6 +4,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **Belgeler:** Türkçe belgeler tek terim sözlüğüne ve düz kesme işaretine geçti; anlaşılmayan cümleler
+  yeniden yazıldı, bakımcı notları ve tahmini süreler kaldırıldı. `api.md` içindeki konum başlığı
+  "Konum ve şube bağlamı" oldu. 1.0.6 yarıçap geçişi, `discount` yorumu ve sentetik test sınırları tek
+  bölümde toplandı. Sürüm notlarındaki linkler kendi tag'lerine sabitlendi. Yeni belge testi linkleri,
+  anchor'ları ve sözlüğü denetler. Runtime davranışı değişmedi.
+
 ## 1.0.9 — 2026-10-05
 
 - **İlk kurulumda şube keşfi:** README ve örnek yapılandırma `MARKET_FIYATI_ENABLE_EXPERIMENTAL=true` içerir;
@@ -19,15 +25,15 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## 1.0.8 — 2026-09-30
 
-- **Varsayılan mod artık `live`:** Mod belirtilmeden çalışan kurulumlar veri sorgularında HTTP kullanır.
-  Geliştirme ve testte ağsız kalmak için `MARKET_FIYATI_MODE=offline` açıkça verilmelidir.
-- **Eski ayarların geçişi:** İstemci veya Registry kurulumunun kaydettiği açık `offline` korunur.
-  Normal kullanım için ayarı `live` yapın veya bu değişikliği içeren sürüme yükselttikten sonra kaldırın;
-  sunucuyu yeniden başlatın. Yayımlanmış 1.0.7 bu değişikliği içermez.
-- CLI, Registry metadata, MCP rehberi ve kurulum belgeleri normal kullanımla geliştirme kabulünü ayırır.
-  Deneysel erişim varsayılanı değişmez; şube keşfi gerektiren kurulumlarda ayrıca açılır.
-- Varsayılan live akışı fake fetch ile; bağımsız tüketici kurulumu varsayılan live başlangıcı ve açık
-  offline engellemesiyle, gerçek ağ engeli altında sınanır. Yeni canlı API doğrulaması yoktur.
+- **Varsayılan mod artık `live`:** `MARKET_FIYATI_MODE` verilmeyen kurulumlar veri sorgularında HTTP isteği
+  gönderir. Ağsız geliştirme ve test için `MARKET_FIYATI_MODE=offline` açıkça ayarlanmalıdır.
+- **Eski ayarların geçişi:** İstemci veya Registry kurulumunda kayıtlı `offline` değeri kendiliğinden değişmez.
+  Gerçek fiyat sorgusu için değeri `live` yapın ya da 1.0.8'e yükseltip değişkeni silin; ardından sunucuyu
+  yeniden başlatın. 1.0.7 ve öncesinde varsayılan mod `offline`'dır.
+- CLI, Registry metadata, MCP rehberi ve kurulum belgeleri normal kullanımı geliştirici kabul testlerinden
+  ayrı anlatır. Deneysel erişimin varsayılanı değişmedi; şube keşfi için ayrıca açılmalıdır.
+- Varsayılan live akışı fake fetch ile sınanır. Bağımsız kurulum testi, varsayılan live başlangıcı ve açık
+  offline engelini gerçek ağ engeli altında doğrular. Yeni live API doğrulaması yoktur.
 
 [1.0.8 sürüm notları](docs/releases/v1.0.8.md).
 
@@ -35,21 +41,21 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 - Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.
 - En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
-- Beklenmeyen hatalardaki kullanıcı mesajından mevcut olmayan yerel teşhis yönlendirmesi kaldırıldı.
-- 1.0.6 ile kaldırılan otomatik 1 km yarıçapın geçişi ve sürüm uyumluluğu belgelendi; konum sözleşmesi
-  bu sürümde değişmedi. Yeni tag için tarihli CHANGELOG bölümünü zorunlu kılan kontrol eklendi.
+- Beklenmeyen hatalardaki kullanıcı mesajı artık var olmayan bir yerel tanılama yoluna yönlendirmez.
+- 1.0.6 ile kaldırılan otomatik 1 km yarıçapın [geçişi](docs/api.md#106-yarıçap-geçişi) ve sürüm uyumluluğu
+  belgelendi; konum sözleşmesi bu sürümde değişmedi. Yeni tag için tarihli CHANGELOG bölümünü zorunlu kılan kontrol eklendi.
 
 [1.0.7 sürüm notları](docs/releases/v1.0.7.md).
 
 ## 1.0.6 — 2026-09-25
 
-- **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env’den okunabilir. Tam çağrı çifti ve
+- **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env'den okunabilir. Tam çağrı çifti ve
   distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.
-- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı. Üç değer env veya çağrıdan tamamlanmalıdır;
+- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı ([geçiş](docs/api.md#106-yarıçap-geçişi)). Üç değer env veya çağrıdan tamamlanmalıdır;
   ters geocode yalnız koordinat kullanır.
 - **Status:** `locationDefaults.configured` ayarın varlığını gösterir; koordinatları göstermez.
 - Rehberler kısaltıldı; kullanıcı kurulumu `live` modunda Galata Kulesi ve 4 km yarıçap kullanır. Env metni ile sayısal
-  tool/API girdisi ayrımı açıklandı. Canlı API için yeni doğrulama yoktur.
+  tool/API girdisi ayrımı açıklandı. Live API için yeni doğrulama yoktur.
 
 [1.0.6 geçiş adımları](docs/releases/v1.0.6.md).
 
@@ -59,15 +65,17 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
 
 - npm kurulumu ve offline başlangıç README'de öne çıkarıldı; örnek sürüm pini paketle doğrulanır.
   Keşif anahtar kelimeleri ve sonraki yayın için MCP Registry metadata hazırlığı eklendi.
-- Paket belgeleri açık dosya listesine alındı. Ayrı npm cache ve üretim bağımlılıklarıyla bağımsız
-  tüketici/binary kontrolü eklendi; yayın işi aynı test edilmiş arşivi ayrıca kurar.
-- Yeni npm yayınında `latest` doğrulanır; geçici registry ve gövde okuma hataları toplam beş dakikalık
-  süre içinde yalnız doğrulama isteğini tekrarlar. Integrity uyuşmazlığı ve bozuk JSON hemen durdurur.
-- Status, sepet, ürün karşılaştırması ve fiyat geçmişi için kararlı çıktı alanları şemada ilan edilir;
+- Paket belgeleri açık dosya listesine alındı. Ayrı npm cache ve yalnız üretim bağımlılıklarıyla çalışan
+  bağımsız kurulum testi eklendi; yayın işi aynı test edilmiş arşivi ayrıca kurar.
+- Yayın sonrası doğrulama, yeni sürümün npm'de `latest` olarak göründüğünü kontrol eder. Registry geçici
+  hata verirse (429/5xx), yanıt okunamazsa veya yeni sürüm henüz görünmüyorsa yalnız bu doğrulama isteği
+  toplam beş dakika içinde tekrarlanır;
+  paket yeniden gönderilmez. Integrity uyuşmazlığı veya bozuk JSON doğrulamayı hemen durdurur.
+- Status, sepet, ürün karşılaştırması ve fiyat geçmişi için kararlı çıktı alanları şemada tanımlandı;
   null değerler ve upstream ek alanlar korunur.
 - Özel güvenlik bildirim politikası ve güvenlik güncellemelerine yönelik Dependabot yapılandırması eklendi.
 
-npm ve GitHub Release yayımlandı; MCP Registry yayını ayrı bir aşamadır. Canlı API davranışı için yeni doğrulama yoktur.
+npm ve GitHub Release yayımlandı; MCP Registry yayını ayrı bir aşamadır. Live API davranışı için yeni doğrulama yoktur.
 
 ## 1.0.4 — 2026-09-24
 
@@ -81,7 +89,7 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.4.md) bakın.
 
 ## 1.0.3 — 2026-09-24
 
-Türkçe dokümantasyon düzenlemeleri ve otomatik yayın akışı npm'de yayımlandı. Registry görünürlüğü
+Türkçe belge düzenlemeleri ve otomatik yayın akışı npm'de yayımlandı. Registry görünürlüğü
 geciktiği için yayın sonrası doğrulama tamamlanamadı ve GitHub Release oluşturulmadı.
 Kaynak commit'i npm provenance kaydında
 [`4eafbea13e2653e9bea16e17d180ed4de3689873`](https://github.com/gokhancvs/market-fiyati-mcp/commit/4eafbea13e2653e9bea16e17d180ed4de3689873)
@@ -98,12 +106,12 @@ Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.2.md) bakın.
 
 - `main` geçmişindeki bir commit'e yeni bir kararlı sürüm tag'i push edildiğinde offline kontroller, npm'e
   OIDC ile yayın, integrity doğrulaması ve GitHub Release oluşturma otomatik olarak çalışır.
-- Dokümanlar kısa adımlar ve tablolarla yeniden düzenlendi; README ile API belgesi arasındaki tekrarlar azaltıldı.
-- Dokümanlar daha anlaşılır ve sade bir Türkçeyle yeniden yazıldı. Teknik terimler İngilizce bırakıldı.
+- Belgeler kısa adımlar ve tablolarla yeniden düzenlendi; README ile API belgesi arasındaki tekrarlar azaltıldı.
+- Belgeler daha anlaşılır ve sade bir Türkçeyle yeniden yazıldı. Teknik terimler İngilizce bırakıldı.
 
 ## 1.0.1 — 2026-09-24
 
-npm dağıtımı için hazırlanan sürüm. Bu kayıt, npm yayınının gerçekleştiğinin kanıtı değildir.
+npm'de yayımlanan ilk sürüm.
 
 ### Eklenenler
 
@@ -128,11 +136,11 @@ npm dağıtımı için hazırlanan sürüm. Bu kayıt, npm yayınının gerçekl
 
 - Ürün arama, kategori keşfi, şube fiyatları, fiyat geçmişi ve sepet karşılaştırması için 15 tool, 3 resource
   ve 3 prompt.
-- Her çağrıda açıkça verilen konum ve şube context'i, API facet filtreleri, sınırlı sayfalama ve TRY/kuruş
+- Her çağrıda açıkça verilen konum ve şube bağlamı, API facet filtreleri, sınırlı sayfalama ve TRY/kuruş
   bazında karşılaştırma.
 - Upstream uyarılarının korunması, istek ölçümleri, şube kapsamı, istek bütçesi, iptal ve kaynak kullanım
   sınırları.
-- Varsayılan offline mod, ağ erişimini engelleyen sentetik testler ve istemciden bağımsız bir kabul kiti.
+- Varsayılan offline mod, ağ erişimini engelleyen sentetik testler ve istemciden bağımsız sentetik kabul testleri.
 - CI kontrolleri, doğrulanmış tag üzerinden taslak sürüm hazırlama ve GitHub issue şablonları.
 
 Sentetik testlerin geçmesi, uzak API davranışının doğrulandığı anlamına gelmez. Doğrulama kapsamı ve sınırları

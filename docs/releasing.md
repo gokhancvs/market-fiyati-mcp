@@ -1,16 +1,14 @@
 # Sürüm çıkarma
 
 **Önce kapsamı belirleyin:** Hazırlık, merge, tag veya MCP Registry yayını?
-Yalnız istenen aşamaları tamamlayın; verilmiş onayı yeniden istemeyin.
+Yalnız gereken aşamaları tamamlayın.
 
-**Yeni kararlı tag’i push etmek npm ve GitHub yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
+**Yeni kararlı tag'i push etmek npm ve GitHub yayınını başlatır.** Kod düzenleme isteği yayın yetkisi değildir.
 
-Sözleşme diff'inde önceden geçerli bir çağrı için yeni zorunlu girdi varsa, sürüm hazırlığında
-uyumluluk etkisini ve geçiş yolunu açıkça inceleyin; uyumsuz değişiklik için major sürüm ve
-migration belgesi gerekir. Eski çağrı fixture'larını review kapısında çalıştırın: yeni patch
-sürümünde sessiz bir kırılmayı test/diff incelemesiyle yakalayın. `1.0.6` sürümünde otomatik
-1 km yarıçap kaldırıldı ve bu eski yarıçapsız çağrıları kırdı; yayımlanmış sürümün tag'i ve
-paketi geriye dönük değiştirilmez.
+Sözleşme diff'i önceden geçerli bir çağrıya yeni zorunlu girdi ekliyorsa, sürüm hazırlığında uyumluluk
+etkisini ve geçiş yolunu inceleyin. Uyumsuz değişiklik major sürüm ve geçiş belgesi gerektirir. Eski çağrı
+fixture'larını review sırasında çalıştırarak patch sürümünde sessiz kırılmayı yakalayın. Örnek:
+[1.0.6 yarıçap geçişi](api.md#106-yarıçap-geçişi).
 
 ## 1. Sürümü hazırlayın
 
@@ -38,16 +36,16 @@ MARKET_FIYATI_MODE=offline npm run check
 npm run test:consumer
 ```
 
-1. Son diff’i ve staged dosyaları inceleyin; plan/rapor/özel verileri dahil etmeyin.
-2. Conventional Commit oluşturup feature branch’ini push edin; PR açın.
-3. Tüm gerekli CI kontrollerini bekleyip PR’ı `main`’e merge edin.
-4. Merge commit’ini doğrulayın; temiz yerel main’i fast-forward güncelleyin.
+1. Son diff'i ve staged dosyaları inceleyin; plan, rapor ve özel verileri eklemeyin.
+2. Conventional Commit oluşturup feature branch'ini push edin; PR açın.
+3. Tüm gerekli CI kontrollerini bekleyip PR'ı `main`'e merge edin.
+4. Merge commit'ini doğrulayın; temiz yerel main'i fast-forward güncelleyin.
 
 Doğrudan main push, force-push ve main silme kapalıdır. İlgisiz yerel değişiklikleri koruyun.
 
-## 3. Tag’i gönderin
+## 3. Tag'i gönderin
 
-**Yalnız yayın yetkisi varsa**, doğrulanmış main commit’inde çalıştırın:
+**Yalnız yayın yetkisi varsa**, doğrulanmış main commit'inde çalıştırın:
 
 ```sh
 git fetch origin main
@@ -56,9 +54,9 @@ npm run release:check -- v1.0.7
 git push origin v1.0.7
 ```
 
-RTK zorunluysa komutları onunla çalıştırın. Tag’i taşımayın; yayımlanan içeriği değiştirmeyin.
-Workflow yalnız kararlı `vX.Y.Z`, eşleşen paket sürümü ve `origin/main` geçmişindeki commit’i kabul eder.
-Main ilerlese de paketlenen tag commit’idir. Ek “Publish” düğmesine gerek yoktur.
+Tag'i taşımayın; yayımlanan içeriği değiştirmeyin.
+Workflow yalnız kararlı `vX.Y.Z`, eşleşen paket sürümü ve `origin/main` geçmişindeki commit'i kabul eder.
+Main ilerlese de paketlenen tag commit'idir. Ek “Publish” düğmesine gerek yoktur.
 
 ## 4. Yayını doğrulayın
 
@@ -68,16 +66,16 @@ Main ilerlese de paketlenen tag commit’idir. Ek “Publish” düğmesine gere
 | npm               | Sürüm, SHA-512 integrity ve yeni yayın için `latest` doğru       |
 | GitHub Release    | Sürüm açıklaması ve test edilen `.tgz` görünür                   |
 | Anahtar kelimeler | `package.json` keywords, npm keywords ve GitHub Topics aynı küme |
-| MCP Registry      | Yalnız ayrıca yayımlandıysa ad/sürüm registry’den doğrulanmış    |
+| MCP Registry      | Yalnız ayrıca yayımlandıysa ad/sürüm registry'den doğrulanmış    |
 
-Release açıklamasındaki hazırlık ifadelerini güncelleyin; belge linklerini yayımlanan tag’e sabitleyin.
+Release açıklamasındaki hazırlık ifadelerini güncelleyin; belge linklerini yayımlanan tag'e sabitleyin.
 **Tag push tek başına başarı değildir.** npm ve MCP Registry durumunu ayrı raporlayın.
 GitHub Packages kullanılmaz; Packages bölümünün boş olması normaldir.
 
-## 5. Branch’leri temizleyin
+## 5. Branch'leri temizleyin
 
-- `delete_branch_on_merge=true` kalsın; merge edilen remote branch’in silindiğini doğrulayın.
-- Kaldıysa başında yeni iş olmadığını kontrol edip yalnız tam entegre branch’i silin.
+- `delete_branch_on_merge=true` kalsın; merge edilen remote branch'in silindiğini doğrulayın.
+- Kaldıysa başında yeni iş olmadığını kontrol edip yalnız tam entegre branch'i silin.
 - Yerel branch/worktree yalnız temiz, kullanılmayan ve entegre durumdaysa kaldırılır.
 - Önce ignored `plans/` ve `reports/` arşivlerini dışarı yedekleyin; zorla temizlik yapmayın.
 - Commit/PR/release linklerini, doğrulama sonucunu ve kalan işlemi teslimde belirtin.
@@ -112,10 +110,10 @@ Kurulum eksikse publish başarısız olur; kurduktan sonra aynı çalışmanın 
 
 1. Tag/main ilişkisi, sürümler ve notlar doğrulanır.
 2. Ubuntu Node 22/24, macOS Node 24 kontrolleri; üretim bağımlılık denetimi ve
-   Ubuntu Node 22 / Windows Node 24 tüketici kurulumu geçer.
+   Ubuntu Node 22 / Windows Node 24 bağımsız kurulum testi geçer.
 3. Yayın işi offline kontrolleri tekrarlar. Aynı arşiv ayrı cache/dizinde üretim bağımlılıklarıyla kurulur;
-   npm binary’si ağ engeliyle sınanır.
-4. Test edilmiş arşiv OIDC ile npm’e public/latest gönderilir; sürüm, integrity ve latest doğrulanır.
+   npm binary'si ağ engeliyle sınanır.
+4. Test edilmiş arşiv OIDC ile npm'e public/latest gönderilir; sürüm, integrity ve latest doğrulanır.
 5. GitHub Release ve `.tgz` oluşturulur.
 
 Yarıda kalırsa **Re-run failed jobs** kullanın. Doğrulama geçici bağlantı/429/502/503/504 hatalarını
@@ -126,9 +124,9 @@ Retry-After daha uzunsa erken istek yapılmaz, süreye sığmazsa hata verilir.
 npm sürümü zaten varsa yalnız aynı integrity ile atlanır. Tarihsel doğrulamada latest aynı veya
 daha yeni kararlı sürüm olabilir; eski/eksik latest sınırlı süre okunur, otomatik değiştirilmez.
 Kaldırılmış sürüm veya farklı içerik hata verir. Mevcut GitHub Release yeniden oluşturulmaz.
-Yeni yayın latest’ten büyük olmalıdır; eski tag latest’i geri çekemez. Yayınlar sıralıdır; kuyruk en fazla 100’dür.
+Yeni yayın latest'ten büyük olmalıdır; eski tag latest'i geri çekemez. Yayınlar sıralıdır; kuyruk en fazla 100'dür.
 
-Market Fiyatı API’si offline kalır. npm kurulum/yayın/advisory istekleri bu kısıtın dışındadır.
+Market Fiyatı API'si offline kalır. npm kurulum/yayın/advisory istekleri bu kısıtın dışındadır.
 
 </details>
 
@@ -143,16 +141,16 @@ npm publish /mutlak/yol/market-fiyati-mcp-1.0.7.tgz --dry-run --access public
 
 Hazır arşiv: `npm run test:consumer -- /mutlak/yol/pack.json`.
 Hazır kurulum: `npm run test:installed -- /mutlak/yol/kurulum`.
-Dry-run yayın yetkisini veya live API’yi kanıtlamaz. Paket testleri geliştirme/test dosyalarını dışlar;
-normal paket testi bağımlılık indirmez, tüketici kurulumu npm ağı kullanabilir.
+Dry-run yayın yetkisini veya live API'yi kanıtlamaz. Paket testleri geliştirme/test dosyalarını dışlar;
+normal paket testi bağımlılık indirmez, bağımsız kurulum testi npm ağını kullanabilir.
 
-Her main push’unda CI/bağımlılık denetimi; pazartesi 07:00 UTC’de yalnız üretim bağımlılığı denetimi
+Her main push'unda CI/bağımlılık denetimi; pazartesi 07:00 UTC'de yalnız üretim bağımlılığı denetimi
 çalışır. Zamanlanmış işler gecikebilir. `npm audit --omit=dev` geliştirme bağımlılıklarını kapsamaz.
 Dependabot yalnız güvenlik güncellemeleri için açık; otomatik merge yoktur.
 Bağımlılıkları sabit sürüm, tutarlı lockfile ve offline kontrollerle güncelleyin.
-[Güvenlik bildirimi](../SECURITY.md) özel kanaldandır; token/koordinat/ham tanılama Git’e veya issue’ya girmez.
+[Güvenlik bildirimi](../SECURITY.md) özel kanaldandır; token/koordinat/ham tanılama Git'e veya issue'ya girmez.
 
-Yeni CI işleri ilk uzak çalışmada görüldükten sonra gerçek adlarını main’in gerekli kontrollerine ekleyin.
+Yeni CI işleri ilk uzak çalışmada görüldükten sonra gerçek adlarını main'in gerekli kontrollerine ekleyin.
 İş tanımı tek başına platform başarısı değildir.
 
 </details>
@@ -162,13 +160,13 @@ Yeni CI işleri ilk uzak çalışmada görüldükten sonra gerçek adlarını ma
 
 `server.json` hazırlıktır; npm yayını otomatik katalog kaydı oluşturmaz.
 Paket `mcpName` ile manifest `name`, üst `version` ile `packages[].version` eşleşmelidir.
-1.0.4 yeni metadata’yı içermez; eski sürümü yeniden yayımlamayın.
+1.0.4 yeni metadata'yı içermez; eski sürümü yeniden yayımlamayın.
 
 1. Önce npm yayınını doğrulayın.
 2. [Resmî Registry rehberini](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/quickstart.mdx)
    izleyip manifesti belirtilen JSON şemasıyla doğrulayın.
 3. Yetkilendirilmiş katalog yayını için GitHub girişi ve `mcp-publisher publish` çalıştırın.
-4. Registry’de ad/sürümü doğrulayın.
+4. Registry'de ad/sürümü doğrulayın.
 
 Publisher destekliyorsa `mcp-publisher validate` kullanın. 1.8.1 yardımında görünmesine rağmen komut
 çalışmayabilir; JSON Schema kontrolü yalnız yerel yapıyı kanıtlar, sahiplik veya yayın kabulünü değil.

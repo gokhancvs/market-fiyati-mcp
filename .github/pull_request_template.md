@@ -1,20 +1,21 @@
-## Change
+## Değişiklik
 
-Describe the problem, resulting behavior and any compatibility impact.
+Sorunu, ortaya çıkan davranışı ve varsa uyumluluk etkisini anlatın.
 
-## Verification
+## Doğrulama
 
-List commands/results and CI links for this revision. State live/desktop validation limits.
+Bu revizyon için çalıştırılan komutları, sonuçlarını ve CI linklerini yazın. Live ve masaüstü istemci
+doğrulamasının sınırlarını belirtin.
 
-## Completion
+## Tamamlama
 
-Apply [the completion checklist](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/AGENTS.md#completion-checklist). Mark completed
-items and explain any item that is outside scope or blocked.
+[Tamamlama kontrol listesini](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/AGENTS.md#completion-checklist)
+uygulayın. Tamamlanan maddeleri işaretleyin; kapsam dışı veya engellenmiş maddeleri açıklayın.
 
-- [ ] Final diff, affected documentation and staged files reviewed; private archives excluded.
-- [ ] Offline checks and applicable independent review passed; findings resolved.
-- [ ] Independent consumer installation passed, or explain why it is outside scope.
-- [ ] Version/release preparation follows the release guide, or is outside scope.
-- [ ] Remaining delivery steps are stated below, including post-merge branch cleanup.
+- [ ] Son diff, etkilenen belgeler ve staged dosyalar incelendi; yerel arşivler dışarıda bırakıldı.
+- [ ] Offline kontroller ve gerekiyorsa bağımsız review geçti; bulgular çözüldü.
+- [ ] Bağımsız kurulum testi geçti veya neden kapsam dışı olduğu açıklandı.
+- [ ] Sürüm ve yayın hazırlığı yayın rehberine uyuyor veya kapsam dışı.
+- [ ] Merge sonrası branch temizliği dâhil kalan teslim adımları aşağıda yazıldı.
 
-Remaining steps:
+Kalan adımlar:

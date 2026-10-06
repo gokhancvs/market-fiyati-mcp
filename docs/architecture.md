@@ -30,7 +30,7 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 ### Durum ve çalışma kuralları
 
 - **Konum:** Çağrı veya doğrulanmış env üçlüsü kullanılır; tam çağrı çifti ve yarıçap önceliklidir.
-  Her çağrı yeni nesneyle çözümlenir. Şubeler çağrıya aittir; kullanıcı/tercih/override hafızası ve sonuç cache’i yoktur.
+  Her çağrı yeni nesneyle çözümlenir. Şubeler çağrıya aittir; kullanıcı/tercih/override hafızası ve sonuç cache'i yoktur.
 - **Transport durumu geçicidir.** FIFO kuyruğunda 1 aktif ve en fazla 32 bekleyen iş bulunur. İptal edilen
   bekleyen iş ve dinleyicisi hemen kaldırılır. Retry-After bilgisi en fazla iki sunucu (API ve harita origin'i) için ve en fazla 60 saniye tutulur.
 - **Kapanış tüm işleri durdurur.** SDK transport katmanı gelen istek kimliklerini yanıt verilene kadar izler.
@@ -77,22 +77,21 @@ Hiçbiri yoksa konum çağrıdan gelir. Env değişince yeniden başlatın.
 
 **Gizlilik:** Aynı süreç env konumunu paylaşır; farklı kullanıcılar ayrı süreç veya açık çağrı değeri kullanır.
 Status yalnız `locationDefaults.configured` gösterir. Koordinatlar şema/config hatalarına yazılmaz;
-konumlu HTTP istekleri bunları API’ye gönderir.
+konumlu HTTP istekleri bunları API'ye gönderir.
 
 URL, header veya cookie değiştirmek için bir ayar yoktur. Yönlendirmeler (redirect) izlenmez.
 Retry, kuyruk ve çıktı sınırları için: [Kaynak kullanım sınırları](api.md#kaynak-kullanım-sınırları).
 
-## Geliştirme (kontroller yaklaşık 1–2 dakika sürer)
+## Geliştirme
 
 Kaynak deponun klonunda:
 
 1. `npm ci --ignore-scripts` ile sürümü sabitlenmiş bağımlılıkları kurun.
 2. Değişikliği ve onu anlamlı şekilde sınayan testi yazın.
-   [Agent kurallarına](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/AGENTS.md) uyun.
+   [Katkı kurallarına (AGENTS.md)](https://github.com/gokhancvs/market-fiyati-mcp/blob/main/AGENTS.md) uyun.
 3. `MARKET_FIYATI_MODE=offline npm run check` çalıştırın.
 
-**Başarılı sayılır:** Biçim, lint, tip kontrolü, derleme ve testler hatasız biter. Süre makineye göre
-değişir. Ortamınızda RTK kuralı varsa komutların başına `rtk` ekleyin.
+**Başarılı sayılır:** Biçim, lint, tip kontrolü, derleme ve testler hatasız biter.
 
 | Komut                             | Ne yapar                                                                                                                                              |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
