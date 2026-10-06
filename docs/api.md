@@ -539,7 +539,7 @@ kapsamını (`size`, şube sayısı) daraltın.
 - İptal MCP SDK'nin istek başına sinyaliyle çalışır. İptal edilen tool çağrısına yanıt gönderilmez; MCP
   istemcisi bu çağrının sonucunu zaten beklemez. SDK, kimliği sayısal `0` veya boş string olan isteklerin
   iptal bildirimini yok sayar; bu istekler tamamlanana kadar sürer. Aynı kimliği aynı anda iki istekte
-  kullanmak JSON-RPC kuralına aykırıdır ve reddedilmez.
+  kullanmak JSON-RPC kuralına aykırıdır ve reddedilmez; bu durumda önceki çağrı artık iptal edilemez.
 - MCP SDK'nin varsayılan istek süresi 60 saniyedir ve istemci bunu değiştirebilir. HTTP timeout ise tek bir
   denemeye aittir. Sunucu ilerleme (progress) bildirimi göndermez. Upstream yavaşsa küçük bir sepet bile
   istemcinin süre sınırını aşabilir.
@@ -552,8 +552,9 @@ Sunucunun kapanışı 5 saniyede bitmezse stderr'e `SHUTDOWN_TIMEOUT` yazılır 
 
 Uygulama hataları `isError=true` ve `error.code` alanlarını taşır; SDK giriş hataları yalnızca MCP hata
 metninden oluşabilir. `NETWORK_DISABLED`, `EXPERIMENTAL_DISABLED`, `INVALID_ARGUMENT`, `HTTP_ERROR`,
-`RATE_LIMITED`, `TIMEOUT`, `CANCELLED`, `RESPONSE_TOO_LARGE`, `QUEUE_FULL`, `INVALID_PRICE` ve
+`RATE_LIMITED`, `TIMEOUT`, `RESPONSE_TOO_LARGE`, `QUEUE_FULL`, `INVALID_PRICE` ve
 `REQUEST_BUDGET_EXCEEDED` kodları adlarındaki koşulu bildirir. Ham hata gövdesi dışarıya verilmez.
+`CANCELLED` yalnız sunucu içinde kalır: iptal edilen çağrıya yanıt gönderilmez.
 
 Adından anlaşılmayan kodlar:
 

@@ -204,10 +204,7 @@ export function createServer(service: MarketService): McpServer {
         try {
           if (signal.aborted)
             throw new AppError('CANCELLED', 'Request cancelled.', {}, { httpAttempts: 0, retries: 0, durationMs: 0 });
-          const envelope = await service.execute(tool.operation, args, signal);
-          if (signal.aborted)
-            throw new AppError('CANCELLED', 'Request cancelled.', {}, envelope.meta.requestMetrics as RequestMetrics);
-          return result(envelope);
+          return result(await service.execute(tool.operation, args, signal));
         } catch (error) {
           return errorResult(error);
         }

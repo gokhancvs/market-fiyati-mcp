@@ -104,6 +104,8 @@ for (const id of [1, 'call-1'] as const)
     }
   });
 
+// Relies on SDK 1.32.1 dispatching the handler after the following cancellation in the same turn;
+// re-check after an SDK upgrade.
 test('same-turn cancellation stops before the tool service starts', async () => {
   for (const id of [1, 'x'] as const) {
     let calls = 0;

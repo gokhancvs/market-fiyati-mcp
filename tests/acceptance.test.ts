@@ -270,7 +270,7 @@ test('error and timeout return explicit synthetic failures without partial baske
 
 /** Run the slow acceptance server, write messages after `ready`, and collect replies until exit. */
 async function slowSession(
-  write: (send: (message: unknown) => void, stderr: () => string) => Promise<void>
+  write: (send: (...messages: unknown[]) => void, stderr: () => string) => Promise<void>
 ): Promise<{ replies: Record<string, unknown>[]; stderr: string; code: unknown }> {
   const child = spawn(process.execPath, [entry, 'slow'], {
     env: { ...process.env, MARKET_FIYATI_MODE: 'offline' },
@@ -294,7 +294,8 @@ async function slowSession(
   const watchdog = setTimeout(() => child.kill('SIGKILL'), 4000);
   try {
     await write(
-      (message) => child.stdin.write(`${JSON.stringify(message)}\n`),
+      // Messages passed together go out in one write, so they can arrive in one chunk.
+      (...messages) => child.stdin.write(messages.map((message) => `${JSON.stringify(message)}\n`).join('')),
       () => stderr
     );
     const answered = async (id: number) => {
@@ -353,8 +354,7 @@ test(
 
 test('same-write early cancellation sends no result and starts no fake fetch', { timeout: 5000 }, async () => {
   const { replies, stderr, code } = await slowSession(async (send) => {
-    send(basketCall);
-    send(cancelCall);
+    send(basketCall, cancelCall);
   });
   assert.equal(
     replies.find((reply) => reply.id === 1),
