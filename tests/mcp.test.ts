@@ -1210,3 +1210,22 @@ test('stable output schemas validate fields, nullable values and additive data',
     }
   );
 });
+
+test('tools/call without arguments validates as an empty object', async () => {
+  let fetches = 0;
+  await withClient(
+    async () => {
+      fetches += 1;
+      throw new Error('no fetch expected');
+    },
+    async (client) => {
+      const status = (await client.callTool({ name: 'market_status' })) as CallToolResult;
+      assert.equal(status.isError, undefined);
+      assert.equal((status.structuredContent as { data: { mode: string } }).data.mode, 'live');
+      const search = (await client.callTool({ name: 'market_search_products' })) as CallToolResult;
+      assert.equal(search.isError, true);
+      assert.match((search.content[0] as { text: string }).text, /Input validation error/);
+    }
+  );
+  assert.equal(fetches, 0);
+});
