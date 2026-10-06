@@ -192,5 +192,8 @@ async function record() {
 test('tool envelopes, wire payloads and tool schemas match the characterization snapshot', async () => {
   const actual = await record();
   if (process.env.UPDATE_CHARACTERIZATION === '1') writeFileSync(snapshotFile, `${JSON.stringify(actual, null, 2)}\n`);
-  assert.deepEqual(actual, JSON.parse(readFileSync(snapshotFile, 'utf8')));
+  const expected = JSON.parse(readFileSync(snapshotFile, 'utf8')) as unknown;
+  assert.deepEqual(actual, expected);
+  // Key order is part of the serialized tool result text.
+  assert.equal(JSON.stringify(actual), JSON.stringify(expected));
 });
