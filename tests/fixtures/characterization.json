@@ -3856,24 +3856,10 @@
                             "maximum": 9007199254740991
                           },
                           "from": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["string", "null"]
                           },
                           "to": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["string", "null"]
                           },
                           "first": {
                             "anyOf": [
@@ -3920,24 +3906,10 @@
                             ]
                           },
                           "change": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["number", "null"]
                           },
                           "changePercent": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["number", "null"]
                           }
                         },
                         "required": [
@@ -6080,24 +6052,10 @@
                             "maximum": 9007199254740991
                           },
                           "from": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["string", "null"]
                           },
                           "to": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["string", "null"]
                           },
                           "first": {
                             "anyOf": [
@@ -6144,24 +6102,10 @@
                             ]
                           },
                           "change": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["number", "null"]
                           },
                           "changePercent": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
+                            "type": ["number", "null"]
                           }
                         },
                         "required": [
