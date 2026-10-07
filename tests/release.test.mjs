@@ -5,14 +5,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import { changelogSections, linkProblems } from '../scripts/release-notes.mjs';
 
 const script = fileURLToPath(new URL('../scripts/check-release.mjs', import.meta.url));
 const workflow = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
 
 test('release workflow gates tag publication on main, offline checks and OIDC', () => {
-  const parsed = yaml.load(readFileSync(workflow, 'utf8'));
+  const parsed = load(readFileSync(workflow, 'utf8'));
   assert.deepEqual(parsed.on.push.tags, ['v*']);
   assert.equal(parsed.on.workflow_dispatch, undefined);
   assert.equal(parsed.concurrency.queue, 'max');
@@ -28,7 +28,7 @@ test('release workflow gates tag publication on main, offline checks and OIDC', 
   const consumer = steps.findIndex((step) => step.run?.startsWith('npm run test:consumer'));
   const publish = steps.findIndex((step) => step.run?.includes('scripts/publish-npm.mjs'));
   assert.ok(check >= 0 && consumer > check && publish > consumer);
-  const checks = yaml.load(readFileSync(new URL('../.github/workflows/check.yml', import.meta.url), 'utf8'));
+  const checks = load(readFileSync(new URL('../.github/workflows/check.yml', import.meta.url), 'utf8'));
   assert.equal(checks.on.workflow_call, undefined, 'no workflow reuses the full check matrix');
   assert.ok(!JSON.stringify(parsed).includes('NODE_AUTH_TOKEN'));
   const command = parsed.jobs.publish.steps.find((step) => step.name === 'Publish verified release').run;
@@ -43,7 +43,7 @@ test('release workflow gates tag publication on main, offline checks and OIDC', 
 });
 
 test('MCP Registry publication runs after npm with OIDC and a verified publisher binary', () => {
-  const parsed = yaml.load(readFileSync(workflow, 'utf8'));
+  const parsed = load(readFileSync(workflow, 'utf8'));
   const registry = parsed.jobs.registry;
   assert.equal(registry.needs, 'publish');
   assert.deepEqual(registry.permissions, { contents: 'read', 'id-token': 'write' });
@@ -66,7 +66,7 @@ test('MCP Registry publication runs after npm with OIDC and a verified publisher
 });
 
 test('Dependabot proposes grouped monthly updates that keep exact pins after a cooldown', () => {
-  const config = yaml.load(readFileSync(new URL('../.github/dependabot.yml', import.meta.url), 'utf8'));
+  const config = load(readFileSync(new URL('../.github/dependabot.yml', import.meta.url), 'utf8'));
   const byEcosystem = Object.fromEntries(config.updates.map((update) => [update['package-ecosystem'], update]));
   assert.deepEqual(Object.keys(byEcosystem).sort(), ['github-actions', 'npm']);
   for (const [ecosystem, update] of Object.entries(byEcosystem)) {
