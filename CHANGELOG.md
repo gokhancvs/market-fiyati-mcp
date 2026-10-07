@@ -12,6 +12,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   Live kullanımda API sayfa başına en fazla 25 ürün döndürdü; bu belgelenmiş bir sınır değildir. Yeni uyarı kodu
   eklemedir; mevcut alanların biçimi değişmez.
 
+### Belgeler
+
+- README sorun giderme tablosu, bu repo'nun checkout'u içinde başlatılan istemcide `npx`'in yerel projeyi
+  çözmesini (`command not found`) ve `--prefix` çözümünü anlatır. Bağımsız kurulum testi bu çözümü checkout
+  kökünden denetler.
+
 ## 2.0.0 — 2026-10-07
 
 Bu major sürüm, tool çıktısını ve ürün girdisini değiştirir. Yanıtlar kısalır: harita linkleri her offer'da

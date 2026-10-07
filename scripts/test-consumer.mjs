@@ -39,6 +39,11 @@ try {
   copyFileSync(archive, copied);
   npm(['install', '--prefix', install, copied, '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund']);
   execFileSync(process.execPath, [join(root, 'scripts/check-installed-package.mjs'), install], { stdio: 'inherit' });
+  // Inside this same-name checkout, plain npx resolves the local project; --prefix must reach the installed bin.
+  assert.match(
+    npm(['exec', '--prefix', install, '--offline', '--', 'market-fiyati-mcp', '--help']),
+    /Market Fiyati MCP \(stdio\)/
+  );
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

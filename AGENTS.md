@@ -29,6 +29,9 @@ development: set `MARKET_FIYATI_MODE=offline` explicitly for every development c
 for client sessions that run this checkout. A later explicit instruction to start live
 testing supersedes this temporary restriction. Follow `docs/live-testing.md`
 at that point. Live and experimental settings are operator choices, not tool inputs.
+A client session started in this checkout that runs the _published_ package needs
+`npx --prefix <dir>` (see the README troubleshooting table); sessions running the checkout's own
+build stay `offline`.
 
 Use synthetic fixtures and injected fake fetch for development. `npm run check`
 blocks real networking with `tests/no-network.mjs`. Keep this guard enabled.
