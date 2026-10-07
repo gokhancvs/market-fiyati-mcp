@@ -1068,7 +1068,16 @@ test('each LLM-facing rule has one owner: basket rules in the basket tool, disco
     [/no group is complete/i, 'tool:market_compare_basket'],
     [/false means[^.]*not mark/i, 'guide'],
     [/absent (?:discount )?flag means unknown/i, 'guide'],
-    [/reference price is not evidence/i, 'guide']
+    [/reference price is not evidence/i, 'guide'],
+    // Rules added after the 2026-10-07 live test.
+    [/empty filtered response can still list valid values/i, 'guide'],
+    [/never guess a filter value format/i, 'guide'],
+    [/state meta\.retrievedAt as the query time/i, 'guide'],
+    [/latest history point can differ from a current offer/i, 'guide'],
+    [/not a walking or driving route/i, 'tool:market_find_nearby_depots'],
+    [/not proven exhaustive/i, 'tool:market_find_nearby_depots'],
+    [/brand-agnostic/i, 'tool:market_compare_basket'],
+    [/lead with the cheapest complete option/i, 'tool:market_compare_basket']
   ] as const;
   for (const [rule, owner] of owned) {
     const matches = [...surfaces].filter(([, text]) => rule.test(text)).map(([name]) => name);

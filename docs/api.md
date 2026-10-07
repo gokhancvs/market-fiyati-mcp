@@ -52,7 +52,9 @@ ve `depots`.
 **Ürün çağrıları için:** Enlem, boylam, km yarıçapı ve boş olmayan `depots` listesi sağlayın.
 `latitude`, `longitude` ve `distance` tırnaksız JSON sayısı olmalıdır; `"41.0"` gibi string değerler
 reddedilir. Env değerleri metin olduğu için sunucu bunları başlangıçta sayıya çevirir.
-**İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir.
+**İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir; API'nin verdiği
+bu uzaklık yürüme veya sürüş rotası değildir. Dönen şube listesinin eksiksiz olduğu kanıtlanmamıştır: 2026-10-07
+tarihli live oturumda zincir başına en fazla 5 şube döndü.
 Konum env'den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID'si zincir anahtarıyla şube ID'sini
 birleştiren opak string'dir. Zincir adı, şube ID'sinin yerine geçmez.
 
@@ -145,6 +147,10 @@ bu konum için API'den dönen bir şube ID'siyle değiştirin.
 - Sıralama: `order.name` değeri `lowest_price` veya `offer_unit_price`, `order.type` değeri `asc` veya `desc`
   olur. Varsayılan sıralama için `order` gönderilmez.
 - Arayüzdeki `price_range` alanı API'ye gönderilmez.
+- Filtre değerlerini `facetMap`'ten alın; biçimi tahmin etmeyin. 2026-10-07 tarihli live oturumda paket boyutu
+  değerleri `1 LT`, `500 GR`, `100 GR`, `30 Adet` biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi. Boş dönen
+  filtreli bir yanıt da filtrelenen alanın geçerli değerlerini `facetMap`'te listeleyebilir; bu her yanıtta
+  görülmedi ve belgelenmiş bir upstream sözleşmesi değildir.
 
 ### Sayfalama ve eşleşme
 
@@ -284,7 +290,9 @@ Yanıt: `[{name:<market>,series:[{name:"YYYY-MM-DD",value:<number|null>}]}]`.
 olur. Tüm değerleri `null` olan bir aralıkta noktalar korunur, ancak tarih, fiyat ve değişim istatistikleri
 `null` olur. Seçilen aralıkta `null` değer varsa `HISTORY_MISSING_VALUES` uyarısı döner; aralık dışındaki
 `null` değerler uyarı üretmez. Aynı zincirdeki birden fazla şubenin serilerinin nasıl birleştirildiği
-bilinmiyor.
+bilinmiyor. Seriler market adıyla gruplanır; son nokta tek bir şubedeki güncel offer'dan farklı olabilir
+(2026-10-07 live oturumunda bugünün değeri 429, aynı zincirin şubesindeki güncel fiyat 445 TRY idi). Son nokta
+güncel fiyat yerine kullanılmaz ve aradaki farktan yakın tarihli bir fiyat değişimi çıkarılmaz.
 
 Değişim yüzdesi, kuruşa normalize edilmiş değerlerle hesaplanır. Başlangıç değeri sıfırsa veya kuruşa
 yuvarlanınca sıfır oluyorsa yüzde `null` olur. Ham ilk, son, en düşük ve en yüksek değerler korunur. TRY
