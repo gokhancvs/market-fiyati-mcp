@@ -9,7 +9,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - API istenen `size`'dan az ürün döndürüp daha fazla eşleşme bildirdiğinde `meta.pagination.nextPage` artık
   yanlış sayfa göstermez: `null` olur ve yeni `PAGE_SIZE_REDUCED` uyarı kodu döner. Live kullanımda `size=100`
   isteğine 25 ürün dönerken `nextPage` ya `null` (görülmemiş eşleşmeler varken) ya da ürün atlayan bir sayfaydı.
-  Yeni kod eklemedir; mevcut alanlar değişmez.
+  Live kullanımda API sayfa başına en fazla 25 ürün döndürdü; bu belgelenmiş bir sınır değildir. Yeni uyarı kodu
+  eklemedir; mevcut alanların biçimi değişmez.
 
 ## 2.0.0 — 2026-10-07
 

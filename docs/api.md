@@ -160,10 +160,15 @@ Yanıt biçimi: `{numberOfFound,searchResultType,content:[Product],facetMap}`. `
 | `searchResultType=2` veya `3` | Bulanık (fuzzy) arama uyarısı üretir. `0` değerine özel bir anlam yüklenmez.                                                                               |
 
 Toplam eşleşme sayısı, dönen ürün sayısından ya da dolu bir sayfanın offset'i ile ürün sayısının toplamından
-küçükse `INVALID_RESPONSE` hatası döner. 2026-10-07 tarihli bir live oturumda `size=100` veya `size=30` isteklerine
-sayfa başına en fazla 25 ürün döndü; bu belgelenmiş bir upstream sınırı değildir ve yerel en büyük `size` 100 kalır.
-Devam etmek için `pages=1` ve `size` olarak `meta.pagination.returned` kullanılabilir; bu offset doğrulanmamıştır. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
+küçükse `INVALID_RESPONSE` hatası döner. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
 bir yanıt açıklama için kullanılıyorsa o yanıtın özgün `retrievedAt` değeri belirtilir.
+
+**Kısa sayfa:** 2026-10-07 tarihli bir live oturumda `size=100` veya `size=30` isteklerine sayfa başına en fazla
+25 ürün döndü. Bu belgelenmiş bir upstream sınırı değildir; yerel en büyük `size` 100 kalır.
+
+- `pages=0` yanıtı `PAGE_SIZE_REDUCED` taşıyorsa devam için `pages=1` ve `size` olarak `meta.pagination.returned`
+  kullanılabilir. Bu offset doğrulanmamıştır.
+- Daha ileri bir sayfa kısa geldiyse kapsam kısmi bildirilir; offset tahmin edilmez.
 
 ### `discount` işaretini okuma
 

@@ -220,7 +220,8 @@ test('short upstream page is flagged and has no nextPage', async () => {
       [1, 100, 200, 25, null, true, true],
       [0, 25, 111, 25, 1, false, true],
       [0, 26, 26, 25, null, true, true],
-      [0, 25, 5, 0, null, false, true]
+      [0, 25, 5, 0, null, false, true],
+      [10000, 2, 20003, 1, null, true, true]
     ] as const) {
       const output = await new MarketService(
         new FixtureTransport({ ...response, numberOfFound: total, content: products(returned) }),
@@ -229,13 +230,12 @@ test('short upstream page is flagged and has no nextPage', async () => {
       const row = `${operation} ${pages}/${size}/${total}/${returned}`;
       const codes = output.meta.warningCodes as string[];
       assert.equal((output.meta.pagination as { nextPage: unknown }).nextPage, nextPage, row);
-      assert.equal(codes.includes('PAGE_SIZE_REDUCED'), reduced, row);
+      const once = reduced ? 1 : 0;
+      assert.equal(codes.filter((code) => code === 'PAGE_SIZE_REDUCED').length, once, row);
+      assert.equal(output.warnings.filter((text) => text === WARNING_CODES.PAGE_SIZE_REDUCED).length, once, row);
       assert.equal(codes.includes('PARTIAL_RESULTS'), partial, row);
-      assert.equal(
-        output.warnings.includes((WARNING_CODES as Record<string, string>).PAGE_SIZE_REDUCED!),
-        reduced,
-        row
-      );
+      // A short page has no next page, so the local page-index limit is never reached.
+      assert.ok(!codes.includes('PAGINATION_LIMIT_REACHED'), row);
     }
   }
   const sync = await new MarketService(new FixtureTransport(), readConfig({})).execute('sync', {
