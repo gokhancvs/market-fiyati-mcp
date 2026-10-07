@@ -232,10 +232,9 @@ yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
 1. Önce şema doğrulanır. Koordinat `null` veya string ise ya da yakındaki şubeler yanıtında
    `location.lat/lon` eksikse `INVALID_RESPONSE` hatası döner.
 2. Şema doğrulamasından geçen şube koordinatları kullanılır. Enlem [-90, 90], boylam [-180, 180] aralığında
-   sonlu bir sayı olmalıdır. Sayılar aralık dışındaysa veya offer'daki isteğe bağlı koordinat eksikse
-   `maps:null` olur. Değerler sayıya zorla çevrilmez.
-3. URL'ler yerelde üretilir; kullanıcının konumu yedek olarak kullanılmaz. Kaynaktan gelen bir `maps` alanı
-   varsa MCP'nin ürettiği linklerle değiştirilir.
+   sonlu bir sayı olmalıdır. Değerler sayıya zorla çevrilmez.
+3. URL'ler yerelde üretilir; kullanıcının konumu yedek olarak kullanılmaz. Offer'larda kaynaktan gelen bir
+   `maps` alanı varsa çıktıdan çıkarılır; MCP'nin ürettiği linklerle karışmaz.
 
 | Sağlayıcı | URL şablonu                                                         |
 | --------- | ------------------------------------------------------------------- |
@@ -243,10 +242,13 @@ yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
 | Apple     | `https://maps.apple.com/?ll=<enlem,boylam>&q=<enlem,boylam>`        |
 | Yandex    | `https://yandex.com/maps/?ll=<boylam,enlem>&pt=<boylam,enlem>&z=16` |
 
-Parametreler URL-encode edilir. `maps` alanı yakındaki şubeler yanıtının her öğesinde ve her
-`productDepotInfoList` offer'ında bulunur. Karşılaştırmalarda `offers` ve `unavailableOffers` içinde, sepet ve
-bölünmüş sepette `lines[].offer` içinde korunur. Birden fazla şubeye yayılan bir sepet için grup düzeyinde tek
-bir link verilmez. Link yalnızca koordinata işaret koyar; işletme kaydı veya rota değildir. Linkleri üretmek
+Parametreler URL-encode edilir. Yakındaki şubeler yanıtında her öğe kendi `maps` alanını taşır.
+
+Ürün, karşılaştırma ve sepet yanıtlarında offer'lar link taşımaz. Bunun yerine `data.depotMaps`, yanıttaki
+offer'larda geçen her şube için `depotId` anahtarlı tek bir `{google, apple, yandex}` kaydı verir. Kapsam dışı
+ve fiyatı olmayan offer'ların şubeleri de tabloda yer alır. Kayıt şu durumlarda `null` olur: koordinat eksik
+veya aralık dışı ise, ya da aynı şubenin offer'ları farklı koordinat taşıyorsa. Birden fazla şubeye yayılan bir
+sepet için grup düzeyinde tek bir link verilmez. Link yalnızca koordinata işaret koyar; işletme kaydı veya rota değildir. Linkleri üretmek
 için ağ erişimi veya API anahtarı gerekmez.
 
 Sağlayıcı belgeleri: [Google](https://developers.google.com/maps/documentation/urls/get-started),
