@@ -29,6 +29,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   değişmedi.
 - **CI:** Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testleri artık `main` için zorunlu kontroller
   arasında; Windows kurulumu yayından önce PR'da doğrulanmış olur.
+- **Yayın:** npm yayın betiği sadeleşti. Yayından sonra sabit 10 saniye arayla en fazla 18 okuma yapılır;
+  Retry-After başlığı ve ayrı süre hesabı kaldırıldı. Yalnız test edilmiş arşivin yayımlanması, aynı sürümün
+  hiçbir zaman yeniden yayımlanmaması ve integrity karşılaştırması aynen korunur.
 - **Sürüm notları:** GitHub Release açıklaması artık sürümün tarihli CHANGELOG bölümünden oluşur;
   `docs/releases/` kaldırıldı. CHANGELOG'daki sürüm notu linkleri GitHub Release sayfalarına gider. Bölümlerdeki
   linkler mutlak olmalı ve repo dosya linkleri sürümün tag'ine sabitlenmeli; belge testi ve yayın kontrolü
