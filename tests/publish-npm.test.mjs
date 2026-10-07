@@ -96,20 +96,20 @@ test('permanent errors and mismatching evidence after publication fail without f
   }
 });
 
-test('verification stops after 24 reads with a rerun hint and never republishes', async () => {
+test('verification stops after 18 reads with a rerun hint and never republishes', async () => {
   for (const pending of [() => ({}), () => stale, () => Response.json({}, { status: 503 })]) {
-    const responses = [{}, ...Array.from({ length: 25 }, pending)];
+    const responses = [{}, ...Array.from({ length: 19 }, pending)];
     const { result, calls, waits } = run(responses);
     await assert.rejects(result, /rerun/);
     assert.deepEqual(calls, ['tested.tgz']);
-    assert.equal(responses.length, 1, 'exactly 24 verification reads');
-    assert.equal(waits.length, 23);
+    assert.equal(responses.length, 1, 'exactly 18 verification reads');
+    assert.equal(waits.length, 17);
     assert.ok(waits.every((ms) => ms === 10000));
   }
-  const responses = [{}, ...Array(23).fill({}), released];
+  const responses = [{}, ...Array(17).fill({}), released];
   const { result } = run(responses);
   await result;
-  assert.equal(responses.length, 0, 'the 24th read can still succeed');
+  assert.equal(responses.length, 0, 'the 18th read can still succeed');
 });
 
 test('pre-publication failures and used versions prevent publication', async () => {

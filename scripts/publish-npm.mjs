@@ -7,8 +7,10 @@ import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 const registry = 'https://registry.npmjs.org/';
-const verificationReads = 24;
+// Worst case 18 timed-out reads plus 17 waits = 350 s, inside the 10-minute publish job.
+const verificationReads = 18;
 const verificationWait = 10000;
+const requestTimeout = 10000;
 
 function compareVersions(left, right) {
   for (const value of [left, right]) assert.match(value, /^\d+\.\d+\.\d+$/, 'Expected a stable npm latest version');
@@ -37,7 +39,7 @@ export async function publishNpm(
   const read = async () => {
     const response = await request(`${registry}${encodeURIComponent(pack.name)}`, {
       headers: { 'Cache-Control': 'no-cache' },
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(requestTimeout)
     });
     if (response.status !== 200 && response.status !== 404) {
       await response.body?.cancel();
