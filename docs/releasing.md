@@ -23,11 +23,14 @@ Patch düzeltme, minor geriye uyumlu özellik, major uyumsuz sözleşme içindir
 | ------------------- | --------------------------------------------------------------------------------------------- |
 | Paket ve sunucu     | `package.json`, `package-lock.json`; sunucu sürümünü `package.json`'dan okur                  |
 | Kurulum ve manifest | README, `examples/mcp-config.json`, `docs/live-testing.md`, `server.json` üst ve paket sürümü |
-| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli başlığı, `docs/releases/v1.0.7.md`                               |
-| Paket içeriği       | Sürüm notları ve bakımcı belgeleri npm paketine girmez; `files` listesini değiştirmeyin.      |
+| Sürüm açıklaması    | CHANGELOG'da sürümün tarihli bölümü; GitHub Release açıklaması bu bölümden oluşur             |
+| Paket içeriği       | Bakımcı belgeleri npm paketine girmez; `files` listesini değiştirmeyin.                       |
 
-Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün tarihli CHANGELOG bölümünü
-ister ve `Yayımlanmamış — X.Y.Z` başlığı kalırsa başarısız olur.
+Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün boş olmayan, tarihli CHANGELOG
+bölümünü ister ve `Yayımlanmamış — X.Y.Z` başlığı kalırsa başarısız olur. Bu bölüm GitHub Release açıklaması
+olduğu için linkleri mutlak `https://` olmalı; repo dosya linkleri yeni tag'e sabitlenir
+(`.../blob/vX.Y.Z/...`). Belge testi bunu `main`'e merge'den önce denetler. Geçiş adımı gereken sürümde
+bölüme bir **Geçiş gerekiyor:** maddesi ekleyin.
 
 ## 2. Kontrol edin ve PR ile merge edin
 
@@ -68,7 +71,6 @@ Main ilerlese de paketlenen tag commit'idir. Ek “Publish” düğmesine gerek 
 | Anahtar kelimeler | `package.json` keywords, npm keywords ve GitHub Topics aynı küme |
 | MCP Registry      | `registry` işi yeşil; ad/sürüm Registry API'sinde görünür        |
 
-Release açıklamasındaki hazırlık ifadelerini güncelleyin; belge linklerini yayımlanan tag'e sabitleyin.
 **Tag push tek başına başarı değildir.** npm ve MCP Registry durumunu ayrı raporlayın.
 GitHub Packages kullanılmaz; Packages bölümünün boş olması normaldir.
 

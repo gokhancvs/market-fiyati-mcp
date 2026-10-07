@@ -32,6 +32,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Yayın:** npm yayın betiği sadeleşti. Yayından sonra sabit 10 saniye arayla en fazla 18 okuma yapılır;
   Retry-After başlığı ve ayrı süre hesabı kaldırıldı. Yalnız test edilmiş arşivin yayımlanması, aynı sürümün
   hiçbir zaman yeniden yayımlanmaması ve integrity karşılaştırması aynen korunur.
+- **Sürüm notları:** GitHub Release açıklaması artık sürümün tarihli CHANGELOG bölümünden oluşur;
+  `docs/releases/` kaldırıldı. CHANGELOG'daki sürüm notu linkleri GitHub Release sayfalarına gider. Bölümlerdeki
+  linkler mutlak olmalı ve repo dosya linkleri sürümün tag'ine sabitlenmeli; belge testi ve yayın kontrolü
+  bunu denetler.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
   izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
   hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı
@@ -52,7 +56,7 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   kontrolleri her commit için zaten zorunlu kılar. Yayın işi tag commit'inde `check` ve bağımsız kurulum
   testini çalıştırmaya devam eder.
 
-[1.0.11 sürüm notları](docs/releases/v1.0.11.md).
+[1.0.11 sürüm notları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.11).
 
 ## 1.0.10 — 2026-10-06
 
@@ -70,7 +74,7 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   bölümde toplandı. Sürüm notlarındaki linkler kendi tag'lerine sabitlendi. Yeni belge testi linkleri,
   anchor'ları ve sözlüğü denetler. Runtime davranışı değişmedi.
 
-[1.0.10 sürüm notları](docs/releases/v1.0.10.md).
+[1.0.10 sürüm notları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.10).
 
 ## 1.0.9 — 2026-10-05
 
@@ -83,7 +87,7 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   JSON satırı olarak yazılır.
 - **Paket içeriği:** `docs/releasing.md`, `docs/offline-acceptance.md` ve `docs/releases/` artık npm paketine girmez.
 
-[1.0.9 sürüm notları](docs/releases/v1.0.9.md).
+[1.0.9 sürüm notları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.9).
 
 ## 1.0.8 — 2026-09-30
 
@@ -97,33 +101,33 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - Varsayılan live akışı fake fetch ile sınanır. Bağımsız kurulum testi, varsayılan live başlangıcı ve açık
   offline engelini gerçek ağ engeli altında doğrular. Yeni live API doğrulaması yoktur.
 
-[1.0.8 sürüm notları](docs/releases/v1.0.8.md).
+[1.0.8 sürüm notları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.8).
 
 ## 1.0.7 — 2026-09-25
 
 - Kategori keşfinde NFC/NFD yazımları eşleştirilir; Türkçe harf ayrımı ve kaynak adları korunur.
 - En ucuz şube özetindeki tekrar eden ID'ler tekilleştirilir; kaynak offer'lar korunur.
 - Beklenmeyen hatalardaki kullanıcı mesajı artık var olmayan bir yerel tanılama yoluna yönlendirmez.
-- 1.0.6 ile kaldırılan otomatik 1 km yarıçapın [geçişi](docs/api.md#106-yarıçap-geçişi) ve sürüm uyumluluğu
+- 1.0.6 ile kaldırılan otomatik 1 km yarıçapın [geçişi](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.6) ve sürüm uyumluluğu
   belgelendi; konum sözleşmesi bu sürümde değişmedi. Yeni tag için tarihli CHANGELOG bölümünü zorunlu kılan kontrol eklendi.
 
-[1.0.7 sürüm notları](docs/releases/v1.0.7.md).
+[1.0.7 sürüm notları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.7).
 
 ## 1.0.6 — 2026-09-25
 
 - **Konumu bir kez ayarlayın:** Enlem, boylam ve km yarıçapı env'den okunabilir. Tam çağrı çifti ve
   distance yalnız o çağrı için önceliklidir; `depots` her ürün çağrısında gerekir.
-- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı ([geçiş](docs/api.md#106-yarıçap-geçişi)). Üç değer env veya çağrıdan tamamlanmalıdır;
+- **Geçiş gerekiyor:** Otomatik 1 km kaldırıldı ([geçiş](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.6)). Üç değer env veya çağrıdan tamamlanmalıdır;
   ters geocode yalnız koordinat kullanır.
 - **Status:** `locationDefaults.configured` ayarın varlığını gösterir; koordinatları göstermez.
 - Rehberler kısaltıldı; kullanıcı kurulumu `live` modunda Galata Kulesi ve 4 km yarıçap kullanır. Env metni ile sayısal
   tool/API girdisi ayrımı açıklandı. Live API için yeni doğrulama yoktur.
 
-[1.0.6 geçiş adımları](docs/releases/v1.0.6.md).
+[1.0.6 geçiş adımları](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.6).
 
 ## 1.0.5 — 2026-09-25
 
-Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.5.md) bakın.
+Ayrıntılar için [sürüm notlarına](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.5) bakın.
 
 - npm kurulumu ve offline başlangıç README'de öne çıkarıldı; örnek sürüm pini paketle doğrulanır.
   Keşif anahtar kelimeleri ve sonraki yayın için MCP Registry metadata hazırlığı eklendi.
@@ -141,7 +145,7 @@ npm ve GitHub Release yayımlandı; MCP Registry yayını ayrı bir aşamadır. 
 
 ## 1.0.4 — 2026-09-24
 
-Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.4.md) bakın.
+Ayrıntılar için [sürüm notlarına](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.4) bakın.
 
 ### Düzeltilenler
 
@@ -162,7 +166,7 @@ olarak belirtilir. Tarihsel npm paketi yeniden yayımlanmaz; güncel kurulum REA
 Yalnızca Git tag'i oluşturuldu; npm yayını yapılmadı. Registry'deki `latest` zaten `1.0.3` olduğu için
 sürümün geriye gitmesini önleyen kontrol yayını durdurdu.
 
-Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.2.md) bakın.
+Ayrıntılar için [sürüm notlarına](https://github.com/gokhancvs/market-fiyati-mcp/blob/v1.0.2/docs/releases/v1.0.2.md) bakın.
 
 ### Değişenler
 
@@ -192,7 +196,7 @@ npm'de yayımlanan ilk sürüm.
 
 ## 1.0.0 — 2026-09-24
 
-İlk Git sürümü: `v1.0.0`. Ayrıntılar için [sürüm notlarına](docs/releases/v1.0.0.md) bakın.
+İlk Git sürümü: `v1.0.0`. Ayrıntılar için [sürüm notlarına](https://github.com/gokhancvs/market-fiyati-mcp/releases/tag/v1.0.0) bakın.
 
 ### Eklenenler
 
@@ -206,4 +210,4 @@ npm'de yayımlanan ilk sürüm.
 - CI kontrolleri, doğrulanmış tag üzerinden taslak sürüm hazırlama ve GitHub issue şablonları.
 
 Sentetik testlerin geçmesi, uzak API davranışının doğrulandığı anlamına gelmez. Doğrulama kapsamı ve sınırları
-[doğrulama belgesinde](docs/verification.md) anlatılır.
+[doğrulama belgesinde](https://github.com/gokhancvs/market-fiyati-mcp/blob/v1.0.0/docs/verification.md) anlatılır.

@@ -46,7 +46,7 @@ jobs:
           node-version: '24'
           registry-url: https://registry.npmjs.org/
           package-manager-cache: false
-      - run: npm run release:check -- "$RELEASE_TAG"
+      - run: npm run release:check -- "$RELEASE_TAG" "$RUNNER_TEMP/release-notes.md"
       - run: npm ci --ignore-scripts
       - run: npm run check
         env:
@@ -62,7 +62,7 @@ jobs:
         run: |
           if ! gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release create "$RELEASE_TAG" --verify-tag \
-              --title "$RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md" \
+              --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md" \
               "$RUNNER_TEMP/npm-release/"*.tgz
           fi
   registry:

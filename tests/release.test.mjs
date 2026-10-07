@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import yaml from 'js-yaml';
+import { changelogSections, linkProblems } from '../scripts/release-notes.mjs';
 
 const script = fileURLToPath(new URL('../scripts/check-release.mjs', import.meta.url));
 const workflow = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
@@ -32,6 +33,12 @@ test('release workflow gates tag publication on main, offline checks and OIDC', 
   assert.ok(!JSON.stringify(parsed).includes('NODE_AUTH_TOKEN'));
   const command = parsed.jobs.publish.steps.find((step) => step.name === 'Publish verified release').run;
   assert.match(command, /gh release create "\$RELEASE_TAG" --verify-tag/);
+  // The release body is the dated CHANGELOG section written by the release guard.
+  assert.ok(
+    steps.some((step) => step.run === 'npm run release:check -- "$RELEASE_TAG" "$RUNNER_TEMP/release-notes.md"')
+  );
+  assert.match(command, /--notes-file "\$RUNNER_TEMP\/release-notes\.md"/);
+  assert.doesNotMatch(JSON.stringify(parsed), /docs\/releases/);
   assert.doesNotMatch(command, /--draft/);
 });
 
@@ -63,8 +70,8 @@ function check({
   version = '1.0.0',
   lock = '1.0.0',
   root = '1.0.0',
-  notes = '# v1.0.0',
-  changelog = '# Değişiklik günlüğü\n\n## 1.0.0 — 2026-09-25\n',
+  changelog = '# Değişiklik günlüğü\n\n## 1.0.0 — 2026-09-25\n\n- Değişiklik.\n\n## 0.9.0 — 2026-09-01\n\n- Eski.\n',
+  notesFile = false,
   missingTag = false,
   advance = false,
   outsideMain = false,
@@ -91,8 +98,6 @@ function check({
       join(cwd, 'package-lock.json'),
       JSON.stringify({ version: lock, packages: { '': { version: root } } })
     );
-    mkdirSync(join(cwd, 'docs/releases'), { recursive: true });
-    if (notes !== null) writeFileSync(join(cwd, 'docs/releases/v1.0.0.md'), notes);
     writeFileSync(join(cwd, 'CHANGELOG.md'), changelog);
     git('init', '-q', '-b', 'main');
     git('add', '.');
@@ -107,20 +112,41 @@ function check({
       git('update-ref', 'refs/remotes/origin/main', 'HEAD');
       git('checkout', '--detach', 'v1.0.0');
     }
-    return spawnSync(process.execPath, [script, tag], { cwd, env, encoding: 'utf8', timeout: 5000 });
+    const output = join(cwd, 'release-notes.md');
+    const result = spawnSync(process.execPath, [script, tag, ...(notesFile ? [output] : [])], {
+      cwd,
+      env,
+      encoding: 'utf8',
+      timeout: 5000
+    });
+    return { ...result, notes: notesFile && result.status === 0 ? readFileSync(output, 'utf8') : undefined };
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
 }
+
+const repo = 'https://github.com/gokhancvs/market-fiyati-mcp/';
+
+test('release guard writes the dated CHANGELOG section as the release body', () => {
+  const changelog = `# Günlük\n\n## Yayımlanmamış\n\n- Sonraki.\n\n## 1.0.0 — 2026-09-25\n\n- **Yeni:** [API](${repo}blob/v1.0.0/docs/api.md#hata).\n- [Release](${repo}releases/tag/v0.9.0)\n\n## 0.9.0 — 2026-09-01\n\n- Eski.\n`;
+  const result = check({ changelog, notesFile: true });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    result.notes,
+    `- **Yeni:** [API](${repo}blob/v1.0.0/docs/api.md#hata).\n- [Release](${repo}releases/tag/v0.9.0)\n`
+  );
+});
 
 test('release guard accepts only a matching version, notes and exact tagged commit', () => {
   const valid = check();
   assert.equal(valid.status, 0, valid.stderr);
   assert.match(valid.stdout, /v1\.0\.0/);
   assert.equal(check({ advanceMain: true }).status, 0, 'Tagged main ancestors remain releasable');
-  assert.equal(check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n' }).status !== 0, true);
-  assert.equal(check({ changelog: '# Günlük\n\n## 1.0.0 — 2026-09-25\n' }).status, 0);
-  assert.notEqual(check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n\n## 1.0.0 — 2026-09-25\n' }).status, 0);
+  assert.equal(check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n\n- A\n' }).status !== 0, true);
+  assert.notEqual(
+    check({ changelog: '# Günlük\n\n## Yayımlanmamış — 1.0.0\n\n- A\n\n## 1.0.0 — 2026-09-25\n\n- B\n' }).status,
+    0
+  );
 
   for (const [input, error] of [
     [{ tag: '../../secret' }, /stable version tag/],
@@ -129,8 +155,19 @@ test('release guard accepts only a matching version, notes and exact tagged comm
     [{ version: '1.0.1' }, /package.json version/],
     [{ lock: '1.0.1' }, /lockfile version/],
     [{ root: '1.0.1' }, /lockfile root version/],
-    [{ notes: null }, /ENOENT/],
-    [{ notes: ' \n' }, /empty release notes/],
+    [
+      { changelog: '# Günlük\n\n## 1.0.0 — 2026-09-25\n \n\n## 0.9.0 — 2026-09-01\n\n- Eski.\n' },
+      /empty release notes/
+    ],
+    [{ changelog: '# Günlük\n\n## 1.0.0 — 2026-09-25\n\n- [API](docs/api.md)\n' }, /absolute links/],
+    [
+      { changelog: `# Günlük\n\n## 1.0.0 — 2026-09-25\n\n- [API](${repo}blob/main/docs/api.md)\n` },
+      /absolute links pinned/
+    ],
+    [
+      { changelog: `# Günlük\n\n## 1.0.0 — 2026-09-25\n\n- [API](${repo}blob/v0.9.0/docs/api.md)\n` },
+      /absolute links pinned/
+    ],
     [{ missingTag: true }, /revision/],
     [{ advance: true }, /tag must point to the tested commit/],
     [{ outsideMain: true }, /main/],
@@ -140,4 +177,34 @@ test('release guard accepts only a matching version, notes and exact tagged comm
     assert.notEqual(result.status, 0, JSON.stringify(input));
     assert.match(result.stderr, error, JSON.stringify(input));
   }
+});
+
+test('release note links are checked in every form and repository links must be pinned', () => {
+  const blob = `${repo}blob/v1.0.0/README.md`;
+  assert.deepEqual(linkProblems(`[a](${blob}) [b](${repo}releases/tag/v0.9.0) [c](https://example.com)`, 'v1.0.0'), []);
+  for (const href of [
+    'docs/api.md',
+    `${repo}blob/main/README.md`,
+    `${repo}blob/v1.0.10/README.md`,
+    `${repo}tree/main/docs`,
+    `${repo}raw/main/README.md`,
+    'https://raw.githubusercontent.com/gokhancvs/market-fiyati-mcp/main/README.md'
+  ]) {
+    assert.deepEqual(linkProblems(`[a](${href})`, 'v1.0.1'), [href]);
+    assert.deepEqual(linkProblems(`Metin.\n\n[ref]: ${href}\n`, 'v1.0.1'), [href]);
+  }
+  assert.deepEqual(linkProblems(`[a](${repo}tree/v1.0.1/docs)`, 'v1.0.1'), []);
+  assert.deepEqual(linkProblems(`[a](${blob})`, null), [], 'unreleased links may use any version tag');
+  assert.deepEqual(linkProblems(`[a](${repo}blob/main/README.md)`, null), [`${repo}blob/main/README.md`]);
+});
+
+test('CHANGELOG sections ignore headings inside fenced code', () => {
+  const sections = changelogSections(
+    '# G\n\n## 1.0.0 — 2026-09-25\n\n```md\n## örnek\n```\n\n- Son.\n\n## Yayımlanmamış\n'
+  );
+  assert.deepEqual(
+    sections.map(({ heading }) => heading),
+    ['1.0.0 — 2026-09-25', 'Yayımlanmamış']
+  );
+  assert.match(sections[0].body, /## örnek[\s\S]*- Son\./);
 });
