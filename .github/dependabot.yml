@@ -10,6 +10,11 @@ updates:
     cooldown:
       default-days: 7
     versioning-strategy: increase
+    open-pull-requests-limit: 10
+    ignore:
+      # @types/node follows the supported Node floor (package.json engines).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     commit-message:
       prefix: build
       include: scope
@@ -32,3 +37,4 @@ updates:
     groups:
       actions:
         patterns: ['*']
+        update-types: [minor, patch]

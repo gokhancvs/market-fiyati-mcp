@@ -72,19 +72,20 @@ test('Dependabot proposes grouped monthly updates that keep exact pins after a c
   for (const [ecosystem, update] of Object.entries(byEcosystem)) {
     assert.equal(update.schedule.interval, 'monthly', ecosystem);
     assert.ok(update.cooldown['default-days'] >= 7, ecosystem);
-    assert.notEqual(update['open-pull-requests-limit'], 0, ecosystem);
-    assert.equal(update['commit-message']['include'], 'scope', ecosystem);
+    assert.equal(update['commit-message'].include, 'scope', ecosystem);
+    for (const group of Object.values(update.groups)) {
+      assert.deepEqual(group['update-types'], ['minor', 'patch'], `${ecosystem}: majors arrive one by one`);
+      assert.equal(group['applies-to'], undefined, `${ecosystem}: security updates are not grouped`);
+    }
   }
   const npm = byEcosystem.npm;
   assert.equal(npm['versioning-strategy'], 'increase', 'exact pins stay exact');
+  assert.ok(npm['open-pull-requests-limit'] >= 10, 'room for individual major updates');
   assert.equal(npm['commit-message'].prefix, 'build');
-  for (const [name, type] of [
-    ['production', 'production'],
-    ['development', 'development']
-  ]) {
-    assert.equal(npm.groups[name]['dependency-type'], type);
-    assert.deepEqual(npm.groups[name]['update-types'], ['minor', 'patch'], 'major updates arrive one by one');
-  }
+  assert.equal(npm.groups.production['dependency-type'], 'production');
+  assert.equal(npm.groups.development['dependency-type'], 'development');
+  // @types/node follows the supported Node floor in package.json engines.
+  assert.deepEqual(npm.ignore, [{ 'dependency-name': '@types/node', 'update-types': ['version-update:semver-major'] }]);
   assert.equal(byEcosystem['github-actions']['commit-message'].prefix, 'ci');
   assert.deepEqual(byEcosystem['github-actions'].groups.actions.patterns, ['*']);
 });
