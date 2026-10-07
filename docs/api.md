@@ -243,7 +243,8 @@ yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
 
 Parametreler URL-encode edilir. Yakındaki şubeler yanıtında her öğe kendi `maps` alanını taşır.
 
-Ürün, karşılaştırma ve sepet yanıtlarında offer'lar link taşımaz. Bunun yerine `data.depotMaps`, yanıttaki
+Ürün döndüren tüm tool'larda (arama, kategori, benzer ürün, alternatif, ürün detayı, sync) ve karşılaştırma ile
+sepet yanıtlarında offer'lar link taşımaz. Bunun yerine `data.depotMaps`, yanıttaki
 offer'larda geçen her şube için `depotId` anahtarlı tek bir `{google, apple, yandex}` kaydı verir. Tablo yalnız
 yanıtta görünen offer'ların şubelerini içerir; kapsam dışı ve fiyatı olmayan offer'lar dâhildir, sepette
 seçilmeyen daha pahalı offer'lar hariçtir. Kayıt şu durumlarda `null` olur: koordinat eksik veya aralık dışı

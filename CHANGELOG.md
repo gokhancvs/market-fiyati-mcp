@@ -18,13 +18,14 @@ tekrarlanmaz.
 
 ### Kırıcı değişiklikler
 
-- **Harita linkleri:** Ürün, karşılaştırma ve sepet yanıtlarında offer'lar artık `maps` alanı taşımaz. Linkler
+- **Harita linkleri:** Ürün döndüren tüm tool'larda (arama, kategori, benzer ürün, alternatif, ürün detayı,
+  sync) ve karşılaştırma ile sepet yanıtlarında offer'lar artık `maps` alanı taşımaz. Linkler
   `data.depotMaps` içinde, yanıtta görünen her şube için bir kez ve `depotId` anahtarıyla verilir. Kayıt; koordinat
   eksik, geçersiz veya aynı şubenin offer'larında tutarsızsa `null` olur. Kaynaktan gelen `maps` alanı
   offer'lardan çıkarılır. Yakındaki şubeler yanıtı değişmedi.
 - **Ürün girdisi:** `market_get_product` girdisi artık sabit `identityType`, `pages` ve `size` alanlarını kabul
   etmez; sunucu bu değerleri (`"id"`, `0`, `1`) API'ye her zaman kendisi gönderir. Bu alanları gönderen
-  çağrılar `INVALID_ARGUMENT` alır.
+  çağrılar SDK giriş hatası veya `INVALID_ARGUMENT` alır.
 
 ### Davranış değişiklikleri
 
