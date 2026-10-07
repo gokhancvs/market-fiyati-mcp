@@ -274,24 +274,19 @@ test('batch sync emits required identityType and size', async () => {
   });
 });
 
-test('product lookup always sends the fixed wire fields, which stay optional inputs without defaults', async () => {
+test('product lookup sends the fixed wire fields itself and rejects them as input', async () => {
   const fixed = { identityType: 'id', pages: 0, size: 1 };
-  for (const args of [
-    { ...context, identity: 'A' },
-    { ...context, identity: 'A', ...fixed }
-  ]) {
-    const transport = new FixtureTransport();
-    await new MarketService(transport, readConfig({})).execute('product', args);
-    // Key order is part of the request body.
-    assert.equal(JSON.stringify(transport.calls[0]?.payload), JSON.stringify({ ...context, identity: 'A', ...fixed }));
-  }
+  const transport = new FixtureTransport();
+  await new MarketService(transport, readConfig({})).execute('product', { ...context, identity: 'A' });
+  // Key order is part of the request body.
+  assert.equal(JSON.stringify(transport.calls[0]?.payload), JSON.stringify({ ...context, identity: 'A', ...fixed }));
   const service = new MarketService(new FixtureTransport(), readConfig({}));
-  for (const wrong of [{ pages: 1 }, { size: 2 }, { identityType: 'barcode' }])
-    await assert.rejects(service.execute('product', { ...context, identity: 'A', ...wrong }), {
+  for (const extra of [{ identityType: 'id' }, { pages: 0 }, { size: 1 }, { pages: 1 }, { identityType: 'barcode' }])
+    await assert.rejects(service.execute('product', { ...context, identity: 'A', ...extra }), {
       code: 'INVALID_ARGUMENT'
     });
   const properties = z.toJSONSchema(schemas.product, { io: 'input' }).properties as Record<string, object>;
-  for (const key of Object.keys(fixed)) assert.equal('default' in properties[key]!, false, key);
+  for (const key of Object.keys(fixed)) assert.equal(key in properties, false, key);
 });
 
 test('exact product and sync reject unexpected or duplicate identities', async () => {
