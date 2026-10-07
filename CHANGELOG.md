@@ -58,11 +58,15 @@ tekrarlanmaz.
   karakterizasyon testi tool çıktılarını, API'ye giden gövdeleri ve tool şemalarını kilitler.
 - **Geliştirme ortamı:** ESLint 10 flat config, `@eslint/js` ve typescript-eslint; `.mjs` betikleri ve testleri
   de denetlenir, uyarılar `check`'i başarısız kılar. Build düz `tsc` ile yapılır. Test ağ engeli DNS
-  sorgularını ve UDP soketlerini de engeller. Çalışma zamanı bağımlılıkları değişmedi.
+  sorgularını ve UDP soketlerini de engeller.
 - **CI:** Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testleri `main` için zorunlu kontroller arasında.
 - **Yayın:** npm yayın betiği yayından sonra sabit 10 saniye arayla en fazla 18 okuma yapar. Yalnız test
   edilmiş arşivin yayımlanması, aynı sürümün yeniden yayımlanmaması ve integrity karşılaştırması korunur.
   GitHub Release açıklaması artık sürümün tarihli CHANGELOG bölümünden oluşur; `docs/releases/` kaldırıldı.
+- **Bağımlılıklar:** Çalışma zamanında `zod` 4.6.5 kullanılır. Bu sürümle tool şemalarında `null` olabilen
+  alanlar JSON Schema'da `anyOf` yerine `type: [X, "null"]` biçiminde yayımlanır; şemaların anlamı değişmedi.
+  Geliştirme bağımlılıkları (`prettier` 3.9.9, `@types/node` 22.20.4, `js-yaml` 5.4.2) ve CI'daki
+  `actions/checkout` 7.0.1 ile `actions/setup-node` 7.0.0 güncellendi.
 - **Bağımlılık güncellemeleri:** Dependabot npm bağımlılıkları ve GitHub Actions için ayda bir, 7 günlük
   bekleme süresinden sonra gruplu sürüm güncellemesi PR'ı açar. Major güncellemeler ayrı gelir, sabit sürümler
   korunur, merge elle yapılır.
