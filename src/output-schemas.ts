@@ -12,6 +12,11 @@ const price = z.number().nonnegative();
 const ids = z.array(z.string());
 // Describe stable local fields; upstream extensions remain data, without coercion or removal.
 const offer = z.looseObject({ depotId: z.string(), depotName: z.string(), marketAdi: z.string(), price });
+// One entry per depot in the offers; null when its coordinates are missing, invalid or inconsistent.
+const depotMaps = z.record(
+  z.string(),
+  z.strictObject({ google: z.string(), apple: z.string(), yandex: z.string() }).nullable()
+);
 const evidence = z.array(z.looseObject({ productId: z.string(), offer }));
 const basket = z.looseObject({
   complete: z.boolean(),
@@ -62,7 +67,8 @@ export const outputSchemas = {
         unavailableOffers: evidence,
         scope: z.string(),
         excludedCosts: z.array(z.string()),
-        warning: z.string()
+        warning: z.string(),
+        depotMaps
       })
       .nullable()
   }),
@@ -79,7 +85,8 @@ export const outputSchemas = {
         offers: z.array(offer.extend({ savingIfCheapest: price })),
         unavailableOffers: z.array(offer),
         outOfScopeOffers: evidence,
-        scope: z.string()
+        scope: z.string(),
+        depotMaps
       })
       .nullable()
   }),
