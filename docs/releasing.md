@@ -120,8 +120,9 @@ Kurulum eksikse publish başarısız olur; kurduktan sonra aynı çalışmanın 
 
 Yarıda kalırsa **Re-run failed jobs** kullanın. Doğrulama geçici bağlantı/429/502/503/504 hatalarını
 tekrarlar; **publish tekrarlanmaz**. Bozuk JSON veya integrity farkı hemen durdurur.
-HTTP süreleri dâhil toplam sınır 5 dakika ve en fazla 61 okumadır. Normal bekleme 5 saniyedir;
-Retry-After daha uzunsa erken istek yapılmaz, süreye sığmazsa hata verilir.
+Yayından sonra en fazla 18 okuma yapılır; okumalar arasında sabit 10 saniye beklenir, her okuma en fazla
+10 saniye sürer, yani toplam en fazla 350 saniye. Retry-After dikkate alınmaz. Sürüm bu sürede görünmezse
+iş hata verir; yeniden çalıştırmak yalnız doğrulamayı tekrarlar.
 
 npm sürümü zaten varsa yalnız aynı integrity ile atlanır. Tarihsel doğrulamada latest aynı veya
 daha yeni kararlı sürüm olabilir; eski/eksik latest sınırlı süre okunur, otomatik değiştirilmez.
