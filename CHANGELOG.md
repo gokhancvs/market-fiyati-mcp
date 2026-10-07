@@ -4,6 +4,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **Kırıcı değişiklik — ürün girdisi:** `market_get_product` girdisi artık sabit `identityType`, `pages` ve `size`
+  alanlarını kabul etmez; sunucu bu değerleri (`"id"`, `0`, `1`) API'ye her zaman kendisi gönderir. Bu alanları
+  gönderen çağrılar `INVALID_ARGUMENT` alır; alanları çağrıdan çıkarın.
 - **Kırıcı değişiklik — harita linkleri:** Ürün, karşılaştırma ve sepet yanıtlarında offer'lar artık `maps`
   alanı taşımaz. Linkler `data.depotMaps` içinde şube başına bir kez, `depotId` anahtarıyla verilir; aynı şubenin
   linki artık her offer'da tekrarlanmaz. Kayıt; koordinat eksik, geçersiz veya aynı şubenin offer'larında
@@ -25,9 +28,6 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   endpoint tablosundaki türden türetilir; limitler ve sunucu sürümü tek kaynaktan okunur. Yeni bir
   karakterizasyon testi tool çıktılarının, API'ye giden gövdelerin ve tool şemalarının değişmediğini denetler.
   Tool girdisi ve çıktısı bu sadeleştirmeyle değişmedi.
-- **Ürün girdisi:** `market_get_product` girdisindeki sabit `identityType`, `pages` ve `size` alanları opsiyonel
-  kalır ancak artık default değer yayımlamaz; sunucu bu değerleri API'ye her zaman kendisi gönderir. Bu
-  alanları gönderen çağrılar çalışmaya devam eder.
 - **Geliştirme ortamı:** ESLint 8 ve airbnb-base yerine ESLint 10 flat config, `@eslint/js` ve
   typescript-eslint kullanılır; `.mjs` betikleri ve testleri de gerçekten denetlenir, uyarılar `check`'i
   başarısız kılar. Build düz `tsc` ile yapılır ve kullanılmayan `.d.ts` ile `.map` dosyalarını üretmez. Test
@@ -45,6 +45,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Bağımlılık güncellemeleri:** Dependabot artık npm bağımlılıkları ve GitHub Actions için ayda bir, 7 günlük
   bekleme süresinden sonra gruplu sürüm güncellemesi PR'ı açar. Major güncellemeler ayrı gelir, sabit sürümler
   korunur, merge elle yapılır.
+- **Belgeler:** README sorun giderme tablosu, MSIX ile kurulan Claude Desktop'ın Windows'ta yapılandırma
+  dosyasını okuduğu bildirilen sanal yolu açıklar; bu yol resmî belgede yer almaz.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
   izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
   hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı

@@ -3468,18 +3468,6 @@
               "minLength": 1,
               "maxLength": 100,
               "pattern": "^[\\p{L}\\p{N}_-]+$"
-            },
-            "identityType": {
-              "type": "string",
-              "const": "id"
-            },
-            "pages": {
-              "type": "number",
-              "const": 0
-            },
-            "size": {
-              "type": "number",
-              "const": 1
             }
           },
           "required": ["latitude", "longitude", "distance", "depots", "identity"],
@@ -5704,18 +5692,6 @@
               "minLength": 1,
               "maxLength": 100,
               "pattern": "^[\\p{L}\\p{N}_-]+$"
-            },
-            "identityType": {
-              "type": "string",
-              "const": "id"
-            },
-            "pages": {
-              "type": "number",
-              "const": 0
-            },
-            "size": {
-              "type": "number",
-              "const": 1
             }
           },
           "required": ["depots", "identity"],
