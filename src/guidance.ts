@@ -45,7 +45,8 @@ Answer in the user's language; keep tool names, field names and codes verbatim.
 4. Reuse filter values from supplied API context or returned facetMap. An empty
    filtered response can still list valid values for the filtered field in facetMap;
    read them before another call and never guess a filter value format, such as a
-   package-size unit spelling. Unknown category names need discovery; use market_get_categories only when needed.
+   package-size unit spelling. Unknown category names need discovery; use
+   market_get_categories only when needed.
    Category filters take Turkish names, not IDs/slugs. market_names is the wire
    filter for the offer_market facet. Evaluate titles, package sizes and categories
    in returned content before answering. Search can be fuzzy; each candidate needs
