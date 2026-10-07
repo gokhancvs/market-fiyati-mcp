@@ -61,12 +61,14 @@ test('public documentation links and anchors resolve', () => {
 
 test('CHANGELOG sections keep absolute links pinned to their tag because they become GitHub Release bodies', () => {
   const sections = changelogSections(read('CHANGELOG.md'));
-  assert.ok(sections.some(({ version }) => version));
-  const problems = sections
-    .filter(({ heading, version }) => version || heading === 'Yayımlanmamış')
-    .flatMap(({ heading, version, body }) =>
-      linkProblems(body, version && `v${version}`).map((href) => `${heading}: ${href}`)
-    );
+  assert.deepEqual(
+    sections.filter(({ heading, version }) => !version && heading !== 'Yayımlanmamış').map(({ heading }) => heading),
+    [],
+    'every section is Yayımlanmamış or "X.Y.Z — YYYY-MM-DD"'
+  );
+  const problems = sections.flatMap(({ heading, version, body }) =>
+    linkProblems(body, version && `v${version}`).map((href) => `${heading}: ${href}`)
+  );
   assert.deepEqual(problems, []);
 });
 

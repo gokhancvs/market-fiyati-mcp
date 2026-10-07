@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import yaml from 'js-yaml';
+import { changelogSections, linkProblems } from '../scripts/release-notes.mjs';
 
 const script = fileURLToPath(new URL('../scripts/check-release.mjs', import.meta.url));
 const workflow = fileURLToPath(new URL('../.github/workflows/release.yml', import.meta.url));
@@ -176,4 +177,34 @@ test('release guard accepts only a matching version, notes and exact tagged comm
     assert.notEqual(result.status, 0, JSON.stringify(input));
     assert.match(result.stderr, error, JSON.stringify(input));
   }
+});
+
+test('release note links are checked in every form and repository links must be pinned', () => {
+  const blob = `${repo}blob/v1.0.0/README.md`;
+  assert.deepEqual(linkProblems(`[a](${blob}) [b](${repo}releases/tag/v0.9.0) [c](https://example.com)`, 'v1.0.0'), []);
+  for (const href of [
+    'docs/api.md',
+    `${repo}blob/main/README.md`,
+    `${repo}blob/v1.0.10/README.md`,
+    `${repo}tree/main/docs`,
+    `${repo}raw/main/README.md`,
+    'https://raw.githubusercontent.com/gokhancvs/market-fiyati-mcp/main/README.md'
+  ]) {
+    assert.deepEqual(linkProblems(`[a](${href})`, 'v1.0.1'), [href]);
+    assert.deepEqual(linkProblems(`Metin.\n\n[ref]: ${href}\n`, 'v1.0.1'), [href]);
+  }
+  assert.deepEqual(linkProblems(`[a](${repo}tree/v1.0.1/docs)`, 'v1.0.1'), []);
+  assert.deepEqual(linkProblems(`[a](${blob})`, null), [], 'unreleased links may use any version tag');
+  assert.deepEqual(linkProblems(`[a](${repo}blob/main/README.md)`, null), [`${repo}blob/main/README.md`]);
+});
+
+test('CHANGELOG sections ignore headings inside fenced code', () => {
+  const sections = changelogSections(
+    '# G\n\n## 1.0.0 — 2026-09-25\n\n```md\n## örnek\n```\n\n- Son.\n\n## Yayımlanmamış\n'
+  );
+  assert.deepEqual(
+    sections.map(({ heading }) => heading),
+    ['1.0.0 — 2026-09-25', 'Yayımlanmamış']
+  );
+  assert.match(sections[0].body, /## örnek[\s\S]*- Son\./);
 });

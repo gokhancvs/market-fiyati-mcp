@@ -30,7 +30,7 @@ Yeni tag hazırlığında `npm run release:check -- vX.Y.Z` aynı sürümün bo�
 bölümünü ister ve `Yayımlanmamış — X.Y.Z` başlığı kalırsa başarısız olur. Bu bölüm GitHub Release açıklaması
 olduğu için linkleri mutlak `https://` olmalı; repo dosya linkleri yeni tag'e sabitlenir
 (`.../blob/vX.Y.Z/...`). Belge testi bunu `main`'e merge'den önce denetler. Geçiş adımı gereken sürümde
-bölüme bir **Geçiş:** maddesi ekleyin.
+bölüme bir **Geçiş gerekiyor:** maddesi ekleyin.
 
 ## 2. Kontrol edin ve PR ile merge edin
 
