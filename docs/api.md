@@ -52,7 +52,9 @@ ve `depots`.
 **Ürün çağrıları için:** Enlem, boylam, km yarıçapı ve boş olmayan `depots` listesi sağlayın.
 `latitude`, `longitude` ve `distance` tırnaksız JSON sayısı olmalıdır; `"41.0"` gibi string değerler
 reddedilir. Env değerleri metin olduğu için sunucu bunları başlangıçta sayıya çevirir.
-**İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir.
+**İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir; API'nin verdiği
+bu uzaklık yürüme veya sürüş rotası değildir ve ölçüm yöntemi belgelenmemiştir. Dönen şube listesinin eksiksiz olduğu kanıtlanmamıştır: 2026-10-07
+tarihli live oturumda zincir başına en fazla 5 şube döndü.
 Konum env'den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID'si zincir anahtarıyla şube ID'sini
 birleştiren opak string'dir. Zincir adı, şube ID'sinin yerine geçmez.
 
@@ -145,22 +147,38 @@ bu konum için API'den dönen bir şube ID'siyle değiştirin.
 - Sıralama: `order.name` değeri `lowest_price` veya `offer_unit_price`, `order.type` değeri `asc` veya `desc`
   olur. Varsayılan sıralama için `order` gönderilmez.
 - Arayüzdeki `price_range` alanı API'ye gönderilmez.
+- Filtre değerlerini `facetMap`'ten aynen alın; biçimi tahmin etmeyin. 2026-10-07 tarihli live oturumda
+  `refined_volume_weight` değerleri `1 LT`, `500 GR`, `100 GR`, `3 KG`, `refined_quantity_unit` değeri `30 Adet`
+  biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi.
+- `"tam yağlı"` gibi yağ oranı ifadeleri anahtar kelimede kullanılınca oranı yüzde olarak yazan (`%3.1 Yağlı`)
+  ürünler sonuçtan düştü. Ürün adını boyut filtresiyle arayın ve istenen oranı başlıklarda doğrulayın.
+- Boş dönen
+  filtreli bir yanıt da filtrelenen alanın geçerli değerlerini `facetMap`'te listeleyebilir; bu her yanıtta
+  görülmedi ve belgelenmiş bir upstream sözleşmesi değildir.
 
 ### Sayfalama ve eşleşme
 
 Yanıt biçimi: `{numberOfFound,searchResultType,content:[Product],facetMap}`. `facetMap` `null` olabilir.
 
-| Durum                         | Anlamı                                                                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `pages=0`                     | İlk sayfadır. Her çağrı yalnızca bir sayfa getirir; otomatik olarak diğer sayfalar taranmaz.                                          |
-| `meta.pagination.nextPage`    | Çağrılabilecek bir sonraki sayfa                                                                                                      |
-| Son sayfa endeksi `10000`     | Daha fazla eşleşme olabilecekse `nextPage:null` ve `PAGINATION_LIMIT_REACHED` döner. Bu, tüm sonuçların görüldüğünün kanıtı değildir. |
-| `numberOfFound`               | Toplam eşleşme sayısıdır; sayfadaki ürün sayısı veya şubedeki stok sayısı değildir.                                                   |
-| `searchResultType=2` veya `3` | Bulanık (fuzzy) arama uyarısı üretir. `0` değerine özel bir anlam yüklenmez.                                                          |
+| Durum                         | Anlamı                                                                                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages=0`                     | İlk sayfadır. Her çağrı yalnızca bir sayfa getirir; otomatik olarak diğer sayfalar taranmaz.                                                               |
+| `meta.pagination.nextPage`    | Çağrılabilecek bir sonraki sayfa                                                                                                                           |
+| Kısa sayfa                    | API istenen `size`'dan az ürün döndürür ve daha fazla eşleşme varsa `PAGE_SIZE_REDUCED` döner, `nextPage` `null` olur; sonraki sayfanın offset'i bilinmez. |
+| Son sayfa endeksi `10000`     | Daha fazla eşleşme olabilecekse `nextPage:null` ve `PAGINATION_LIMIT_REACHED` döner. Bu, tüm sonuçların görüldüğünün kanıtı değildir.                      |
+| `numberOfFound`               | Toplam eşleşme sayısıdır; sayfadaki ürün sayısı veya şubedeki stok sayısı değildir.                                                                        |
+| `searchResultType=2` veya `3` | Bulanık (fuzzy) arama uyarısı üretir. `0` değerine özel bir anlam yüklenmez.                                                                               |
 
 Toplam eşleşme sayısı, dönen ürün sayısından ya da dolu bir sayfanın offset'i ile ürün sayısının toplamından
 küçükse `INVALID_RESPONSE` hatası döner. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
 bir yanıt açıklama için kullanılıyorsa o yanıtın özgün `retrievedAt` değeri belirtilir.
+
+**Kısa sayfa:** 2026-10-07 tarihli bir live oturumda `size=100` veya `size=30` isteklerine sayfa başına en fazla
+25 ürün döndü. Bu belgelenmiş bir upstream sınırı değildir; yerel en büyük `size` 100 kalır.
+
+- `pages=0` yanıtı `PAGE_SIZE_REDUCED` taşıyorsa devam için `pages=1` ve `size` olarak `meta.pagination.returned`
+  kullanılabilir. Bu offset doğrulanmamıştır.
+- Daha ileri bir sayfa kısa geldiyse kapsam kısmi bildirilir; offset tahmin edilmez.
 
 ### `discount` işaretini okuma
 
@@ -276,7 +294,9 @@ Yanıt: `[{name:<market>,series:[{name:"YYYY-MM-DD",value:<number|null>}]}]`.
 olur. Tüm değerleri `null` olan bir aralıkta noktalar korunur, ancak tarih, fiyat ve değişim istatistikleri
 `null` olur. Seçilen aralıkta `null` değer varsa `HISTORY_MISSING_VALUES` uyarısı döner; aralık dışındaki
 `null` değerler uyarı üretmez. Aynı zincirdeki birden fazla şubenin serilerinin nasıl birleştirildiği
-bilinmiyor.
+bilinmiyor. Seriler market adıyla gruplanır; son nokta tek bir şubedeki güncel offer'dan farklı olabilir
+(2026-10-07 live oturumunda bugünün değeri 429, aynı zincirin şubesindeki güncel fiyat 445 TRY idi). Son nokta
+güncel fiyat yerine kullanılmaz ve aradaki farktan yakın tarihli bir fiyat değişimi çıkarılmaz.
 
 Değişim yüzdesi, kuruşa normalize edilmiş değerlerle hesaplanır. Başlangıç değeri sıfırsa veya kuruşa
 yuvarlanınca sıfır oluyorsa yüzde `null` olur. Ham ilk, son, en düşük ve en yüksek değerler korunur. TRY
@@ -285,13 +305,13 @@ güvenli bir tam sayı olması tek başına yeterli değildir.
 
 ## Market, konum ve toplu sorgu
 
-| İşlem             | Sözleşme                                                                                                                                                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Market listesi    | `content[].marketAdi` ve varsa `name` ile `isActive` döner. Kodda sabit bir market listesi yoktur.                                                                                                                           |
-| Yakındaki şubeler | İstek gövdesi `{latitude,longitude,distance}`. Yanıt bir dizidir: `id`, `marketName`, `location.lat/lon`, `distance` (**metre** cinsinden) ve isteğe bağlı `sellerName`. Ek alanlar korunur.                                 |
-| Adres önerisi     | `words` URL-encode edilir. Yanıttaki her satırda 0. sütun adres, 7. sütun boylam, 8. sütun enlemdir. Sonlu sayı veya sayısal metin kabul edilir; boolean, dizi ve boş metin reddedilir. Diğer sütunlar `raw` içinde tutulur. |
-| Ters geocode      | Query parametreleri **Lat** ve **Lon**'dur. `display_name` şu alanlardan bu sırayla oluşturulur: `Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi`.                                                                   |
-| Sync              | `{identities,identityType:"id",pages:0,size:<ID sayısı>,...context}`. En fazla 100 ID alır; yanıt `content` içinde döner.                                                                                                    |
+| İşlem             | Sözleşme                                                                                                                                                                                                                           |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Market listesi    | `content[].marketAdi` ve varsa `name` ile `isActive` döner. Kodda sabit bir market listesi yoktur.                                                                                                                                 |
+| Yakındaki şubeler | İstek gövdesi `{latitude,longitude,distance}`. Yanıt bir dizidir: `id`, `marketName`, `location.lat/lon`, `distance` (**metre** cinsinden) ve isteğe bağlı `sellerName`. Ek alanlar korunur.                                       |
+| Adres önerisi     | `words` URL-encode edilir. Yanıttaki her satırda 0. sütun adres, 7. sütun boylam, 8. sütun enlemdir. Sonlu sayı veya sayısal metin kabul edilir; boolean, dizi ve boş metin reddedilir. Diğer sütunlar `raw` içinde tutulur.       |
+| Ters geocode      | Sonuç koordinata en yakın adres tahminidir, doğrulanmış adres değildir. Query parametreleri **Lat** ve **Lon**'dur. `display_name` şu alanlardan bu sırayla oluşturulur: `Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi`. |
+| Sync              | `{identities,identityType:"id",pages:0,size:<ID sayısı>,...context}`. En fazla 100 ID alır; yanıt `content` içinde döner.                                                                                                          |
 
 Market listesi endpoint'i önceki live kayıtlarda HTTP 500 döndürdü; nedeni bilinmiyor. Bu durumda hata
 `HTTP_ERROR`, `status:500`, `endpoint:markets` ve `activeStatus:unknown` olarak döner; başarılı ama boş bir
@@ -473,6 +493,7 @@ yayımlamaz ve `warningCodes:[]` taşır.
 | `DISCOUNT_FILTER_UNVERIFIED`  | İndirim filtresi kullanılmıştır; kampanya garantisi yoktur.                                 |
 | `PARTIAL_RESULTS`             | Tek bir arama sayfası tüm eşleşmeleri kapsamıyor; son sayfada da görülebilir.               |
 | `PAGINATION_LIMIT_REACHED`    | Yerel son sayfa endeksine ulaşıldı ve daha fazla eşleşme olabilir; `nextPage` `null`'dır.   |
+| `PAGE_SIZE_REDUCED`           | API istenenden kısa bir sayfa döndürdü ve daha fazla eşleşme var; `nextPage` `null`'dır.    |
 | `SEARCH_MAY_BE_FUZZY`         | Metin aramasında dönen adayların koşulları ayrıca kontrol edilmelidir.                      |
 | `UPSTREAM_FUZZY_RESULT`       | Upstream `searchResultType` değeri 2 veya 3'tür.                                            |
 | `EXPERIMENTAL_ENDPOINT`       | Başarılı çağrı deneysel bir endpoint kullanmıştır.                                          |
@@ -481,7 +502,7 @@ yayımlamaz ve `warningCodes:[]` taşır.
 | `UPSTREAM_WARNING`            | Ürün yanıtında veya ürünlerde upstream uyarı verisi vardır.                                 |
 | `BASKET_SCOPE_LIMITED`        | Sepet yalnızca açıkça verilen ürünleri ve konumu kapsar.                                    |
 
-`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS` ve `PAGINATION_LIMIT_REACHED` kodları `warnings` dizisine
+`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS`, `PAGINATION_LIMIT_REACHED` ve `PAGE_SIZE_REDUCED` kodları `warnings` dizisine
 açıklayıcı bir metin de ekler. Tekrar eden upstream metinleri, kaynakları belirtilerek korunur; kodların
 tekilleştirilmesi ham uyarıları silmez. Kod kataloğu `src/observations.ts` dosyasından `market://guide`
 resource'una aktarılır.

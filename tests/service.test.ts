@@ -5,6 +5,7 @@ import { readConfig } from '../src/config.js';
 import { OfflineTransport, type Transport, type Payload } from '../src/transport.js';
 import { z } from 'zod';
 import { schemas, type EndpointId, type Operation, type SearchResponse } from '../src/contracts.js';
+import { WARNING_CODES } from '../src/observations.js';
 
 const context = {
   latitude: 41,
@@ -197,6 +198,51 @@ test('empty and short pages keep honest coverage at the page boundary', async ()
     );
     assert.equal(transport.calls.length, 0);
   }
+});
+test('short upstream page is flagged and has no nextPage', async () => {
+  const products = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({ ...response.content[0]!, id: `P${index}`, title: `P${index}` }));
+  const operations = [
+    ['search', { ...context, keywords: 'test' }],
+    ['searchByCategories', { ...context, main_category: ['Test'] }],
+    ['similar', { ...context, id: 'A', keywords: 'test' }],
+    ['alternative', { ...context, id: 'A', keywords: 'test', marketName: 'bim' }]
+  ] as const;
+  // Live 2026-10-07: size 100 or 30 returned 25 products while more matched.
+  for (const [operation, args] of operations) {
+    for (const [pages, size, total, returned, nextPage, reduced, partial] of [
+      [0, 100, 54, 25, null, true, true],
+      [0, 100, 111, 25, null, true, true],
+      [0, 30, 45, 25, null, true, true],
+      [0, 100, 25, 25, null, false, false],
+      [0, 10, 12, 10, 1, false, true],
+      [1, 25, 26, 1, null, false, true],
+      [1, 100, 200, 25, null, true, true],
+      [0, 25, 111, 25, 1, false, true],
+      [0, 26, 26, 25, null, true, true],
+      [0, 25, 5, 0, null, false, true],
+      [10000, 2, 20003, 1, null, true, true]
+    ] as const) {
+      const output = await new MarketService(
+        new FixtureTransport({ ...response, numberOfFound: total, content: products(returned) }),
+        readConfig({})
+      ).execute(operation, { ...args, pages, size });
+      const row = `${operation} ${pages}/${size}/${total}/${returned}`;
+      const codes = output.meta.warningCodes as string[];
+      assert.equal((output.meta.pagination as { nextPage: unknown }).nextPage, nextPage, row);
+      const once = reduced ? 1 : 0;
+      assert.equal(codes.filter((code) => code === 'PAGE_SIZE_REDUCED').length, once, row);
+      assert.equal(output.warnings.filter((text) => text === WARNING_CODES.PAGE_SIZE_REDUCED).length, once, row);
+      assert.equal(codes.includes('PARTIAL_RESULTS'), partial, row);
+      // A short page has no next page, so the local page-index limit is never reached.
+      assert.ok(!codes.includes('PAGINATION_LIMIT_REACHED'), row);
+    }
+  }
+  const sync = await new MarketService(new FixtureTransport(), readConfig({})).execute('sync', {
+    ...context,
+    identities: ['A', 'B']
+  });
+  assert.ok(!(sync.meta.warningCodes as string[]).includes('PAGE_SIZE_REDUCED'));
 });
 test('service validates before transport and preserves response metadata', async () => {
   const transport = new FixtureTransport();

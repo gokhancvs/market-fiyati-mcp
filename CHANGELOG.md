@@ -4,6 +4,31 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+### Düzeltilenler
+
+- API istenen `size`'dan az ürün döndürüp daha fazla eşleşme bildirdiğinde `meta.pagination.nextPage` artık
+  yanlış sayfa göstermez: `null` olur ve yeni `PAGE_SIZE_REDUCED` uyarı kodu döner. Live kullanımda `size=100`
+  isteğine 25 ürün dönerken `nextPage` ya `null` (görülmemiş eşleşmeler varken) ya da ürün atlayan bir sayfaydı.
+  Live kullanımda API sayfa başına en fazla 25 ürün döndürdü; bu belgelenmiş bir sınır değildir. Yeni uyarı kodu
+  eklemedir; mevcut alanların biçimi değişmez.
+
+### Belgeler
+
+- README sorun giderme tablosu, bu repo'nun checkout'u içinde başlatılan istemcide `npx`'in yerel projeyi
+  çözmesini (`command not found`) ve `--prefix` çözümünü anlatır. Bağımsız kurulum testi bu çözümü checkout
+  kökünden denetler.
+- AI'ya giden rehber ve tool açıklamaları 2026-10-07 live testinin bulgularıyla güncellendi:
+  - Filtre değerleri `facetMap`'ten aynen alınır; gözlenen biçimler (`1 LT`, `500 GR`, `100 GR`, `3 KG`,
+    `30 Adet`) örneklenir. `"tam yağlı"` gibi yağ oranı ifadeleri anahtar kelimeye yazılmaz.
+  - Fiyat cevaplarında `meta.retrievedAt` belirtilir. Market bazlı fiyat geçmişinin son noktası güncel şube
+    fiyatı yerine kullanılmaz.
+  - Yakın şube uzaklığı rota değildir ve liste eksiksiz sayılmaz; ters geocode sonucu en yakın adres
+    tahminidir.
+  - Marka belirtilmeyen listelerde sepetin kapsadığı ürünler ve tahmini toplamlar ayrıca etiketlenir; sepet
+    cevabı en ucuz tam grupla başlar.
+- README'ye büyük yanıtlar için sorun giderme satırı ve Claude Code için kullanıcı geneli kayıt komutu
+  (`claude mcp add-json -s user`) eklendi.
+
 ## 2.0.0 — 2026-10-07
 
 Bu major sürüm, tool çıktısını ve ürün girdisini değiştirir. Yanıtlar kısalır: harita linkleri her offer'da

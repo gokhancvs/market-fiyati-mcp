@@ -143,3 +143,11 @@ test('every application error code in src is documented in the API error section
     []
   );
 });
+test('README explains npx inside a same-name checkout', () => {
+  const row = read('README.md')
+    .split('\n')
+    .find((line) => line.startsWith('|') && line.includes('command not found'));
+  assert.ok(row, 'troubleshooting row for command not found');
+  for (const text of ['--prefix', 'market-fiyati-mcp', 'package.json']) assert.ok(row.includes(text), text);
+  assert.match(row, /`market-fiyati-mcp` `package\.json`'u olmayan/);
+});
