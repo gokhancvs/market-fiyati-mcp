@@ -36,7 +36,7 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_find_nearby_depots',
     operation: 'nearest',
     description:
-      'Find nearby physical branches using call coordinates/radius or configured env location. All three values must be supplied by one of these sources. Experimental. Response distance is meters from the API and not a walking or driving route. The returned list is not proven exhaustive; one live session (2026-10-07) returned at most 5 branches per chain, which is not guaranteed. Choose returned depot IDs for product queries.'
+      'Find nearby physical branches using call coordinates/radius or configured env location. All three values must be supplied by one of these sources. Experimental. Response distance is meters from the API; its measurement method is undocumented and it is not a walking or driving route. The returned list is not proven exhaustive; one live session (2026-10-07) returned at most 5 branches per chain, which is not guaranteed. Choose returned depot IDs for product queries.'
   },
   {
     name: 'market_search_products',
@@ -90,7 +90,7 @@ const tools: { name: string; operation: Operation; description: string }[] = [
     name: 'market_reverse_geocode',
     operation: 'reverseGeocode',
     description:
-      'Resolve coordinates into address fields and display_name. Experimental map API. Uses capitalized Lat and Lon query parameters.'
+      'Resolve coordinates into address fields and display_name, the nearest address estimate for that point, not a verified address. Experimental map API. Uses capitalized Lat and Lon query parameters.'
   },
   {
     name: 'market_compare_product_offers',

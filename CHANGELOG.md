@@ -18,7 +18,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   çözmesini (`command not found`) ve `--prefix` çözümünü anlatır. Bağımsız kurulum testi bu çözümü checkout
   kökünden denetler.
 - AI'ya giden rehber ve tool açıklamaları 2026-10-07 live testinin bulgularıyla güncellendi: filtre değerleri
-  `facetMap`'ten alınır, fiyat cevaplarında `meta.retrievedAt` belirtilir, market bazlı fiyat geçmişinin son
+  `facetMap`'ten alınır ve gözlenen biçimleri (`1 LT`, `500 GR`, `30 Adet`) örneklenir, `"tam yağlı"` gibi yağ
+  oranı ifadeleri anahtar kelimeye yazılmaz, ters geocode sonucu en yakın adres tahminidir, fiyat cevaplarında `meta.retrievedAt` belirtilir, market bazlı fiyat geçmişinin son
   noktası güncel şube fiyatı yerine kullanılmaz, yakın şube uzaklığı rota değildir ve liste eksiksiz sayılmaz,
   marka belirtilmeyen listelerde sepetin kapsadığı ürünler ve tahmini toplamlar ayrıca etiketlenir, sepet
   cevabı en ucuz tam grupla başlar. README'ye büyük yanıtlar için sorun giderme satırı ve Claude Code için

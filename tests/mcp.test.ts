@@ -1077,7 +1077,11 @@ test('each LLM-facing rule has one owner: basket rules in the basket tool, disco
     [/not a walking or driving route/i, 'tool:market_find_nearby_depots'],
     [/not proven exhaustive/i, 'tool:market_find_nearby_depots'],
     [/brand-agnostic/i, 'tool:market_compare_basket'],
-    [/lead with the cheapest complete group/i, 'tool:market_compare_basket']
+    [/lead with the cheapest complete group/i, 'tool:market_compare_basket'],
+    [/state the level as a percentage/i, 'guide'],
+    [/observed value formats include/i, 'guide'],
+    [/measurement method is undocumented/i, 'tool:market_find_nearby_depots'],
+    [/nearest address estimate/i, 'tool:market_reverse_geocode']
   ] as const;
   for (const [rule, owner] of owned) {
     const matches = [...surfaces].filter(([, text]) => rule.test(text)).map(([name]) => name);

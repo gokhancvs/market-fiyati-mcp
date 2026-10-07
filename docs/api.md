@@ -53,7 +53,7 @@ ve `depots`.
 `latitude`, `longitude` ve `distance` tırnaksız JSON sayısı olmalıdır; `"41.0"` gibi string değerler
 reddedilir. Env değerleri metin olduğu için sunucu bunları başlangıçta sayıya çevirir.
 **İstek `distance=4`: 4 km yarıçap, 8 km çap.** Yakın şube yanıtındaki `distance` ise metredir; API'nin verdiği
-bu uzaklık yürüme veya sürüş rotası değildir. Dönen şube listesinin eksiksiz olduğu kanıtlanmamıştır: 2026-10-07
+bu uzaklık yürüme veya sürüş rotası değildir ve ölçüm yöntemi belgelenmemiştir. Dönen şube listesinin eksiksiz olduğu kanıtlanmamıştır: 2026-10-07
 tarihli live oturumda zincir başına en fazla 5 şube döndü.
 Konum env'den gelebilir; şubeler her çağrıda açıkça verilir. Şube ID'si zincir anahtarıyla şube ID'sini
 birleştiren opak string'dir. Zincir adı, şube ID'sinin yerine geçmez.
@@ -148,7 +148,9 @@ bu konum için API'den dönen bir şube ID'siyle değiştirin.
   olur. Varsayılan sıralama için `order` gönderilmez.
 - Arayüzdeki `price_range` alanı API'ye gönderilmez.
 - Filtre değerlerini `facetMap`'ten alın; biçimi tahmin etmeyin. 2026-10-07 tarihli live oturumda paket boyutu
-  değerleri `1 LT`, `500 GR`, `100 GR`, `30 Adet` biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi. Boş dönen
+  değerleri `1 LT`, `500 GR`, `100 GR`, `30 Adet` biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi. `"tam yağlı"`
+  gibi yağ oranı ifadeleri anahtar kelimede kullanılınca oranı yüzde olarak yazan (`%3.1 Yağlı`) ürünler sonuçtan
+  düştü; ürün adını boyut filtresiyle arayıp başlıkları değerlendirin. Boş dönen
   filtreli bir yanıt da filtrelenen alanın geçerli değerlerini `facetMap`'te listeleyebilir; bu her yanıtta
   görülmedi ve belgelenmiş bir upstream sözleşmesi değildir.
 
@@ -301,13 +303,13 @@ güvenli bir tam sayı olması tek başına yeterli değildir.
 
 ## Market, konum ve toplu sorgu
 
-| İşlem             | Sözleşme                                                                                                                                                                                                                     |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Market listesi    | `content[].marketAdi` ve varsa `name` ile `isActive` döner. Kodda sabit bir market listesi yoktur.                                                                                                                           |
-| Yakındaki şubeler | İstek gövdesi `{latitude,longitude,distance}`. Yanıt bir dizidir: `id`, `marketName`, `location.lat/lon`, `distance` (**metre** cinsinden) ve isteğe bağlı `sellerName`. Ek alanlar korunur.                                 |
-| Adres önerisi     | `words` URL-encode edilir. Yanıttaki her satırda 0. sütun adres, 7. sütun boylam, 8. sütun enlemdir. Sonlu sayı veya sayısal metin kabul edilir; boolean, dizi ve boş metin reddedilir. Diğer sütunlar `raw` içinde tutulur. |
-| Ters geocode      | Query parametreleri **Lat** ve **Lon**'dur. `display_name` şu alanlardan bu sırayla oluşturulur: `Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi`.                                                                   |
-| Sync              | `{identities,identityType:"id",pages:0,size:<ID sayısı>,...context}`. En fazla 100 ID alır; yanıt `content` içinde döner.                                                                                                    |
+| İşlem             | Sözleşme                                                                                                                                                                                                                           |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Market listesi    | `content[].marketAdi` ve varsa `name` ile `isActive` döner. Kodda sabit bir market listesi yoktur.                                                                                                                                 |
+| Yakındaki şubeler | İstek gövdesi `{latitude,longitude,distance}`. Yanıt bir dizidir: `id`, `marketName`, `location.lat/lon`, `distance` (**metre** cinsinden) ve isteğe bağlı `sellerName`. Ek alanlar korunur.                                       |
+| Adres önerisi     | `words` URL-encode edilir. Yanıttaki her satırda 0. sütun adres, 7. sütun boylam, 8. sütun enlemdir. Sonlu sayı veya sayısal metin kabul edilir; boolean, dizi ve boş metin reddedilir. Diğer sütunlar `raw` içinde tutulur.       |
+| Ters geocode      | Sonuç koordinata en yakın adres tahminidir, doğrulanmış adres değildir. Query parametreleri **Lat** ve **Lon**'dur. `display_name` şu alanlardan bu sırayla oluşturulur: `Mahalle_Adi`, `Yol_Adi`, `KapiNo`, `Ilce_Adi`, `Il_Adi`. |
+| Sync              | `{identities,identityType:"id",pages:0,size:<ID sayısı>,...context}`. En fazla 100 ID alır; yanıt `content` içinde döner.                                                                                                          |
 
 Market listesi endpoint'i önceki live kayıtlarda HTTP 500 döndürdü; nedeni bilinmiyor. Bu durumda hata
 `HTTP_ERROR`, `status:500`, `endpoint:markets` ve `activeStatus:unknown` olarak döner; başarılı ama boş bir
