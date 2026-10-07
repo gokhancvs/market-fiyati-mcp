@@ -9,6 +9,8 @@ export const WARNING_CODES = {
   DISCOUNT_FILTER_UNVERIFIED: 'The API discount filter does not certify a discount or campaign.',
   PARTIAL_RESULTS: 'Only part of the matching product results was returned in this page; no extra pages were fetched.',
   PAGINATION_LIMIT_REACHED: `The local maximum page index ${INPUT_LIMITS.maxPageIndex} was reached; further matches may exist. No extra page was fetched.`,
+  PAGE_SIZE_REDUCED:
+    'The API returned fewer products than the requested page size while more matches exist; the next-page offset is unknown, so nextPage is null. No extra page was fetched.',
   SEARCH_MAY_BE_FUZZY: 'Text search may be fuzzy; verify product requirements.',
   UPSTREAM_FUZZY_RESULT: 'Upstream searchResultType is 2 or 3.',
   EXPERIMENTAL_ENDPOINT: 'Operator-enabled experimental access does not certify live validation.',

@@ -150,16 +150,19 @@ bu konum için API'den dönen bir şube ID'siyle değiştirin.
 
 Yanıt biçimi: `{numberOfFound,searchResultType,content:[Product],facetMap}`. `facetMap` `null` olabilir.
 
-| Durum                         | Anlamı                                                                                                                                |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `pages=0`                     | İlk sayfadır. Her çağrı yalnızca bir sayfa getirir; otomatik olarak diğer sayfalar taranmaz.                                          |
-| `meta.pagination.nextPage`    | Çağrılabilecek bir sonraki sayfa                                                                                                      |
-| Son sayfa endeksi `10000`     | Daha fazla eşleşme olabilecekse `nextPage:null` ve `PAGINATION_LIMIT_REACHED` döner. Bu, tüm sonuçların görüldüğünün kanıtı değildir. |
-| `numberOfFound`               | Toplam eşleşme sayısıdır; sayfadaki ürün sayısı veya şubedeki stok sayısı değildir.                                                   |
-| `searchResultType=2` veya `3` | Bulanık (fuzzy) arama uyarısı üretir. `0` değerine özel bir anlam yüklenmez.                                                          |
+| Durum                         | Anlamı                                                                                                                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages=0`                     | İlk sayfadır. Her çağrı yalnızca bir sayfa getirir; otomatik olarak diğer sayfalar taranmaz.                                                               |
+| `meta.pagination.nextPage`    | Çağrılabilecek bir sonraki sayfa                                                                                                                           |
+| Kısa sayfa                    | API istenen `size`'dan az ürün döndürür ve daha fazla eşleşme varsa `PAGE_SIZE_REDUCED` döner, `nextPage` `null` olur; sonraki sayfanın offset'i bilinmez. |
+| Son sayfa endeksi `10000`     | Daha fazla eşleşme olabilecekse `nextPage:null` ve `PAGINATION_LIMIT_REACHED` döner. Bu, tüm sonuçların görüldüğünün kanıtı değildir.                      |
+| `numberOfFound`               | Toplam eşleşme sayısıdır; sayfadaki ürün sayısı veya şubedeki stok sayısı değildir.                                                                        |
+| `searchResultType=2` veya `3` | Bulanık (fuzzy) arama uyarısı üretir. `0` değerine özel bir anlam yüklenmez.                                                                               |
 
 Toplam eşleşme sayısı, dönen ürün sayısından ya da dolu bir sayfanın offset'i ile ürün sayısının toplamından
-küçükse `INVALID_RESPONSE` hatası döner. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
+küçükse `INVALID_RESPONSE` hatası döner. 2026-10-07 tarihli bir live oturumda `size=100` veya `size=30` isteklerine
+sayfa başına en fazla 25 ürün döndü; bu belgelenmiş bir upstream sınırı değildir ve yerel en büyük `size` 100 kalır.
+Devam etmek için `pages=1` ve `size` olarak `meta.pagination.returned` kullanılabilir; bu offset doğrulanmamıştır. İleri bir sayfanın boş gelmesi otomatik ek sorgu başlatmaz. Önceki
 bir yanıt açıklama için kullanılıyorsa o yanıtın özgün `retrievedAt` değeri belirtilir.
 
 ### `discount` işaretini okuma
@@ -473,6 +476,7 @@ yayımlamaz ve `warningCodes:[]` taşır.
 | `DISCOUNT_FILTER_UNVERIFIED`  | İndirim filtresi kullanılmıştır; kampanya garantisi yoktur.                                 |
 | `PARTIAL_RESULTS`             | Tek bir arama sayfası tüm eşleşmeleri kapsamıyor; son sayfada da görülebilir.               |
 | `PAGINATION_LIMIT_REACHED`    | Yerel son sayfa endeksine ulaşıldı ve daha fazla eşleşme olabilir; `nextPage` `null`'dır.   |
+| `PAGE_SIZE_REDUCED`           | API istenenden kısa bir sayfa döndürdü ve daha fazla eşleşme var; `nextPage` `null`'dır.    |
 | `SEARCH_MAY_BE_FUZZY`         | Metin aramasında dönen adayların koşulları ayrıca kontrol edilmelidir.                      |
 | `UPSTREAM_FUZZY_RESULT`       | Upstream `searchResultType` değeri 2 veya 3'tür.                                            |
 | `EXPERIMENTAL_ENDPOINT`       | Başarılı çağrı deneysel bir endpoint kullanmıştır.                                          |
@@ -481,7 +485,7 @@ yayımlamaz ve `warningCodes:[]` taşır.
 | `UPSTREAM_WARNING`            | Ürün yanıtında veya ürünlerde upstream uyarı verisi vardır.                                 |
 | `BASKET_SCOPE_LIMITED`        | Sepet yalnızca açıkça verilen ürünleri ve konumu kapsar.                                    |
 
-`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS` ve `PAGINATION_LIMIT_REACHED` kodları `warnings` dizisine
+`DEPOT_AVAILABILITY_UNKNOWN`, `PARTIAL_RESULTS`, `PAGINATION_LIMIT_REACHED` ve `PAGE_SIZE_REDUCED` kodları `warnings` dizisine
 açıklayıcı bir metin de ekler. Tekrar eden upstream metinleri, kaynakları belirtilerek korunur; kodların
 tekilleştirilmesi ham uyarıları silmez. Kod kataloğu `src/observations.ts` dosyasından `market://guide`
 resource'una aktarılır.

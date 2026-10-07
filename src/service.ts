@@ -214,7 +214,12 @@ export class MarketService {
   private envelope(data: unknown, meta: Record<string, unknown>, log = new Warnings()): Envelope {
     if (meta.experimental) log.warn('EXPERIMENTAL_ENDPOINT', EXPERIMENTAL_WARNING);
     const codes = new Set(log.codes);
-    for (const code of ['DEPOT_AVAILABILITY_UNKNOWN', 'PARTIAL_RESULTS', 'PAGINATION_LIMIT_REACHED'] as const)
+    for (const code of [
+      'DEPOT_AVAILABILITY_UNKNOWN',
+      'PARTIAL_RESULTS',
+      'PAGINATION_LIMIT_REACHED',
+      'PAGE_SIZE_REDUCED'
+    ] as const)
       if (codes.has(code)) log.texts.push(WARNING_CODES[code]);
     return { data, meta: { ...meta, warningCodes: [...codes] }, warnings: log.texts };
   }
@@ -470,7 +475,11 @@ export class MarketService {
     const log = new Warnings([], [...observations.warningCodes, ...responseWarningCodes(data)]);
     const pageable = endpoints[operation].kind === 'productPage';
     if (pageable && (pages > 0 || data.content.length < data.numberOfFound)) log.code('PARTIAL_RESULTS');
-    const hasNext = pageable && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
+    // Upstream may return fewer products than requested; its next-page offset is then unknown.
+    const expected = Math.min(size, Math.max(0, data.numberOfFound - pages * size));
+    const reduced = pageable && data.content.length > 0 && data.content.length < expected;
+    if (reduced) log.code('PAGE_SIZE_REDUCED');
+    const hasNext = pageable && !reduced && data.content.length > 0 && (pages + 1) * size < data.numberOfFound;
     const limitReached = hasNext && pages === INPUT_LIMITS.maxPageIndex;
     if (limitReached) log.code('PAGINATION_LIMIT_REACHED');
     meta.currency = 'TRY';

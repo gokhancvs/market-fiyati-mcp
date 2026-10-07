@@ -58,7 +58,10 @@ Answer in the user's language; keep tool names, field names and codes verbatim.
    refresh requires a new call. pages starts at zero; each search fetches one page.
    If meta.pagination.nextPage is non-null, report partial coverage or fetch the
    needed next page within a bounded budget. A null nextPage with
-   PAGINATION_LIMIT_REACHED does not mean all matches were seen. Lowest-price claims apply only to
+   PAGINATION_LIMIT_REACHED does not mean all matches were seen.
+   PAGE_SIZE_REDUCED means the API returned a shorter page than requested; to see more, tell the user and
+   continue at pages=1 with size equal to meta.pagination.returned, within the agreed budget; this upstream
+   offset is unverified. Lowest-price claims apply only to
    evaluated offers in the stated location/radius. IDs are opaque; barcode identityType
    is unsupported. percentage is neither fat content nor discount percentage;
    indexTime is an upstream update label with no guaranteed timezone.
