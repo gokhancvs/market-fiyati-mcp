@@ -4,6 +4,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 2.0.1 — 2026-10-07
+
+Bu patch sürümü, 2026-10-07 tarihli live testte bulunan sayfalama hatasını düzeltir ve AI'ya giden rehberi aynı
+testin bulgularıyla günceller. Yeni `PAGE_SIZE_REDUCED` uyarı kodu eklemedir; tool girdileri ve mevcut çıktı
+alanları değişmez.
+
 ### Düzeltilenler
 
 - API istenen `size`'dan az ürün döndürüp daha fazla eşleşme bildirdiğinde `meta.pagination.nextPage` artık
@@ -28,6 +34,11 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
     cevabı en ucuz tam grupla başlar.
 - README'ye büyük yanıtlar için sorun giderme satırı ve Claude Code için kullanıcı geneli kayıt komutu
   (`claude mcp add-json -s user`) eklendi.
+
+Doğrulama: offline kontroller, sentetik testler ve bağımsız kurulum testi. Değişiklikler ayrıca operatör onaylı,
+sınırlı bir live oturumda (kayıtlı konum, `retries=0`) branch build'iyle denendi; bu tek oturumluk bir gözlemdir,
+kota veya masaüstü istemci kabulü iddia edilmez
+([Doğrulama kapsamı](https://github.com/gokhancvs/market-fiyati-mcp/blob/v2.0.1/docs/verification.md)).
 
 ## 2.0.0 — 2026-10-07
 
