@@ -214,7 +214,7 @@ export const schemas = {
   ),
   product: z.strictObject({
     ...contextShape,
-    // The service sends the fixed wire fields identityType, pages and size itself.
+    // identity is the only product input; the service adds identityType, pages and size on the wire.
     identity: id
   }),
   similar: z.strictObject({
