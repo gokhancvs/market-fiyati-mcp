@@ -42,6 +42,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   `docs/releases/` kaldırıldı. CHANGELOG'daki sürüm notu linkleri GitHub Release sayfalarına gider. Bölümlerdeki
   linkler mutlak olmalı ve repo dosya linkleri sürümün tag'ine sabitlenmeli; belge testi ve yayın kontrolü
   bunu denetler.
+- **Bağımlılık güncellemeleri:** Dependabot artık npm bağımlılıkları ve GitHub Actions için ayda bir, 7 günlük
+  bekleme süresinden sonra gruplu sürüm güncellemesi PR'ı açar. Major güncellemeler ayrı gelir, sabit sürümler
+  korunur, merge elle yapılır.
 - **Belgeler:** README sorun giderme tablosu, MSIX ile kurulan Claude Desktop'ın Windows'ta yapılandırma
   dosyasını okuduğu bildirilen sanal yolu açıklar; bu yol resmî belgede yer almaz.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini

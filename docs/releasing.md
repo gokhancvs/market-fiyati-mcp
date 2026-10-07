@@ -151,8 +151,12 @@ normal paket testi bağımlılık indirmez, bağımsız kurulum testi npm ağın
 
 Her main push'unda CI/bağımlılık denetimi; pazartesi 07:00 UTC'de yalnız üretim bağımlılığı denetimi
 çalışır. Zamanlanmış işler gecikebilir. `npm audit --omit=dev` geliştirme bağımlılıklarını kapsamaz.
-Dependabot yalnız güvenlik güncellemeleri için açık; otomatik merge yoktur.
-Bağımlılıkları sabit sürüm, tutarlı lockfile ve offline kontrollerle güncelleyin.
+Dependabot güvenlik güncellemelerini hemen, sürüm güncellemelerini ayda bir ve yeni sürüm 7 gün beklendikten
+sonra önerir. Minor/patch güncellemeleri gruplanır: npm'de üretim ve geliştirme bağımlılıkları için birer PR,
+GitHub Actions SHA'ları için tek PR. Major güncellemeler ayrı PR'larda gelir; `@types/node` major'ları
+desteklenen Node alt sınırını izlediği için önerilmez. Sabit sürümler sabit kalır. Otomatik merge yoktur: her PR
+gerekli kontrollerden geçtikten sonra elle merge edilir. `mcp-publisher` sürümü ve SHA-256 değeri workflow
+env'indedir; ikisi birlikte elle güncellenir.
 [Güvenlik bildirimi](../SECURITY.md) özel kanaldandır; token/koordinat/ham tanılama Git'e veya issue'ya girmez.
 
 Yeni CI işleri ilk uzak çalışmada görüldükten sonra gerçek adlarını main'in gerekli kontrollerine ekleyin.
