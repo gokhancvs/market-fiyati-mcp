@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { changelogSections, linkProblems } from '../scripts/release-notes.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const markdown = (dir) =>
@@ -14,8 +15,7 @@ const publicDocs = [
   'CHANGELOG.md',
   'SECURITY.md',
   '.github/pull_request_template.md',
-  ...markdown('docs'),
-  ...markdown('docs/releases')
+  ...markdown('docs')
 ];
 const issueTemplates = readdirSync(join(root, '.github/ISSUE_TEMPLATE')).map((name) =>
   join('.github/ISSUE_TEMPLATE', name)
@@ -59,19 +59,15 @@ test('public documentation links and anchors resolve', () => {
   assert.deepEqual(broken, []);
 });
 
-const repositoryBlob = 'https://github.com/gokhancvs/market-fiyati-mcp/blob/';
-const unpinnedReleaseLinks = new Set([`docs/releases/v1.0.2.md: ${repositoryBlob}main/README.md`]);
-
-test('release notes pin repository links to their own tag because they become GitHub Release bodies', () => {
-  const unpinned = markdown('docs/releases').flatMap((path) => {
-    const tag = path.match(/(v\d+\.\d+\.\d+)\.md$/)[1];
-    return links(read(path))
-      .filter(({ href }) => !href.startsWith('https://') || href.startsWith(repositoryBlob))
-      .filter(({ href }) => !href.startsWith(`${repositoryBlob}${tag}/`))
-      .map(({ href }) => `${path}: ${href}`)
-      .filter((entry) => !unpinnedReleaseLinks.has(entry));
-  });
-  assert.deepEqual(unpinned, []);
+test('CHANGELOG sections keep absolute links pinned to their tag because they become GitHub Release bodies', () => {
+  const sections = changelogSections(read('CHANGELOG.md'));
+  assert.ok(sections.some(({ version }) => version));
+  const problems = sections
+    .filter(({ heading, version }) => version || heading === 'Yayımlanmamış')
+    .flatMap(({ heading, version, body }) =>
+      linkProblems(body, version && `v${version}`).map((href) => `${heading}: ${href}`)
+    );
+  assert.deepEqual(problems, []);
 });
 
 test('the live query guide has one name in every link', () => {
