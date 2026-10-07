@@ -42,6 +42,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   `docs/releases/` kaldırıldı. CHANGELOG'daki sürüm notu linkleri GitHub Release sayfalarına gider. Bölümlerdeki
   linkler mutlak olmalı ve repo dosya linkleri sürümün tag'ine sabitlenmeli; belge testi ve yayın kontrolü
   bunu denetler.
+- **Bağımlılık güncellemeleri:** Dependabot artık npm bağımlılıkları ve GitHub Actions için ayda bir, 7 günlük
+  bekleme süresinden sonra gruplu sürüm güncellemesi PR'ı açar. Major güncellemeler ayrı gelir, sabit sürümler
+  korunur, merge elle yapılır.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
   izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
   hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı

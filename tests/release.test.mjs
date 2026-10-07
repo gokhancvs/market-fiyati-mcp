@@ -65,6 +65,31 @@ test('MCP Registry publication runs after npm with OIDC and a verified publisher
   assert.equal(checkout.with['persist-credentials'], false);
 });
 
+test('Dependabot proposes grouped monthly updates that keep exact pins after a cooldown', () => {
+  const config = yaml.load(readFileSync(new URL('../.github/dependabot.yml', import.meta.url), 'utf8'));
+  const byEcosystem = Object.fromEntries(config.updates.map((update) => [update['package-ecosystem'], update]));
+  assert.deepEqual(Object.keys(byEcosystem).sort(), ['github-actions', 'npm']);
+  for (const [ecosystem, update] of Object.entries(byEcosystem)) {
+    assert.equal(update.schedule.interval, 'monthly', ecosystem);
+    assert.ok(update.cooldown['default-days'] >= 7, ecosystem);
+    assert.equal(update['commit-message'].include, 'scope', ecosystem);
+    for (const group of Object.values(update.groups)) {
+      assert.deepEqual(group['update-types'], ['minor', 'patch'], `${ecosystem}: majors arrive one by one`);
+      assert.equal(group['applies-to'], undefined, `${ecosystem}: security updates are not grouped`);
+    }
+  }
+  const npm = byEcosystem.npm;
+  assert.equal(npm['versioning-strategy'], 'increase', 'exact pins stay exact');
+  assert.ok(npm['open-pull-requests-limit'] >= 10, 'room for individual major updates');
+  assert.equal(npm['commit-message'].prefix, 'build');
+  assert.equal(npm.groups.production['dependency-type'], 'production');
+  assert.equal(npm.groups.development['dependency-type'], 'development');
+  // @types/node follows the supported Node floor in package.json engines.
+  assert.deepEqual(npm.ignore, [{ 'dependency-name': '@types/node', 'update-types': ['version-update:semver-major'] }]);
+  assert.equal(byEcosystem['github-actions']['commit-message'].prefix, 'ci');
+  assert.deepEqual(byEcosystem['github-actions'].groups.actions.patterns, ['*']);
+});
+
 function check({
   tag = 'v1.0.0',
   version = '1.0.0',
