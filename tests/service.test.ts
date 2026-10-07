@@ -398,7 +398,8 @@ test('exact lookups preserve empty results and opaque IDs without advertising an
   assert.deepEqual((await empty.execute('product', { ...context, identity: 'A' })).data, {
     ...response,
     numberOfFound: 0,
-    content: []
+    content: [],
+    depotMaps: {}
   });
   assert.deepEqual((await empty.execute('sync', { ...context, identities: ['A'] })).meta.missingProductIds, ['A']);
   const search = await service.execute('search', {
@@ -846,7 +847,7 @@ test('nearby branch map links use the branch coordinates in each provider order'
   assert.equal(transport.calls.length, 1);
   assert.equal('maps' in branch, false);
 });
-test('every product operation includes offer map links without additional requests', async () => {
+test('every product operation returns one map link entry per depot without additional requests', async () => {
   const operations: [Operation, Record<string, unknown>][] = [
     ['search', { keywords: 'test' }],
     ['searchByCategories', { main_category: ['Yoğurt'] }],
@@ -861,11 +862,47 @@ test('every product operation includes offer map links without additional reques
       ...context,
       ...args
     });
-    const data = result.data as SearchResponse;
-    assert.deepEqual(data.content[0]?.productDepotInfoList[0]?.maps, mapLinks, operation);
+    const data = result.data as SearchResponse & { depotMaps: unknown };
+    assert.deepEqual(data.depotMaps, { 'bim-test': mapLinks }, operation);
+    assert.equal('maps' in data.content[0]!.productDepotInfoList[0]!, false, operation);
     assert.equal(transport.calls.length, 1);
   }
   assert.equal('maps' in locatedResponse.content[0]!.productDepotInfoList[0]!, false);
+});
+test('depot map entries need the same valid coordinates in every offer of that depot', async () => {
+  const offer = response.content[0]!.productDepotInfoList[0]!;
+  const product = (id: string, ...offers: Record<string, unknown>[]) => ({
+    ...response.content[0]!,
+    id,
+    title: id,
+    productDepotInfoList: offers
+  });
+  const located = { latitude: 41.25, longitude: 29.5 };
+  const data = {
+    ...response,
+    numberOfFound: 3,
+    depotMaps: { 'bim-test': { google: 'https://untrusted.test' } },
+    content: [
+      product('A', { ...offer, ...located }, { ...offer, depotId: 'bim-moved', ...located }),
+      product(
+        'B',
+        { ...offer, ...located },
+        { ...offer, depotId: 'bim-moved', latitude: 41.3, longitude: 29.5 },
+        { ...offer, depotId: '__proto__', ...located }
+      ),
+      product('C', { ...offer, depotId: 'bim-partial', ...located }, { ...offer, depotId: 'bim-partial' })
+    ]
+  };
+  const result = await new MarketService(new FixtureTransport(data), readConfig({})).execute('search', {
+    ...context,
+    keywords: 'test'
+  });
+  const depotMaps = (result.data as { depotMaps: Record<string, unknown> }).depotMaps;
+  assert.deepEqual(Object.keys(depotMaps), ['bim-test', 'bim-moved', '__proto__', 'bim-partial']);
+  assert.deepEqual(depotMaps['bim-test'], mapLinks);
+  assert.equal(depotMaps['bim-moved'], null);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(depotMaps, '__proto__')?.value, mapLinks);
+  assert.equal(depotMaps['bim-partial'], null);
 });
 test('map links never fall back to user coordinates for missing or invalid branch coordinates', async () => {
   for (const coords of [{}, { latitude: 41 }, { latitude: 91, longitude: 29 }, { latitude: 41, longitude: -181 }]) {
@@ -888,7 +925,9 @@ test('map links never fall back to user coordinates for missing or invalid branc
       ...context,
       keywords: 'test'
     });
-    assert.equal((result.data as SearchResponse).content[0]?.productDepotInfoList[0]?.maps, null);
+    const searched = result.data as SearchResponse & { depotMaps: Record<string, unknown> };
+    assert.deepEqual(searched.depotMaps, { 'bim-test': null });
+    assert.equal('maps' in searched.content[0]!.productDepotInfoList[0]!, false, 'upstream maps is not passed on');
   }
   const result = await new MarketService(
     new FixtureTransport([
@@ -970,7 +1009,45 @@ test('invalid coordinate types fail the response contract rather than being coer
     { code: 'INVALID_RESPONSE' }
   );
 });
-test('comparison and basket outputs retain links on selected and unavailable offers', async () => {
+test('basket depot links come only from offers that appear in the output', async () => {
+  const offer = { ...response.content[0]!.productDepotInfoList[0]!, latitude: 41.25, longitude: 29.5 };
+  const data = {
+    ...response,
+    content: [
+      {
+        ...response.content[0]!,
+        productDepotInfoList: [
+          offer,
+          // A pricier duplicate at the same depot and a pricier depot are never emitted.
+          { ...offer, price: 15, latitude: 41.3 },
+          { ...offer, depotId: 'bim-hidden', price: 20 }
+        ]
+      }
+    ]
+  };
+  for (const groupBy of ['market', 'depot'] as const) {
+    const basket = await new MarketService(new FixtureTransport(data), readConfig({})).execute('compareBasket', {
+      ...context,
+      depots: ['bim-test', 'bim-hidden'],
+      groupBy,
+      items: [{ id: 'A', quantity: 1 }]
+    });
+    const output = basket.data as { depotMaps: Record<string, unknown> };
+    const emitted = JSON.stringify({ ...output, depotMaps: undefined });
+    assert.deepEqual(
+      output.depotMaps,
+      groupBy === 'market'
+        ? { 'bim-test': mapLinks }
+        : {
+            'bim-test': mapLinks,
+            'bim-hidden': mapLinks
+          },
+      groupBy
+    );
+    assert.equal(emitted.includes('bim-hidden'), groupBy === 'depot', groupBy);
+  }
+});
+test('comparison and basket outputs list map links once per depot, including unavailable offers', async () => {
   const data = {
     ...locatedResponse,
     content: [
@@ -995,22 +1072,26 @@ test('comparison and basket outputs retain links on selected and unavailable off
       identity: 'A'
     })
   ).data as {
-    offers: { maps: unknown }[];
-    unavailableOffers: { maps: unknown }[];
+    offers: object[];
+    unavailableOffers: object[];
+    depotMaps: unknown;
   };
-  assert.deepEqual(compared.offers[0]?.maps, mapLinks);
-  assert.deepEqual(compared.unavailableOffers[0]?.maps, mapLinks);
+  assert.deepEqual(compared.depotMaps, { 'bim-test': mapLinks, 'bim-zero': mapLinks });
+  assert.equal('maps' in compared.offers[0]!, false);
+  assert.equal('maps' in compared.unavailableOffers[0]!, false);
   const basket = (
     await service.execute('compareBasket', {
       ...context,
       items: [{ id: 'A', quantity: 2 }]
     })
   ).data as {
-    groups: { lines: { offer: { maps: unknown } }[] }[];
-    splitBasket: { lines: { offer: { maps: unknown } }[] };
+    groups: { lines: { offer: object }[] }[];
+    splitBasket: { lines: { offer: object }[] };
+    depotMaps: unknown;
   };
-  assert.deepEqual(basket.groups[0]?.lines[0]?.offer.maps, mapLinks);
-  assert.deepEqual(basket.splitBasket.lines[0]?.offer.maps, mapLinks);
+  assert.deepEqual(basket.depotMaps, { 'bim-test': mapLinks, 'bim-zero': mapLinks });
+  assert.equal('maps' in basket.groups[0]!.lines[0]!.offer, false);
+  assert.equal('maps' in basket.splitBasket.lines[0]!.offer, false);
 });
 
 test('comparisons restrict derived prices to selected depots while retaining outside evidence', async () => {

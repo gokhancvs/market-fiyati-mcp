@@ -4,6 +4,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+- **Kırıcı değişiklik — harita linkleri:** Ürün, karşılaştırma ve sepet yanıtlarında offer'lar artık `maps`
+  alanı taşımaz. Linkler `data.depotMaps` içinde şube başına bir kez, `depotId` anahtarıyla verilir; aynı şubenin
+  linki artık her offer'da tekrarlanmaz. Kayıt; koordinat eksik, geçersiz veya aynı şubenin offer'larında
+  tutarsızsa `null` olur. Kaynaktan gelen `maps` alanı offer'lardan çıkarılır. Yakındaki şubeler yanıtı
+  değişmedi. `offer.maps` okuyan istemciler `depotMaps[offer.depotId]` kullanmalıdır. Bu nedenle sonraki sürüm
+  2.0.0'dır.
 - **AI'ya giden metinler:** Sepet kuralları (bütçe, gruplama, sunum, `splitBasket`) artık yalnız
   `market_compare_basket` açıklamasında; `discount` ve diğer ortak kurallar yalnız `market://guide`
   içinde. Prompt'lar ve guide bu kaynaklara yönlendirir. Tool açıklamalarından geliştirme notları
