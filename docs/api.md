@@ -147,10 +147,12 @@ bu konum için API'den dönen bir şube ID'siyle değiştirin.
 - Sıralama: `order.name` değeri `lowest_price` veya `offer_unit_price`, `order.type` değeri `asc` veya `desc`
   olur. Varsayılan sıralama için `order` gönderilmez.
 - Arayüzdeki `price_range` alanı API'ye gönderilmez.
-- Filtre değerlerini `facetMap`'ten alın; biçimi tahmin etmeyin. 2026-10-07 tarihli live oturumda paket boyutu
-  değerleri `1 LT`, `500 GR`, `100 GR`, `30 Adet` biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi. `"tam yağlı"`
-  gibi yağ oranı ifadeleri anahtar kelimede kullanılınca oranı yüzde olarak yazan (`%3.1 Yağlı`) ürünler sonuçtan
-  düştü; ürün adını boyut filtresiyle arayıp başlıkları değerlendirin. Boş dönen
+- Filtre değerlerini `facetMap`'ten aynen alın; biçimi tahmin etmeyin. 2026-10-07 tarihli live oturumda
+  `refined_volume_weight` değerleri `1 LT`, `500 GR`, `100 GR`, `3 KG`, `refined_quantity_unit` değeri `30 Adet`
+  biçimindeydi; `"1 L"` veya `"100 G"` 0 sonuç verdi.
+- `"tam yağlı"` gibi yağ oranı ifadeleri anahtar kelimede kullanılınca oranı yüzde olarak yazan (`%3.1 Yağlı`)
+  ürünler sonuçtan düştü. Ürün adını boyut filtresiyle arayın ve istenen oranı başlıklarda doğrulayın.
+- Boş dönen
   filtreli bir yanıt da filtrelenen alanın geçerli değerlerini `facetMap`'te listeleyebilir; bu her yanıtta
   görülmedi ve belgelenmiş bir upstream sözleşmesi değildir.
 

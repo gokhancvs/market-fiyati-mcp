@@ -1079,7 +1079,7 @@ test('each LLM-facing rule has one owner: basket rules in the basket tool, disco
     [/brand-agnostic/i, 'tool:market_compare_basket'],
     [/lead with the cheapest complete group/i, 'tool:market_compare_basket'],
     [/state the level as a percentage/i, 'guide'],
-    [/observed value formats include/i, 'guide'],
+    [/use facetMap values verbatim/i, 'guide'],
     [/measurement method is undocumented/i, 'tool:market_find_nearby_depots'],
     [/nearest address estimate/i, 'tool:market_reverse_geocode']
   ] as const;

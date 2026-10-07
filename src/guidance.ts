@@ -41,15 +41,15 @@ Answer in the user's language; keep tool names, field names and codes verbatim.
    terms such as "yarım yağlı" out of the initial keywords/sub_category when that
    would hide related "az yağlı" candidates. Fat-level phrases such as "tam yağlı" also
    hide products that state the level as a percentage ("%3.1 Yağlı"); search the product
-   word with the size filter and judge titles. Preserve an explicit exact-only request,
+   word with the size filter and verify the stated level in titles. Preserve an explicit exact-only request,
    numeric limits and dietary/allergen restrictions; label alternative candidates
    separately and never assume similar names establish equivalent composition.
 4. Reuse filter values from supplied API context or returned facetMap. An empty
    filtered response can still list valid values for the filtered field in facetMap;
    read them before another call and never guess a filter value format, such as a
-   package-size unit spelling. Observed value formats include "1 LT", "500 GR", "3 KG"
-   and, for refined_quantity_unit, "30 Adet"; facetMap stays the source. Unknown
-   category names need discovery; use
+   package-size unit spelling. Use facetMap values verbatim; examples seen there are
+   "1 LT", "500 GR", "100 GR", "3 KG" (refined_volume_weight) and "30 Adet"
+   (refined_quantity_unit). Unknown category names need discovery; use
    market_get_categories only when needed.
    Category filters take Turkish names, not IDs/slugs. market_names is the wire
    filter for the offer_market facet. Evaluate titles, package sizes and categories
