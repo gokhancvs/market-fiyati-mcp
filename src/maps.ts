@@ -1,4 +1,4 @@
-import type { Product } from './contracts.js';
+import type { Offer } from './contracts.js';
 
 export type MapLinks = { google: string; apple: string; yandex: string };
 
@@ -23,17 +23,16 @@ export function mapLinks(latitude: unknown, longitude: unknown): MapLinks | null
 }
 
 /**
- * One entry per depot in the offers. An entry is null unless every offer of that depot has the same valid
- * coordinates, so an inconsistent response never points at a guessed place.
+ * One entry per depot of the given (output) offers. An entry is null unless every such offer of that depot has the
+ * same valid coordinates, so an inconsistent response never points at a guessed place.
  */
-export function depotMaps(products: Product[]): Record<string, MapLinks | null> {
+export function depotMaps(offers: Iterable<Offer>): Record<string, MapLinks | null> {
   const entries = new Map<string, MapLinks | null>();
-  for (const product of products)
-    for (const offer of product.productDepotInfoList) {
-      const links = mapLinks(offer.latitude, offer.longitude);
-      if (!entries.has(offer.depotId)) entries.set(offer.depotId, links);
-      else if (JSON.stringify(entries.get(offer.depotId)) !== JSON.stringify(links)) entries.set(offer.depotId, null);
-    }
+  for (const offer of offers) {
+    const links = mapLinks(offer.latitude, offer.longitude);
+    if (!entries.has(offer.depotId)) entries.set(offer.depotId, links);
+    else if (JSON.stringify(entries.get(offer.depotId)) !== JSON.stringify(links)) entries.set(offer.depotId, null);
+  }
   // fromEntries defines own properties, so a "__proto__" depot id stays an ordinary key.
   return Object.fromEntries(entries);
 }

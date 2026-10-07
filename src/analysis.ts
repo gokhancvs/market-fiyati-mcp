@@ -4,7 +4,7 @@ import { toCents as cents, fromCents as money } from './money.js';
 const available = (offer: Offer) => Number.isFinite(offer.price) && offer.price > 0 && cents(offer.price) > 0;
 const compareIds = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 /** Visit original offers at their final output paths, before clones lose identity. */
-type OfferVisitor = (productId: string, offer: Offer, path: string) => void;
+export type OfferVisitor = (productId: string, offer: Offer, path: string) => void;
 export function compareOffers(product: Product, visitOffer?: OfferVisitor, selectedDepots?: ReadonlySet<string>) {
   const eligible = product.productDepotInfoList.filter((o) => !selectedDepots || selectedDepots.has(o.depotId));
   const outOfScopeOffers = product.productDepotInfoList

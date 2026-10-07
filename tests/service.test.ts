@@ -1009,6 +1009,44 @@ test('invalid coordinate types fail the response contract rather than being coer
     { code: 'INVALID_RESPONSE' }
   );
 });
+test('basket depot links come only from offers that appear in the output', async () => {
+  const offer = { ...response.content[0]!.productDepotInfoList[0]!, latitude: 41.25, longitude: 29.5 };
+  const data = {
+    ...response,
+    content: [
+      {
+        ...response.content[0]!,
+        productDepotInfoList: [
+          offer,
+          // A pricier duplicate at the same depot and a pricier depot are never emitted.
+          { ...offer, price: 15, latitude: 41.3 },
+          { ...offer, depotId: 'bim-hidden', price: 20 }
+        ]
+      }
+    ]
+  };
+  for (const groupBy of ['market', 'depot'] as const) {
+    const basket = await new MarketService(new FixtureTransport(data), readConfig({})).execute('compareBasket', {
+      ...context,
+      depots: ['bim-test', 'bim-hidden'],
+      groupBy,
+      items: [{ id: 'A', quantity: 1 }]
+    });
+    const output = basket.data as { depotMaps: Record<string, unknown> };
+    const emitted = JSON.stringify({ ...output, depotMaps: undefined });
+    assert.deepEqual(
+      output.depotMaps,
+      groupBy === 'market'
+        ? { 'bim-test': mapLinks }
+        : {
+            'bim-test': mapLinks,
+            'bim-hidden': mapLinks
+          },
+      groupBy
+    );
+    assert.equal(emitted.includes('bim-hidden'), groupBy === 'depot', groupBy);
+  }
+});
 test('comparison and basket outputs list map links once per depot, including unavailable offers', async () => {
   const data = {
     ...locatedResponse,

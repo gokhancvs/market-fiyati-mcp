@@ -88,9 +88,9 @@ Yönlendirmeler (redirect) engellenir.
 offer'lar `warnings` içinde açıklanır. Buna karşılık MCP'nin türettiği sıralama, `offers`, `unavailableOffers`,
 gruplar ve `splitBasket` yalnızca seçili `depots` için üretilir.
 
-Seçilmemiş şubelerin offer'ları `data.outOfScopeOffers=[{productId,offer}]` içinde; ham alanları, harita
-linkleri ve değerlendirme referanslarıyla birlikte tutulur, ama hiçbir hesaba katılmaz. Seçili şubelerde hiç
-offer yoksa en ucuz fiyat ve tam sepet toplamı `null` olur.
+Seçilmemiş şubelerin offer'ları `data.outOfScopeOffers=[{productId,offer}]` içinde ham alanları ve
+değerlendirme referanslarıyla birlikte tutulur, ama hiçbir hesaba katılmaz. Bu şubelerin harita linkleri de
+`data.depotMaps` içindedir. Seçili şubelerde hiç offer yoksa en ucuz fiyat ve tam sepet toplamı `null` olur.
 
 ### 1.0.6 yarıçap geçişi
 
@@ -222,7 +222,6 @@ değerin başındaki ve sonundaki boşluklar kırpılmaz.
 | `discount`                        | API'nin indirim işareti: `true` veya `false`; alan yoksa bilinmiyor   |
 | `discountlessPrice`               | Ham referans fiyat; ürünün geçmişte bu fiyattan satıldığı varsayılmaz |
 | `discountRatio` / `promotionText` | `null` olabilen indirim oranı ve promosyon metni                      |
-| `maps`                            | MCP'nin ürettiği `{google,apple,yandex}` HTTPS linkleri veya `null`   |
 
 `retrievedAt`, sorgunun tamamlandığı andır. `indexTime` için bir zaman dilimi varsayılmaz. İndirim alanlarının
 yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
@@ -245,11 +244,13 @@ yorumu: [`discount` işaretini okuma](#discount-işaretini-okuma).
 Parametreler URL-encode edilir. Yakındaki şubeler yanıtında her öğe kendi `maps` alanını taşır.
 
 Ürün, karşılaştırma ve sepet yanıtlarında offer'lar link taşımaz. Bunun yerine `data.depotMaps`, yanıttaki
-offer'larda geçen her şube için `depotId` anahtarlı tek bir `{google, apple, yandex}` kaydı verir. Kapsam dışı
-ve fiyatı olmayan offer'ların şubeleri de tabloda yer alır. Kayıt şu durumlarda `null` olur: koordinat eksik
-veya aralık dışı ise, ya da aynı şubenin offer'ları farklı koordinat taşıyorsa. Birden fazla şubeye yayılan bir
-sepet için grup düzeyinde tek bir link verilmez. Link yalnızca koordinata işaret koyar; işletme kaydı veya rota değildir. Linkleri üretmek
-için ağ erişimi veya API anahtarı gerekmez.
+offer'larda geçen her şube için `depotId` anahtarlı tek bir `{google, apple, yandex}` kaydı verir. Tablo yalnız
+yanıtta görünen offer'ların şubelerini içerir; kapsam dışı ve fiyatı olmayan offer'lar dâhildir, sepette
+seçilmeyen daha pahalı offer'lar hariçtir. Kayıt şu durumlarda `null` olur: koordinat eksik veya aralık dışı
+ise, ya da aynı şubenin bu offer'ları farklı koordinat taşıyorsa. Kaynak yanıtta `depotMaps` adlı bir alan
+varsa MCP'nin tablosuyla değiştirilir. Birden fazla şubeye yayılan bir sepet için grup düzeyinde tek bir link
+verilmez. Link yalnızca koordinata işaret koyar; işletme kaydı veya rota değildir. Linkleri üretmek için ağ
+erişimi veya API anahtarı gerekmez.
 
 Sağlayıcı belgeleri: [Google](https://developers.google.com/maps/documentation/urls/get-started),
 [Apple](https://developer.apple.com/library/archive/featuredarticles/iPhoneURLScheme_Reference/MapLinks/MapLinks.html),
@@ -340,7 +341,7 @@ kullanarak aşmak yasaktır. Kontrol her çağrı için ayrı yapılır; oturum,
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `meta.upstream`          | Her sorgu için `requestedIdentity`, `content` dışındaki yanıt alanları (`responseFields`) ve offer dizisi dışındaki ürün alanları (`productFields`). Tek ürün karşılaştırmasında da bulunur. |
 | `warnings`               | Upstream'den gelen string uyarılar, hangi kaynaktan geldikleri belirtilerek eklenir. Diğer türdeki uyarılar kaynak alanlarında olduğu gibi kalır.                                            |
-| `data.unavailableOffers` | Seçili şubelerde fiyatı sıfır olan veya kuruşa yuvarlanınca sıfır olan offer'lar: `[{productId,offer}]`. Tekrarlar, `maps` ve ek alanlar korunur.                                            |
+| `data.unavailableOffers` | Seçili şubelerde fiyatı sıfır olan veya kuruşa yuvarlanınca sıfır olan offer'lar: `[{productId,offer}]`. Tekrarlar ve ek alanlar korunur.                                                    |
 | `data.outOfScopeOffers`  | Yalnızca seçilmemiş şubelerin offer'ları; hesaplara katılmaz.                                                                                                                                |
 | `missingProductIds`      | Üst düzeyde: API'nin hiç kayıt döndürmediği ID'ler. Grup ve bölünmüş sepet düzeyinde: kullanılabilir satırı olmayan ID'ler.                                                                  |
 

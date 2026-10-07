@@ -1538,7 +1538,7 @@
           ],
           "scope": "Only returned offers in selected depots; not every branch or guaranteed stock. Zero prices are treated as unavailable.",
           "depotMaps": {
-            "a-1": {
+            "z-9": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
@@ -1548,12 +1548,12 @@
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
             },
-            "b-1": {
+            "a-1": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
             },
-            "z-9": {
+            "b-1": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
@@ -1888,12 +1888,7 @@
           "excludedCosts": ["travel", "delivery", "membership conditions"],
           "warning": "Incomplete baskets have total=null; subtotal only includes available items. Product availability is not guaranteed.",
           "depotMaps": {
-            "a-1": {
-              "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
-              "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
-              "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
-            },
-            "a-2": {
+            "z-9": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
@@ -1903,7 +1898,12 @@
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
             },
-            "z-9": {
+            "a-2": {
+              "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
+              "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
+              "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
+            },
+            "a-1": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
@@ -2380,12 +2380,7 @@
           "excludedCosts": ["travel", "delivery", "membership conditions"],
           "warning": "Incomplete baskets have total=null; subtotal only includes available items. Product availability is not guaranteed.",
           "depotMaps": {
-            "a-1": {
-              "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
-              "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
-              "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
-            },
-            "a-2": {
+            "z-9": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
@@ -2395,7 +2390,12 @@
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
             },
-            "z-9": {
+            "a-1": {
+              "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
+              "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
+              "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"
+            },
+            "a-2": {
               "google": "https://www.google.com/maps/search/?api=1&query=41.01%2C29.02",
               "apple": "https://maps.apple.com/?ll=41.01%2C29.02&q=41.01%2C29.02",
               "yandex": "https://yandex.com/maps/?ll=29.02%2C41.01&pt=29.02%2C41.01&z=16"

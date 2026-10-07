@@ -18,7 +18,7 @@ import { type Config } from './config.js';
 import type { z, ZodObject } from 'zod';
 import { AppError, reportInternalError, type HttpAttemptCounts } from './errors.js';
 import { MAX_PENDING_REQUESTS, type Payload, type SourceMeta, type Transport } from './transport.js';
-import { compareBasket, compareOffers, filterCategories, summarizeHistory } from './analysis.js';
+import { compareBasket, compareOffers, filterCategories, summarizeHistory, type OfferVisitor } from './analysis.js';
 import { depotMaps, mapLinks } from './maps.js';
 import {
   observeProducts,
@@ -64,6 +64,13 @@ const exactIdPayload = (identity: string) => ({ identity, identityType: 'id', pa
 const priceScopeWarning =
   'Prices apply to returned offers in the supplied location and depot selection; stock and promotion eligibility are not guaranteed.';
 
+/** Record every offer a comparison writes to its output, so depot map links cover exactly those offers. */
+function emitting(visit: OfferVisitor, emitted: Offer[]): OfferVisitor {
+  return (productId, offer, path) => {
+    emitted.push(offer);
+    visit(productId, offer, path);
+  };
+}
 function offerScopeWarnings(response: SearchResponse, depots: string[]): string[] {
   const selected = new Set(depots),
     outside = new Set<string>();
@@ -298,9 +305,16 @@ export class MarketService {
       );
       log.codes.unshift(...observations.warningCodes);
       const links = offerAssessmentLinks(products);
-      const comparison = compareBasket(items, products, groupBy, links.visitOffer, new Set(context.depots));
+      const emitted: Offer[] = [];
+      const comparison = compareBasket(
+        items,
+        products,
+        groupBy,
+        emitting(links.visitOffer, emitted),
+        new Set(context.depots)
+      );
       return this.envelope(
-        { ...comparison, depotMaps: depotMaps(products) },
+        { ...comparison, depotMaps: depotMaps(emitted) },
         {
           source: this.transport.mode,
           derived: true,
@@ -327,9 +341,10 @@ export class MarketService {
         input.identity
       ]);
       const links = offerAssessmentLinks([product]);
-      const comparison = compareOffers(product, links.visitOffer, new Set(input.depots));
+      const emitted: Offer[] = [];
+      const comparison = compareOffers(product, emitting(links.visitOffer, emitted), new Set(input.depots));
       return this.envelope(
-        { ...comparison, depotMaps: depotMaps([product]) },
+        { ...comparison, depotMaps: depotMaps(emitted) },
         {
           ...result.meta,
           currency: 'TRY',
@@ -483,7 +498,11 @@ export class MarketService {
       );
     if (data.searchResultType === 2 || data.searchResultType === 3)
       log.note(`Upstream fuzzy search result type: ${data.searchResultType}.`);
-    return this.envelope({ ...data, depotMaps: depotMaps(data.content) }, meta, log);
+    return this.envelope(
+      { ...data, depotMaps: depotMaps(data.content.flatMap((product) => product.productDepotInfoList)) },
+      meta,
+      log
+    );
   }
   catalog() {
     return {
