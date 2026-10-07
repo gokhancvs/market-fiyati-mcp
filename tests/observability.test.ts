@@ -591,7 +591,7 @@ test('derived offer paths identify the right assessment after sorting duplicate-
   assert.equal(unavailable?.[0]?.productId, 'A');
   assert.equal(unavailable?.[0]?.offer.promotionText, 'raw-unavailable');
   assert.deepEqual(unavailable?.[0]?.offer.future, { keep: true });
-  assert.ok(unavailable?.[0]?.offer.maps);
+  assert.equal('maps' in unavailable![0]!.offer, false);
   assert.deepEqual(basket.meta.offerAssessmentRefs, [
     { path: '/data/unavailableOffers/0/offer', assessmentIndex: 2 },
     { path: '/data/groups/0/lines/0/offer', assessmentIndex: 1 },

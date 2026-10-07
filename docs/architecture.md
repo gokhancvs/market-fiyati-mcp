@@ -25,7 +25,7 @@ Teknoloji: Node.js 22+, strict TypeScript, MCP SDK, Zod ve stdio üzerinden JSON
 | `response-validation.ts`       | İlk geçersiz alanda durur. Upstream yanıttaki path ve değerleri hata ayrıntısına taşımaz.                                                                                      |
 | `lifecycle.ts`                 | EOF, SIGINT veya SIGTERM geldiğinde sunucuyu bir kez kapatır ve dinleyicileri temizler. Kapanış 5 saniyede bitmezse hatayı stderr'e yazar ve süreci 1 koduyla sonlandırır.     |
 | `errors.ts`, `observations.ts` | Hata biçimini ve çağrı başına sayaç tiplerini tanımlar. Şube kapsamını, API'nin boolean işaretine dayanan indirim yorumunu, fiyat zamanlarını ve sabit uyarı kodlarını üretir. |
-| `maps.ts`                      | Şube koordinatlarından harita URL'leri üretir. Bunun için ağ gerekmez; linkler offer ve sepet çıktılarında korunur.                                                            |
+| `maps.ts`                      | Şube koordinatlarından harita URL'leri ve yanıt başına `depotMaps` tablosunu üretir. Bunun için ağ gerekmez.                                                                   |
 
 ### Durum ve çalışma kuralları
 
