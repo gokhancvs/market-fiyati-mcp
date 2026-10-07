@@ -29,6 +29,9 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   değişmedi.
 - **CI:** Ubuntu Node 22 ve Windows Node 24 bağımsız kurulum testleri artık `main` için zorunlu kontroller
   arasında; Windows kurulumu yayından önce PR'da doğrulanmış olur.
+- **Yayın:** npm yayın betiği sadeleşti. Yayından sonra sabit 10 saniye arayla en fazla 24 okuma yapılır;
+  Retry-After başlığı ve ayrı süre hesabı kaldırıldı. Yalnız test edilmiş arşivin yayımlanması, aynı sürümün
+  hiçbir zaman yeniden yayımlanmaması ve integrity karşılaştırması aynen korunur.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
   izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
   hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı
