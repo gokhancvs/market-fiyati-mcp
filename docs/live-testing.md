@@ -20,7 +20,7 @@ değişmez; şube ID'lerini zaten biliyorsanız değeri `false` yapabilirsiniz.
   "mcpServers": {
     "market-fiyati": {
       "command": "npx",
-      "args": ["-y", "market-fiyati-mcp@1.0.11"],
+      "args": ["-y", "market-fiyati-mcp@2.0.0"],
       "env": {
         "MARKET_FIYATI_MODE": "live",
         "MARKET_FIYATI_LATITUDE": "41.025591",
