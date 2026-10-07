@@ -45,6 +45,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - **Bağımlılık güncellemeleri:** Dependabot artık npm bağımlılıkları ve GitHub Actions için ayda bir, 7 günlük
   bekleme süresinden sonra gruplu sürüm güncellemesi PR'ı açar. Major güncellemeler ayrı gelir, sabit sürümler
   korunur, merge elle yapılır.
+- **Belgeler:** README sorun giderme tablosu, MSIX ile kurulan Claude Desktop'ın Windows'ta yapılandırma
+  dosyasını okuduğu bildirilen sanal yolu açıklar; bu yol resmî belgede yer almaz.
 - **İptal:** Sunucu artık iptal için yalnız MCP SDK'nin istek başına sinyalini kullanır; istek kimliklerini
   izleyen ek katman kaldırıldı. İptal edilen tool çağrısına `CANCELLED` sonucu yerine, MCP'nin öngördüğü gibi
   hiç yanıt gönderilmez. Kimliği `0` veya boş string olan isteklerin iptali SDK tarafından yok sayılır; aynı
