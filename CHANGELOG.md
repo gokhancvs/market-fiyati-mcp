@@ -4,11 +4,20 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 2.0.2 — 2026-10-26
+
+Bu patch sürümü yalnız üretim bağımlılıklarındaki güvenlik bildirimlerini kapatır. Kod, tool girdileri ve
+çıktıları değişmez.
+
 ### Güvenlik
 
 - `zod` 4.6.7'ye yükseltildi (GHSA-mrhx-c7xc-m3w5). `@modelcontextprotocol/sdk` üzerinden gelen `body-parser`
   (2.4.0), `hono` (4.13.14), `fast-uri` (3.1.9), `ip-address` (10.7.5) ve `qs` (6.16.1) lockfile'da güncellendi.
-  `npm audit --omit=dev` yeniden temiz; tool girdileri ve çıktıları değişmez.
+  `npm audit --omit=dev` yeniden temiz.
+
+Doğrulama: offline kontroller, sentetik testler, bağımlılık denetimi ve bağımsız kurulum testi. Bu sürüm için
+live oturum yapılmadı
+([Doğrulama kapsamı](https://github.com/gokhancvs/market-fiyati-mcp/blob/v2.0.2/docs/verification.md)).
 
 ## 2.0.1 — 2026-10-07
 
