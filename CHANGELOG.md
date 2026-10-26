@@ -4,6 +4,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+### Güvenlik
+
+- `zod` 4.6.7'ye yükseltildi (GHSA-mrhx-c7xc-m3w5). `@modelcontextprotocol/sdk` üzerinden gelen `body-parser`
+  (2.4.0), `hono` (4.13.14), `fast-uri` (3.1.9), `ip-address` (10.7.5) ve `qs` (6.16.1) lockfile'da güncellendi.
+  `npm audit --omit=dev` yeniden temiz; tool girdileri ve çıktıları değişmez.
+
 ## 2.0.1 — 2026-10-07
 
 Bu patch sürümü, 2026-10-07 tarihli live testte bulunan sayfalama hatasını düzeltir ve AI'ya giden rehberi aynı
