@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -19,7 +19,7 @@ function lint(source, filename) {
       process.execPath,
       [
         '--import',
-        join(root, 'tests/no-network.mjs'),
+        pathToFileURL(join(root, 'tests/no-network.mjs')).href,
         join(root, 'node_modules/oxlint/bin/oxlint'),
         '--config',
         join(root, '.oxlintrc.json'),
