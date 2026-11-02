@@ -92,6 +92,14 @@ Kaynak deponun klonunda:
 
 **Başarılı sayılır:** Biçim, lint, tip kontrolü, derleme ve testler hatasız biter.
 
+Derleme ve tip kontrolü, `@typescript/native` adıyla sabitlenen TypeScript 7.0.2'nin `tsc` komutunu kullanır.
+Lint için gereken JavaScript derleyici API'si, `typescript` adıyla kurulan `@typescript/typescript6` 6.0.2
+uyumluluk paketinden gelir. Bu paket `tsc6` komutunu sağladığı için `tsc` ile çakışmaz.
+Bu düzen [Microsoft'un geçiş önerisini](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-60)
+izler; typescript-eslint'in TypeScript sürüm koşulu korunur. Native derleyicinin platform paketi npm'in
+isteğe bağlı bağımlılıklarıyla kurulur; geliştirme kurulumunda `--omit=optional` kullanmayın.
+`tsconfig.json`, TS7'nin yeni varsayılanı nedeniyle Node tiplerini `types: ["node"]` ile açıkça yükler.
+
 | Komut                             | Ne yapar                                                                                                                                              |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run build`                   | `dist` klasörünü temizler ve yeniden derler. Derleme hatası olursa komut başarısız çıkış koduyla biter.                                               |

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import ts from 'typescript';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 function project() {
@@ -28,6 +29,26 @@ function build(folder) {
     }
   });
 }
+
+test('tsc uses TypeScript 7 while lint keeps the JavaScript compiler API', () => {
+  const npm = process.env.npm_execpath;
+  assert.ok(npm, 'Run through npm test or npm run check');
+  const result = spawnSync(process.execPath, [npm, 'exec', '--offline', '--', 'tsc', '--version'], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      MARKET_FIYATI_MODE: 'offline',
+      NODE_OPTIONS: `--import=${pathToFileURL(join(root, 'tests/no-network.mjs')).href}`
+    }
+  });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /^Version 7\./);
+  assert.match(ts.version, /^6\./);
+  const source = ts.createSourceFile('probe.ts', 'const value: number = 1;', ts.ScriptTarget.ES2022);
+  assert.equal(source.statements.length, 1);
+});
 
 test('build removes stale output without deleting files outside dist', () => {
   const folder = project();

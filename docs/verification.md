@@ -70,6 +70,9 @@ soketlerini izole süreçte dener; tüm özel HTTP/2 sağlayıcılarını kapsad
 
 ### Dağıtım ve CI
 
+Derleme testi, `tsc` komutunun TypeScript 7'yi çalıştırdığını ve lint'in kullandığı JavaScript derleyici
+API'sinin kullanılabilir kaldığını doğrular. Lint testleri TypeScript kurallarını ayrıca sınar.
+
 Paket arşivi açık dosya listesine göre sınanır; checkout bağımlılıklarıyla CLI ve offline MCP açılır.
 Bağımsız kurulum testi boşluk içeren dizin, ayrı cache ve `--omit=dev --ignore-scripts` kullanır;
 mod belirtilmeden live başlangıç, initialize, tool/resource/prompt keşfi, sürüm ve status doğrulanır;

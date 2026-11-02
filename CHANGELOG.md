@@ -15,8 +15,10 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - `@modelcontextprotocol/sdk` 1.32.2'ye; geliştirme bağımlılıkları `@types/node` 22.20.5, ESLint 10.13.0,
   `js-yaml` 5.5.0, Prettier 3.9.10 ve `typescript-eslint` 8.72.0'a güncellendi. Sabit sürümler korundu.
 - Kontrol ve yayın workflow'larında `actions/setup-node` 7.1.0'ın commit SHA'sına sabitlendi.
-- TypeScript 7.0.2 geçişi ertelendi: `typescript-eslint` 8.72.0, TypeScript `>=4.8.4 <6.1.0` ister.
-  TypeScript 5.9.3 korunur; geçiş için lint bağımlılıklarının uyumlu olması gerekir.
+- Derleme ve tip kontrolü TypeScript 7.0.2'ye geçti. `@typescript/native`, sabit npm alias'ıyla TS7'nin
+  `tsc` komutunu sağlar; `typescript` alias'ı, `typescript-eslint` için `@typescript/typescript6` 6.0.2'nin
+  JavaScript derleyici API'sini korur. Node tipleri `tsconfig.json` içinde açıkça seçilir. Native derleyici
+  ve lint API'si ayrı bir regresyon testiyle doğrulanır.
 
 ## 2.0.2 — 2026-10-26
 
