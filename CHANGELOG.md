@@ -4,6 +4,20 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+### Güvenlik
+
+- SDK üzerinden gelen `@hono/node-server`, lockfile'da 2.1.6'ya güncellendi
+  ([GHSA-rmxm-3fg6-px4f](https://github.com/advisories/GHSA-rmxm-3fg6-px4f)). Bildirim statik dosya sunumuyla
+  ilgilidir; bu proje stdio kullanır.
+
+### Bağımlılıklar ve CI
+
+- `@modelcontextprotocol/sdk` 1.32.2'ye; geliştirme bağımlılıkları `@types/node` 22.20.5, ESLint 10.13.0,
+  `js-yaml` 5.5.0, Prettier 3.9.10 ve `typescript-eslint` 8.72.0'a güncellendi. Sabit sürümler korundu.
+- Kontrol ve yayın workflow'larında `actions/setup-node` 7.1.0'ın commit SHA'sına sabitlendi.
+- TypeScript 7.0.2 geçişi ertelendi: `typescript-eslint` 8.72.0, TypeScript `>=4.8.4 <6.1.0` ister.
+  TypeScript 5.9.3 korunur; geçiş için lint bağımlılıklarının uyumlu olması gerekir.
+
 ## 2.0.2 — 2026-10-26
 
 Bu patch sürümü yalnız üretim bağımlılıklarındaki güvenlik bildirimlerini kapatır. Kod, tool girdileri ve
