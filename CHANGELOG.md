@@ -20,7 +20,8 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 - Lint, TS6 API'sine bağımlı ESLint/typescript-eslint kurulumu yerine Oxlint 1.90.0 kullanır. Önceki
   kapsam 84 native kural ve TS7 JavaScript sözdizimi denetimine taşındı. Kullanılmayan değişkenler, açık `any`
   ve Node global'leri korunur. `no-undef` ile `no-useless-assignment` açıkça etkin `nursery` kurallarıdır.
-  Testlerdeki güvensiz optional chaining ifadeleri, beklenen sonucun varlığını açıkça gerektirir.
+  Geçişte etkilenen MCP testlerinde yanıtlar çalışma zamanında SDK ve çıktı şemalarıyla doğrulanır;
+  eksik veya bozuk alanlar doğrulama hatası verir.
 
 ## 2.0.2 — 2026-10-26
 

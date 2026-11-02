@@ -14,6 +14,8 @@ import { fork } from 'node:child_process';
 import { once } from 'node:events';
 import { WARNING_CODES } from '../src/observations.js';
 import { AppError } from '../src/errors.js';
+import { outputSchema } from '../src/output-schemas.js';
+import { readToolOutput, testOutputSchemas } from './output-reader.js';
 
 const context = {
   latitude: 0,
@@ -906,8 +908,9 @@ test('MCP discovers strict tools, sources and prompts and reports offline errors
       name: 'market_status',
       arguments: {}
     })) as CallToolResult;
-    assert.equal((status.structuredContent!.data as { mode: string }).mode, 'offline');
-    assert.equal((status.structuredContent!.data as { liveRequestsEnabled: boolean }).liveRequestsEnabled, false);
+    const statusOutput = readToolOutput(status, testOutputSchemas.status);
+    assert.equal(statusOutput.data.mode, 'offline');
+    assert.equal(statusOutput.data.liveRequestsEnabled, false);
     const runtime = await client.readResource({ uri: 'market://status' });
     const runtimeData = JSON.parse((runtime.contents[0] as { text: string }).text) as {
       api: {
@@ -935,10 +938,7 @@ test('MCP discovers strict tools, sources and prompts and reports offline errors
     })) as CallToolResult;
     assert.equal(blocked.isError, true);
     assert.match(JSON.stringify(blocked), /NETWORK_DISABLED/);
-    assert.equal(
-      (blocked.structuredContent!.meta as { requestMetrics: { httpAttempts: number } }).requestMetrics.httpAttempts,
-      0
-    );
+    assert.equal(readToolOutput(blocked, testOutputSchemas.error).meta.requestMetrics.httpAttempts, 0);
     const invalid = (await client.callTool({
       name: 'market_search_products',
       arguments: { keywords: 'süt' }
@@ -993,22 +993,23 @@ test('default-live MCP stays local until a data call and preserves experimental 
     for (const uri of ['market://guide', 'market://status', 'market://endpoints']) await client.readResource({ uri });
     await client.getPrompt({ name: 'compare_shopping_list', arguments: { items: 'süt' } });
     const status = (await client.callTool({ name: 'market_status', arguments: {} })) as CallToolResult;
-    assert.equal((status.structuredContent!.data as { mode: string }).mode, 'live');
-    assert.equal((status.structuredContent!.data as { liveRequestsEnabled: boolean }).liveRequestsEnabled, true);
+    const statusOutput = readToolOutput(status, testOutputSchemas.status);
+    assert.equal(statusOutput.data.mode, 'live');
+    assert.equal(statusOutput.data.liveRequestsEnabled, true);
     assert.equal(calls, 0);
     const experimental = (await client.callTool({
       name: 'market_find_nearby_depots',
       arguments: { latitude: 41, longitude: 29, distance: 1 }
     })) as CallToolResult;
     assert.equal(experimental.isError, true);
-    assert.equal((experimental.structuredContent!.error as { code: string }).code, 'EXPERIMENTAL_DISABLED');
+    assert.equal(readToolOutput(experimental, testOutputSchemas.error).error.code, 'EXPERIMENTAL_DISABLED');
     assert.equal(calls, 0);
     const result = (await client.callTool({
       name: 'market_get_categories',
       arguments: { query: 'süt' }
     })) as CallToolResult;
     assert.equal(result.isError, undefined);
-    assert.equal((result.structuredContent!.meta as { source: string }).source, 'live');
+    assert.equal(readToolOutput(result, outputSchema).meta.source, 'live');
     assert.match(JSON.stringify(result.structuredContent?.data), /Süt/);
     assert.equal(calls, 1);
   } finally {
@@ -1126,7 +1127,7 @@ test('stdio entrypoint initializes without API access or stdout noise', async ()
       arguments: {}
     })) as CallToolResult;
     assert.equal(result.isError, undefined);
-    assert.equal((result.structuredContent!.data as { liveRequestsEnabled: boolean }).liveRequestsEnabled, false);
+    assert.equal(readToolOutput(result, testOutputSchemas.status).data.liveRequestsEnabled, false);
     assert.equal(stderr, '');
   } finally {
     await client.close();
@@ -1223,18 +1224,12 @@ test('MCP rejects amplified output with a small explicit error instead of duplic
         arguments: { ...context, items: [{ id: 'A', quantity: 1 }] }
       })) as CallToolResult;
       assert.equal(result.isError, true);
-      assert.equal((result.structuredContent!.error as { code: string }).code, 'OUTPUT_TOO_LARGE');
-      assert.equal(result.structuredContent?.data, null);
+      const output = readToolOutput(result, testOutputSchemas.error);
+      assert.equal(output.error.code, 'OUTPUT_TOO_LARGE');
+      assert.equal(output.data, null);
       assert.ok(JSON.stringify(result).length < 2000);
       assert.deepEqual(JSON.parse((result.content[0] as { text: string }).text), result.structuredContent);
-      assert.equal(
-        (
-          result.structuredContent!.meta as {
-            requestMetrics: { httpAttempts: number };
-          }
-        ).requestMetrics.httpAttempts,
-        1
-      );
+      assert.equal(output.meta.requestMetrics.httpAttempts, 1);
     }
   );
 });

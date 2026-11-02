@@ -62,6 +62,10 @@ Aşım kısmi başarı sayılmaz; kabul edilmiş ek alanlar ve uyarılar korunur
 
 ### SDK ve ağ
 
+Geçişte etkilenen MCP testleri yanıtları SDK ve uygulama çıktı şemalarıyla okur. Eksik `structuredContent`,
+null başarı verisi, bozuk zorunlu alanlar ve geçersiz hata/istek ölçümleri, alanlar okunmadan reddedilir.
+İzin verilen ek alanların korunması ve iptal sonrası zorunlu status yanıtının varlığı da sınanır.
+
 Aktif ve aynı turda gelen iptal, iptal edilen çağrıya yanıt gönderilmemesi, kuyruktaki işin iptali ve
 bağlantı kapanışında iptal sınanır. Bellek içi SDK ve stdio testleri vardır.
 Çok şubeli/eşit fiyatlı büyüme testi alan erişimlerini sayar; süre eşiği veya live yük testi değildir.
