@@ -92,6 +92,12 @@ Kaynak deponun klonunda:
 
 **Başarılı sayılır:** Biçim, lint, tip kontrolü, derleme ve testler hatasız biter.
 
+Derleme ve tip kontrolü, doğrudan sabitlenen TypeScript 7.0.2'nin native `tsc` komutunu kullanır.
+Lint, TS6 derleyici API'sine ihtiyaç duymayan Oxlint 1.90.0 ile çalışır. TS6 uyumluluk paketi veya compiler
+alias'ı bulunmaz. İki programın platform paketleri npm'in isteğe bağlı bağımlılıklarıyla kurulur;
+geliştirme kurulumunda `--omit=optional` kullanmayın.
+`tsconfig.json`, TS7'nin yeni varsayılanı nedeniyle Node tiplerini `types: ["node"]` ile açıkça yükler.
+
 | Komut                             | Ne yapar                                                                                                                                              |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run build`                   | `dist` klasörünü temizler ve yeniden derler. Derleme hatası olursa komut başarısız çıkış koduyla biter.                                               |
@@ -101,9 +107,14 @@ Kaynak deponun klonunda:
 | `npm run check`                   | Yukarıdaki kontrollerin hepsini ve ağ erişimi engellenmiş testleri çalıştırır.                                                                        |
 
 Kod biçimi: tek tırnak, sonda virgül (trailing comma) yok, 2 boşluk girinti, noktalı virgül, satır başına
-hedef 120 karakter ve LF satır sonu. Lint, ESLint flat config ile `@eslint/js` ve typescript-eslint
-önerilerini kullanır; Prettier ile çakışan kurallar `eslint-config-prettier` ile kapatılır. Hatalar da
-uyarılar da kontrolü durdurur. ESLint 10, Node 22 serisinde en az 22.13 ister.
+hedef 120 karakter ve LF satır sonu. Biçimi Prettier, kod kontrollerini `.oxlintrc.json` belirler.
+Lint kapsamı, önceki `@eslint/js` 10.0.1 ve `typescript-eslint` 8.72.0 önerilerinden 84 native kurala
+taşınmıştır; `no-dupe-args` ve `no-octal` kontrollerini native parser ile TS7'nin JavaScript sözdizimi
+denetimi karşılar. `tsconfig.lint.json`, import/export içermeyen `.js` dosyalarını da ESM olarak denetler;
+JavaScript için tip kontrolü veya dosya üretimi açılmaz.
+`no-undef` ve `no-useless-assignment`, Oxlint'te henüz `nursery` kategorisindedir; açıkça etkin tutulur ve
+regresyon testleriyle sınanır. Linter'lar arasında tüm tanıların bire bir aynı olduğu iddia edilmez.
+Hatalar da uyarılar da kontrolü durdurur. Oxlint, Node 22 serisinde en az 22.12 ister.
 
 Planlar `plans/`, inceleme ve test raporları `reports/` klasöründe tutulur. Bu klasörler yereldir ve Git
 tarafından yok sayılır. Temiz bir klonda gerekmezler. Git bunları saklamadığı için ayrıca yedekleyin ve temizlik yaparken silmeyin.

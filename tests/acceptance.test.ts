@@ -2,10 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolResultSchema, type CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
+import { readToolOutput, testOutputSchemas } from './output-reader.js';
 
 const context = {
   latitude: 0,
@@ -47,7 +48,8 @@ test(
         name: 'market_status',
         arguments: {}
       })) as CallToolResult;
-      assert.equal((status.structuredContent?.data as { mode: string }).mode, 'offline');
+      const statusOutput = readToolOutput(status, testOutputSchemas.status);
+      assert.equal(statusOutput.data.mode, 'offline');
       assert.match(JSON.stringify(status.structuredContent), /synthetic acceptance/i);
       const result = (await client.callTool({
         name: 'market_compare_basket',
@@ -61,15 +63,7 @@ test(
       })) as CallToolResult;
       assert.equal(result.isError, undefined);
       assert.match(JSON.stringify(result.structuredContent), /synthetic acceptance/i);
-      const data = result.structuredContent?.data as {
-        groups: {
-          id: string;
-          total: number | null;
-          requiresMultipleDepots: boolean;
-        }[];
-        splitBasket: { total: number };
-        outOfScopeOffers: { offer: { depotId: string } }[];
-      };
+      const { data } = readToolOutput(result, testOutputSchemas.basket);
       assert.equal(data.groups.find((g) => g.id === 'Test A')?.total, 70);
       assert.equal(data.groups.find((g) => g.id === 'Test A')?.requiresMultipleDepots, true);
       assert.equal(data.groups.find((g) => g.id === 'Test B')?.total, 70);
@@ -123,21 +117,22 @@ test(
         arguments: { ...context, identity: 'test-missing' }
       })) as CallToolResult;
       assert.equal(missing.isError, undefined);
-      assert.deepEqual((missing.structuredContent?.data as { content: unknown[] }).content, []);
+      assert.deepEqual(readToolOutput(missing, testOutputSchemas.products).data.content, []);
       const unknown = (await client.callTool({
         name: 'market_get_product',
         arguments: { ...context, identity: 'test-unknown' }
       })) as CallToolResult;
       assert.equal(unknown.isError, true);
-      assert.equal((unknown.structuredContent?.error as { code: string }).code, 'HTTP_ERROR');
-      assert.equal((unknown.structuredContent?.error as { status: number }).status, 422);
-      assert.equal((unknown.structuredContent?.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
+      const unknownOutput = readToolOutput(unknown, testOutputSchemas.error);
+      assert.equal(unknownOutput.error.code, 'HTTP_ERROR');
+      assert.equal(unknownOutput.error.status, 422);
+      assert.equal(unknownOutput.error.syntheticAcceptance, true);
       const endpoint = (await client.callTool({
         name: 'market_get_price_history',
         arguments: { ...context, uniqueId: 'test-milk-1l' }
       })) as CallToolResult;
       assert.equal(endpoint.isError, true);
-      assert.equal((endpoint.structuredContent?.error as { status: number }).status, 422);
+      assert.equal(readToolOutput(endpoint, testOutputSchemas.error).error.status, 422);
     });
   }
 );
@@ -153,7 +148,7 @@ test('fixture rejects unlisted branches and unsupported search filters', { timeo
       }
     })) as CallToolResult;
     assert.equal(branch.isError, true);
-    assert.equal((branch.structuredContent?.error as { status: number }).status, 422);
+    assert.equal(readToolOutput(branch, testOutputSchemas.error).error.status, 422);
     const filter = (await client.callTool({
       name: 'market_search_products',
       arguments: {
@@ -163,13 +158,13 @@ test('fixture rejects unlisted branches and unsupported search filters', { timeo
       }
     })) as CallToolResult;
     assert.equal(filter.isError, true);
-    assert.equal((filter.structuredContent?.error as { status: number }).status, 422);
+    assert.equal(readToolOutput(filter, testOutputSchemas.error).error.status, 422);
     const radius = (await client.callTool({
       name: 'market_get_product',
       arguments: { ...context, distance: 2, identity: 'test-milk-1l' }
     })) as CallToolResult;
     assert.equal(radius.isError, true);
-    assert.equal((radius.structuredContent?.error as { status: number }).status, 422);
+    assert.equal(readToolOutput(radius, testOutputSchemas.error).error.status, 422);
   });
 });
 
@@ -179,16 +174,13 @@ test('search applies accepted weight and page size to literal result rows', { ti
       name: 'market_search_products',
       arguments: { ...context, keywords: 'yoğurt', size: 1 }
     })) as CallToolResult;
-    const firstPage = first.structuredContent?.data as {
-      numberOfFound: number;
-      content: { id: string }[];
-    };
+    const { data: firstPage } = readToolOutput(first, testOutputSchemas.products);
     assert.equal(firstPage.numberOfFound, 2);
     assert.deepEqual(
       firstPage.content.map((product) => product.id),
       ['test-yogurt-1kg']
     );
-    assert.equal((first.structuredContent?.meta as { pagination: { nextPage: number } }).pagination.nextPage, 1);
+    assert.equal(readToolOutput(first, testOutputSchemas.pagination).meta.pagination.nextPage, 1);
     const milk = (await client.callTool({
       name: 'market_search_products',
       arguments: {
@@ -197,10 +189,7 @@ test('search applies accepted weight and page size to literal result rows', { ti
         refined_volume_weight: ['1 KG']
       }
     })) as CallToolResult;
-    const filtered = milk.structuredContent?.data as {
-      numberOfFound: number;
-      content: unknown[];
-    };
+    const { data: filtered } = readToolOutput(milk, testOutputSchemas.products);
     assert.equal(filtered.numberOfFound, 0);
     assert.deepEqual(filtered.content, []);
   });
@@ -227,7 +216,7 @@ test('search shows wrong package candidate and preserves untrusted upstream warn
       arguments: { ...context, keywords: 'yoğurt' }
     })) as CallToolResult;
     assert.equal(result.isError, undefined);
-    const products = (result.structuredContent?.data as { content: { id: string }[] }).content;
+    const products = readToolOutput(result, testOutputSchemas.products).data.content;
     assert.deepEqual(
       products.map((product) => product.id),
       ['test-yogurt-1kg', 'test-yogurt-500g']
@@ -253,17 +242,11 @@ test('error and timeout return explicit synthetic failures without partial baske
         }
       })) as CallToolResult;
       assert.equal(result.isError, true);
-      assert.equal(result.structuredContent?.data, null);
-      assert.equal((result.structuredContent?.error as { code: string }).code, code);
-      assert.equal((result.structuredContent?.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
-      assert.equal(
-        (
-          result.structuredContent?.meta as {
-            requestMetrics: { httpAttempts: number };
-          }
-        ).requestMetrics.httpAttempts,
-        1
-      );
+      const output = readToolOutput(result, testOutputSchemas.error);
+      assert.equal(output.data, null);
+      assert.equal(output.error.code, code);
+      assert.equal(output.error.syntheticAcceptance, true);
+      assert.equal(output.meta.requestMetrics.httpAttempts, 1);
     });
   }
 });
@@ -345,7 +328,11 @@ test(
       undefined,
       'a cancelled request gets no response'
     );
-    assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
+    const statusReply = replies.find((reply) => reply.id === 2);
+    assert.ok(statusReply, 'Expected the follow-up status reply with id 2');
+    const statusResult = CallToolResultSchema.parse(statusReply.result);
+    assert.equal(statusResult.isError, undefined);
+    assert.equal(readToolOutput(statusResult, testOutputSchemas.status).data.mode, 'offline');
     assert.equal((stderr.match(/synthetic-acceptance:slow:start/g) ?? []).length, 1);
     assert.match(stderr, /synthetic-acceptance:slow:cancel/);
     assert.equal(code, 0);
@@ -361,7 +348,11 @@ test('same-write early cancellation sends no result and starts no fake fetch', {
     undefined,
     'a cancelled request gets no response'
   );
-  assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
+  const statusReply = replies.find((reply) => reply.id === 2);
+  assert.ok(statusReply, 'Expected the follow-up status reply with id 2');
+  const statusResult = CallToolResultSchema.parse(statusReply.result);
+  assert.equal(statusResult.isError, undefined);
+  assert.equal(readToolOutput(statusResult, testOutputSchemas.status).data.mode, 'offline');
   assert.doesNotMatch(stderr, /synthetic-acceptance:slow:start/);
   assert.equal(code, 0);
 });

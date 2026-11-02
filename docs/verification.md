@@ -62,6 +62,10 @@ Aşım kısmi başarı sayılmaz; kabul edilmiş ek alanlar ve uyarılar korunur
 
 ### SDK ve ağ
 
+Geçişte etkilenen MCP testleri yanıtları SDK ve uygulama çıktı şemalarıyla okur. Eksik `structuredContent`,
+null başarı verisi, bozuk zorunlu alanlar ve geçersiz hata/istek ölçümleri, alanlar okunmadan reddedilir.
+İzin verilen ek alanların korunması ve iptal sonrası zorunlu status yanıtının varlığı da sınanır.
+
 Aktif ve aynı turda gelen iptal, iptal edilen çağrıya yanıt gönderilmemesi, kuyruktaki işin iptali ve
 bağlantı kapanışında iptal sınanır. Bellek içi SDK ve stdio testleri vardır.
 Çok şubeli/eşit fiyatlı büyüme testi alan erişimlerini sayar; süre eşiği veya live yük testi değildir.
@@ -69,6 +73,13 @@ Ağ koruması fetch, TCP, HTTP(S), TLS, HTTP/2, DNS sorgularını ve `dgram.crea
 soketlerini izole süreçte dener; tüm özel HTTP/2 sağlayıcılarını kapsadığı iddia edilmez.
 
 ### Dağıtım ve CI
+
+Derleme testi, gerçek `tsc` komutunun TypeScript 7'yi çalıştırdığını ve lockfile'da TS6 derleyicisi veya
+uyumluluk alias'ı kalmadığını doğrular. Native lint testleri JS/MJS/TS kapsamını, Node global'lerini,
+kullanılmayan değişken ve catch parametrelerini, açık `any`'yi, `@ts-ignore`, boş tip, ölü atama ve güvensiz
+optional chaining kontrollerini sınar. Parser testleri yinelenen parametreleri ve eski sekizlik sayı
+yazımını reddeder; lint komutunun TS7 sözdizimi denetimi, import/export içermeyen `.js` dosyasında da
+sınanır. Bu örnekler tüm linter davranışlarının eşdeğerliğini kanıtlamaz.
 
 Paket arşivi açık dosya listesine göre sınanır; checkout bağımlılıklarıyla CLI ve offline MCP açılır.
 Bağımsız kurulum testi boşluk içeren dizin, ayrı cache ve `--omit=dev --ignore-scripts` kullanır;

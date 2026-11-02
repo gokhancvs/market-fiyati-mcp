@@ -12,11 +12,16 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ### Bağımlılıklar ve CI
 
-- `@modelcontextprotocol/sdk` 1.32.2'ye; geliştirme bağımlılıkları `@types/node` 22.20.5, ESLint 10.13.0,
-  `js-yaml` 5.5.0, Prettier 3.9.10 ve `typescript-eslint` 8.72.0'a güncellendi. Sabit sürümler korundu.
+- `@modelcontextprotocol/sdk` 1.32.2'ye; geliştirme bağımlılıkları `@types/node` 22.20.5,
+  `js-yaml` 5.5.0 ve Prettier 3.9.10'a güncellendi. Sabit sürümler korundu.
 - Kontrol ve yayın workflow'larında `actions/setup-node` 7.1.0'ın commit SHA'sına sabitlendi.
-- TypeScript 7.0.2 geçişi ertelendi: `typescript-eslint` 8.72.0, TypeScript `>=4.8.4 <6.1.0` ister.
-  TypeScript 5.9.3 korunur; geçiş için lint bağımlılıklarının uyumlu olması gerekir.
+- Derleme ve tip kontrolü doğrudan TypeScript 7.0.2'ye geçti. Node tipleri `tsconfig.json` içinde açıkça
+  seçilir; TS6 uyumluluk paketi ve compiler alias'ı kullanılmaz.
+- Lint, TS6 API'sine bağımlı ESLint/typescript-eslint kurulumu yerine Oxlint 1.90.0 kullanır. Önceki
+  kapsam 84 native kural ve TS7 JavaScript sözdizimi denetimine taşındı. Kullanılmayan değişkenler, açık `any`
+  ve Node global'leri korunur. `no-undef` ile `no-useless-assignment` açıkça etkin `nursery` kurallarıdır.
+  Geçişte etkilenen MCP testlerinde yanıtlar çalışma zamanında SDK ve çıktı şemalarıyla doğrulanır;
+  eksik veya bozuk alanlar doğrulama hatası verir.
 
 ## 2.0.2 — 2026-10-26
 

@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "moduleDetection": "force"
+  },
+  "include": ["**/*.js", "**/*.mjs"],
+  "exclude": ["node_modules", "dist", "coverage", "plans", "reports"]
+}
