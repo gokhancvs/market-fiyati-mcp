@@ -70,8 +70,12 @@ soketlerini izole süreçte dener; tüm özel HTTP/2 sağlayıcılarını kapsad
 
 ### Dağıtım ve CI
 
-Derleme testi, `tsc` komutunun TypeScript 7'yi çalıştırdığını ve lint'in kullandığı JavaScript derleyici
-API'sinin kullanılabilir kaldığını doğrular. Lint testleri TypeScript kurallarını ayrıca sınar.
+Derleme testi, gerçek `tsc` komutunun TypeScript 7'yi çalıştırdığını ve lockfile'da TS6 derleyicisi veya
+uyumluluk alias'ı kalmadığını doğrular. Native lint testleri JS/MJS/TS kapsamını, Node global'lerini,
+kullanılmayan değişken ve catch parametrelerini, açık `any`'yi, `@ts-ignore`, boş tip, ölü atama ve güvensiz
+optional chaining kontrollerini sınar. Parser testleri yinelenen parametreleri ve eski sekizlik sayı
+yazımını reddeder; lint komutunun TS7 sözdizimi denetimi, import/export içermeyen `.js` dosyasında da
+sınanır. Bu örnekler tüm linter davranışlarının eşdeğerliğini kanıtlamaz.
 
 Paket arşivi açık dosya listesine göre sınanır; checkout bağımlılıklarıyla CLI ve offline MCP açılır.
 Bağımsız kurulum testi boşluk içeren dizin, ayrı cache ve `--omit=dev --ignore-scripts` kullanır;

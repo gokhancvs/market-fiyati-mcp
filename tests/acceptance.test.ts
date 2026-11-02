@@ -47,7 +47,7 @@ test(
         name: 'market_status',
         arguments: {}
       })) as CallToolResult;
-      assert.equal((status.structuredContent?.data as { mode: string }).mode, 'offline');
+      assert.equal((status.structuredContent!.data as { mode: string }).mode, 'offline');
       assert.match(JSON.stringify(status.structuredContent), /synthetic acceptance/i);
       const result = (await client.callTool({
         name: 'market_compare_basket',
@@ -123,21 +123,21 @@ test(
         arguments: { ...context, identity: 'test-missing' }
       })) as CallToolResult;
       assert.equal(missing.isError, undefined);
-      assert.deepEqual((missing.structuredContent?.data as { content: unknown[] }).content, []);
+      assert.deepEqual((missing.structuredContent!.data as { content: unknown[] }).content, []);
       const unknown = (await client.callTool({
         name: 'market_get_product',
         arguments: { ...context, identity: 'test-unknown' }
       })) as CallToolResult;
       assert.equal(unknown.isError, true);
-      assert.equal((unknown.structuredContent?.error as { code: string }).code, 'HTTP_ERROR');
-      assert.equal((unknown.structuredContent?.error as { status: number }).status, 422);
-      assert.equal((unknown.structuredContent?.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
+      assert.equal((unknown.structuredContent!.error as { code: string }).code, 'HTTP_ERROR');
+      assert.equal((unknown.structuredContent!.error as { status: number }).status, 422);
+      assert.equal((unknown.structuredContent!.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
       const endpoint = (await client.callTool({
         name: 'market_get_price_history',
         arguments: { ...context, uniqueId: 'test-milk-1l' }
       })) as CallToolResult;
       assert.equal(endpoint.isError, true);
-      assert.equal((endpoint.structuredContent?.error as { status: number }).status, 422);
+      assert.equal((endpoint.structuredContent!.error as { status: number }).status, 422);
     });
   }
 );
@@ -153,7 +153,7 @@ test('fixture rejects unlisted branches and unsupported search filters', { timeo
       }
     })) as CallToolResult;
     assert.equal(branch.isError, true);
-    assert.equal((branch.structuredContent?.error as { status: number }).status, 422);
+    assert.equal((branch.structuredContent!.error as { status: number }).status, 422);
     const filter = (await client.callTool({
       name: 'market_search_products',
       arguments: {
@@ -163,13 +163,13 @@ test('fixture rejects unlisted branches and unsupported search filters', { timeo
       }
     })) as CallToolResult;
     assert.equal(filter.isError, true);
-    assert.equal((filter.structuredContent?.error as { status: number }).status, 422);
+    assert.equal((filter.structuredContent!.error as { status: number }).status, 422);
     const radius = (await client.callTool({
       name: 'market_get_product',
       arguments: { ...context, distance: 2, identity: 'test-milk-1l' }
     })) as CallToolResult;
     assert.equal(radius.isError, true);
-    assert.equal((radius.structuredContent?.error as { status: number }).status, 422);
+    assert.equal((radius.structuredContent!.error as { status: number }).status, 422);
   });
 });
 
@@ -188,7 +188,7 @@ test('search applies accepted weight and page size to literal result rows', { ti
       firstPage.content.map((product) => product.id),
       ['test-yogurt-1kg']
     );
-    assert.equal((first.structuredContent?.meta as { pagination: { nextPage: number } }).pagination.nextPage, 1);
+    assert.equal((first.structuredContent!.meta as { pagination: { nextPage: number } }).pagination.nextPage, 1);
     const milk = (await client.callTool({
       name: 'market_search_products',
       arguments: {
@@ -227,7 +227,7 @@ test('search shows wrong package candidate and preserves untrusted upstream warn
       arguments: { ...context, keywords: 'yoğurt' }
     })) as CallToolResult;
     assert.equal(result.isError, undefined);
-    const products = (result.structuredContent?.data as { content: { id: string }[] }).content;
+    const products = (result.structuredContent!.data as { content: { id: string }[] }).content;
     assert.deepEqual(
       products.map((product) => product.id),
       ['test-yogurt-1kg', 'test-yogurt-500g']
@@ -254,11 +254,11 @@ test('error and timeout return explicit synthetic failures without partial baske
       })) as CallToolResult;
       assert.equal(result.isError, true);
       assert.equal(result.structuredContent?.data, null);
-      assert.equal((result.structuredContent?.error as { code: string }).code, code);
-      assert.equal((result.structuredContent?.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
+      assert.equal((result.structuredContent!.error as { code: string }).code, code);
+      assert.equal((result.structuredContent!.error as { syntheticAcceptance: boolean }).syntheticAcceptance, true);
       assert.equal(
         (
-          result.structuredContent?.meta as {
+          result.structuredContent!.meta as {
             requestMetrics: { httpAttempts: number };
           }
         ).requestMetrics.httpAttempts,
@@ -345,7 +345,7 @@ test(
       undefined,
       'a cancelled request gets no response'
     );
-    assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
+    assert.equal((replies.find((reply) => reply.id === 2)!.result as CallToolResult).isError, undefined);
     assert.equal((stderr.match(/synthetic-acceptance:slow:start/g) ?? []).length, 1);
     assert.match(stderr, /synthetic-acceptance:slow:cancel/);
     assert.equal(code, 0);
@@ -361,7 +361,7 @@ test('same-write early cancellation sends no result and starts no fake fetch', {
     undefined,
     'a cancelled request gets no response'
   );
-  assert.equal((replies.find((reply) => reply.id === 2)?.result as CallToolResult).isError, undefined);
+  assert.equal((replies.find((reply) => reply.id === 2)!.result as CallToolResult).isError, undefined);
   assert.doesNotMatch(stderr, /synthetic-acceptance:slow:start/);
   assert.equal(code, 0);
 });
