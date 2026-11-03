@@ -4,6 +4,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 2.0.3 — 2026-11-02
+
+Bu patch sürümü bağımlılıkları, derleme ortamını ve CI kontrollerini günceller. Tool girdileri,
+çıktı sözleşmeleri ve fiyat hesaplama kodu değişmez. Paket, Registry manifesti ve kurulum örnekleri
+`2.0.3` olarak eşitlendi.
+
 ### Güvenlik
 
 - SDK üzerinden gelen `@hono/node-server`, lockfile'da 2.1.6'ya güncellendi
@@ -22,6 +28,12 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
   ve Node global'leri korunur. `no-undef` ile `no-useless-assignment` açıkça etkin `nursery` kurallarıdır.
   Geçişte etkilenen MCP testlerinde yanıtlar çalışma zamanında SDK ve çıktı şemalarıyla doğrulanır;
   eksik veya bozuk alanlar doğrulama hatası verir.
+
+Doğrulama: offline kontroller, 235 test ve bağımsız kurulum testi. TS7 geçişinin branch derlemesi ayrıca
+2026-11-02'de operatör onaylı, sınırlı bir live oturumda denendi: 8 veri çağrısı, 10 HTTP denemesi,
+sıfır retry; arama, filtreleme, karşılaştırma, fiyat geçmişi ve sepet kontrolleri geçti. Bu sürüm hazırlığı
+yalnız sürüm bilgisi ve belgeleri değiştirir. Kota, yük veya masaüstü istemci kabulü iddia edilmez
+([Doğrulama kapsamı](https://github.com/gokhancvs/market-fiyati-mcp/blob/v2.0.3/docs/verification.md)).
 
 ## 2.0.2 — 2026-10-26
 
