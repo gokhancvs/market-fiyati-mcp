@@ -4,6 +4,19 @@ En yeni değişiklikler en üsttedir. Henüz tag'lenmemiş değişiklikler **Yay
 
 ## Yayımlanmamış
 
+## 2.0.4 — 2026-11-15
+
+Bu patch sürümü SDK üzerinden gelen `hono` bağımlılığını lockfile'da 4.13.14'ten 4.13.18'e günceller
+([PR #45](https://github.com/gokhancvs/market-fiyati-mcp/pull/45)).
+[Hono 4.13.18](https://github.com/honojs/hono/releases/tag/v4.13.18), HTTP doğrulama, gövde sınırı,
+yol yönlendirme ve statik dosya sunumuyla ilgili güvenlik düzeltmeleri içerir. Bu proje stdio kullanır;
+HTTP sunucusu açmaz. Uygulama kodu, tool girdileri, çıktı sözleşmeleri ve fiyat hesaplamaları değişmez.
+Paket, Registry manifesti ve kurulum örnekleri `2.0.4` olarak eşitlendi.
+
+Doğrulama: offline kontroller, 235 sentetik test, bağımsız kurulum testi ve üretim bağımlılığı denetimi.
+Bu sürüm için live API veya masaüstü istemci kabul testi yapılmadı
+([Doğrulama kapsamı](https://github.com/gokhancvs/market-fiyati-mcp/blob/v2.0.4/docs/verification.md)).
+
 ## 2.0.3 — 2026-11-02
 
 Bu patch sürümü bağımlılıkları, derleme ortamını ve CI kontrollerini günceller. Tool girdileri,
